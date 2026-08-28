@@ -1,0 +1,64 @@
+\documentclass{llncs}
+
+\pagestyle{headings}
+
+%\usepackage{showkeys}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{relsize}
+%\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage{listings, framed}
+\usepackage{orcidlink}
+
+% \|name| or \mathid{name} denotes identifiers and slots in formulas
+\def\|#1|{\mathid{#1}}
+\newcommand{\mathid}[1]{\ensuremath{\mathit{#1}}}
+% \<name> or \codeid{name} denotes computer code identifiers
+\def\codesize{\small}
+\def\<#1>{\codeid{#1}}
+\newcommand{\codeid}[1]{\ifmmode{\mbox{\codesize\ttfamily{#1}}}\else{\codesize\ttfamily #1}\fi}
+
+\newcommand{\todo}[1]{{\color{red}\bfseries [[#1]]}}
+
+\newcommand{\wrt}{\textit{wrt.\ }}
+\newcommand{\ie}{, \textit{ie.}, }
+
+\begin{document}
+
+\begin{frontmatter}
+
+  \title{Boundness Analysis for Smart Contracts}
+
+  \author{
+    Fausto Spoto\orcidlink{0000-0003-2973-0384}
+  }
+  \institute{
+    Dipartimento di Informatica, Universit\`a di Verona, Italy\\
+    \email{fausto.spoto@univr.it}
+  }
+
+  \maketitle
+
+  \begin{abstract}
+    This is the abstract.
+  \end{abstract}
+
+\end{frontmatter}
+
+\pagenumbering{arabic}
+
+\input{introduction}
+\input{examples}
+\input{analysis}
+\input{implementation}
+\input{related}
+\input{conclusion}
+
+\bibliographystyle{plain}
+\bibliography{biblio}
+
+\end{document}
