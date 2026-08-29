@@ -1,1 +1,161 @@
-\section{Examples of Boundness Bugs}\label{sec:examples}
+\section{Examples of Boundness and Unboundedness}\label{sec:examples}
+
+This section exemplifies the meaning and relevance of boundedness for
+data collections in smart contracts. It provides concrete examples of smart
+contracts, written in a pseudocode inspired by Solidity and Takamaka~\cite{OlivieriST25}
+(the latter provides a clearer type system, inherited from Java). We prefer
+to use pseudocode in order to concentrate on the semantics of the code rather than
+on the idiosyncrasies of a specific programming language. Pseudocode allows us to
+keep the syntax to a minimum.
+
+\begin{figure}[t]
+  \begin{lstlisting}[language=pseudo]
+public class Ponzi1 extends Contract {
+  private final List<Contract> investors = new List<>();|\label{ponzi1:investors}|
+  private final int MINIMUM_INVESTMENT = 1000;
+
+  public Ponzi1() {
+    investors.push(caller);|\label{ponzi1:creator}|
+  }
+
+  public payable void invest() {|\label{ponzi1:invest}|
+    require(amount >= MINIMUM_INVESTMENT);|\label{ponzi1:require}|
+
+    int eachInvestorGets = amount / investors.size();
+    for investor in investors|\label{ponzi1:iteration}|
+      investor.receive(eachInvestorGets);|\label{ponzi1:receive}|
+
+    investors.push(caller);|\label{ponzi1:expand}|
+  }
+}
+  \end{lstlisting}
+  \caption{A smart contract that implements a Ponzi scheme. Investors get their money
+    back, but only as long as new investors keep arriving after them. The list \<investors>
+    is unbounded and, consequently, the loop at line~\ref{ponzi1:iteration} is unbounded as well.}
+  \label{fig:ponzi1}
+\end{figure}
+
+Fig.~\ref{fig:ponzi1} shows a smart contract that implements a Ponzi scheme, inspired
+by an example from~\cite{IyerD18}. It keeps a list of investors at
+line~\ref{ponzi1:investors} where, as in Takamaka, \<Contract> is a superclass of both
+contracts and externally-owned accounts, that are treated as a special case of contract.
+That list gets initially populated for free by the constructor with
+its caller (line~\ref{ponzi1:creator}, where \<caller> corresponds to
+\<msg.sender> in Solidity). Subsequently, new contracts become investors
+by calling the \<invest()> method and paying a minimal fee (\<amount> corresponds to
+\<msg.value> in Solidity). This fee gets equally split among the existing investors
+(lines~\ref{ponzi1:iteration} and~\ref{ponzi1:receive}) before the \<caller> is
+added to the list of investors (line~\ref{ponzi1:expand}). There is no upper bound
+to the size of the list \<investors> and there is no way of removing investors.
+As long as users keep calling \<invest()>, the list
+\<investors> can only grow arbitrarily long. Therefore, there is no upper bound
+on the gas needed to execute the loop at line~\ref{ponzi1:iteration}. Namely,
+once that gas cost
+exceeds the maximum allowed for a blockchain transaction, the smart contract is
+effectively blocked: method \<invest()> can only fail for gas exhaustion, reverting
+all transaction updates, and some investors will never be able to cover their investment.
+We will say that list \<investment> and the loop at line~\ref{ponzi1:iteration}
+are \emph{unbounded} and we expect a sound boundedness analyzer to warn about an
+unbouded loop at line~\ref{ponzi1:iteration}.
+
+\begin{figure}[t]
+  \begin{lstlisting}[language=pseudo]
+public class Ponzi2 extends Contract {
+  private final List<Contract> investors = new List<>();|\label{ponzi2:investors}|
+  private final Map<Contract, int> balances = new Map<>();|\label{ponzi2:balances}|
+  private final int MINIMUM_INVESTMENT = 1000;
+
+  public Ponzi2() {
+    investors.push(caller);|\label{ponzi2:creator}|
+  }
+
+  public payable void invest() {|\label{ponzi2:invest}|
+    require(amount >= MINIMUM_INVESTMENT);|\label{ponzi2:require}|
+
+    int eachInvestorGets = amount / investors.size();
+    for investor in investors|\label{ponzi2:iteration}|
+      balances[investor] = (balances[investor] else 0) + eachInvestorGets;|\label{ponzi2:increase}|
+
+    investors.push(caller);|\label{ponzi2:expand}|
+  }
+
+  public void withdraw() {
+    int payout = balances[caller] else 0;
+    balances[caller] = 0;|\label{ponzi2:noreentrancy}|
+    caller.receive(payout);|\label{ponzi2:receive}|
+  }
+}
+  \end{lstlisting}
+  \caption{A smart contract that implements a Ponzi scheme, using the withdrawal pattern.
+    The list \<investors>
+    is still unbounded and, consequently, the loop at line~\ref{ponzi2:iteration} is unbounded as well.}
+  \label{fig:ponzi2}
+\end{figure}
+
+Method \<receive()> at line~\ref{ponzi1:receive} of Fig.~\ref{fig:ponzi1} is the payment
+method of class \<Contract>, that sends cryptocurrency to a contract.
+Different programming languages
+have different approaches to that method. For instance, Takamaka defines \<receive()>
+as \<final> in class \<Contract>, so that its semantics cannot be redefined and
+its call cannot lead to re-entrancy. Solidity, instead, allows its redefinition. It is
+well-known that clever redefinitions of the payment method led to re-entrancy attacks
+in Solidity contracts. Therefore, Solidity programmers require the paid contract
+to take responsibility about the call to its own payment method, through the so-called
+\emph{withdrawal pattern}. Fig.~\ref{fig:ponzi2} shows how the same smart contract
+from Fig.~\ref{fig:ponzi1} would be written by a Solidity programmer. It uses an extra
+map that keeps track of the \<balances> that each investor is still allowed to withdraw
+(line~\ref{ponzi2:balances}). When new investors arrive, the balances of the previous
+investors get increased at line~\ref{ponzi2:increase}, where \<balances[investor] else 0>
+is the map value for \<investor> with $0$ as default if \<investor> does not belong to the map.
+Solidity implicitly uses a default value for maps, but we prefer to make it explicit in our
+pseudocode. When an investor wants to withdraw its balance, it calls method \<withdraw()>, taking
+responsibility for any potential redefinition of its own \<receive()> method (line~\ref{ponzi2:receive},
+where \<caller> is the same investor). The assignment
+at line~\ref{ponzi2:noreentrancy} makes any potential re-entrancy harmless.
+We want to make clear that this paper is not
+about re-entrancy and that we are showing the contract in Fig.~\ref{fig:ponzi2} only to clarify
+that unboundedness is not related to the potential re-entrancy bug in the contract in
+Fig.~\ref{fig:ponzi1} since, in Fig.~\ref{fig:ponzi2},
+list \<investors> and the loop at line~\ref{ponzi2:iteration}
+are still unbounded and a sound boundedness analyzer should warn about it.
+
+\begin{figure}[t]
+  \begin{lstlisting}[language=pseudo]
+public class Ponzi3 extends Contract {
+  private final List<Contract> investors = new List<>();|\label{ponzi3:investors}|
+  private final int MINIMUM_INVESTMENT = 1000;
+
+  public Ponzi3() {
+    investors.push(caller);|\label{ponzi3:creator}|
+  }
+
+  public payable void invest() {|\label{ponzi3:invest}|
+    require(amount >= MINIMUM_INVESTMENT);|\label{ponzi3:require}|
+    require(investors.size() < 100, "no more investors");|\label{ponzi3:require_limit}|
+
+    int eachInvestorGets = amount / investors.size();
+    for investor in investors|\label{ponzi3:iteration}|
+      investor.receive(eachInvestorGets);|\label{ponzi3:receive}|
+
+    investors.push(caller);|\label{ponzi3:expand}|
+  }
+}
+  \end{lstlisting}
+  \caption{A modified version of the smart contract in Fig.~\ref{fig:ponzi1}, that enforces
+    an upper bound to the size of the list \<investors>, at line~\ref{ponzi3:require_limit}.
+    The list \<investors>
+    is bounded and, consequently, the loop at line~\ref{ponzi1:iteration} is bounded as well.}
+  \label{fig:ponzi3}
+\end{figure}
+
+A solution to the unbounded list and loop in Fig.~\ref{fig:ponzi1} is simple: Fig.~\ref{fig:ponzi3}
+shows a modified version of the smart contract from Fig.~\ref{fig:ponzi1} that just
+adds a constraint on the size of \<investors> (line~\ref{ponzi3:require_limit}). This guarantees
+that the size of that list is always $100$ at most and the iteration at line~\ref{ponzi3:iteration}
+is bounded. We expect a sufficiently precise static
+boundedness analyzer to issue no warning in the code in Fig.~\ref{fig:ponzi3}.
+This example shows that the boundedness property is not related to the exact maximal gas cost of a loop:
+$100$ iterations might be acceptable or not, depending on the specific maximal gas allowed
+by each specific
+blockchain for a transaction. Instead, boundedness is an abstract semantical and blockchain-agnostic
+property about the definitely limited size of iterated collections.

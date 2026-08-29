@@ -12,6 +12,7 @@
 \usepackage{graphicx}
 \usepackage[T1]{fontenc}
 \usepackage{listings, framed}
+\usepackage[dvipsnames]{xcolor}
 \usepackage{orcidlink}
 
 % \|name| or \mathid{name} denotes identifiers and slots in formulas
@@ -26,6 +27,43 @@
 
 \newcommand{\wrt}{\textit{wrt.\ }}
 \newcommand{\ie}{, \textit{ie.}, }
+
+\lstdefinelanguage{pseudo}{
+        keywords=[1]{assert, break, case, catch, class, final, continue, default, do, else, extends, false, finally, for, if, implements, import, instanceof, interface, new, private, 
+protected, public, payable, return, super, switch, this, throw, throws, true, try, var, while,in }, % generic keywords including crypto operations
+        keywordstyle=[1]\color{blue}\bfseries,
+        keywords=[2]{Contract, PayableContract, List, int, float, double, short, byte, long, boolean, void, String},
+        keywordstyle=[2]\color{teal}\bfseries,
+        keywords=[3]{this, caller, amount},
+        keywordstyle=[3]\color{violet}\bfseries,
+        keywords=[4]{push, require, receive, size},
+        keywordstyle=[4]\color{red}\bfseries,
+        identifierstyle=\color{black},
+        sensitive=true,
+        comment=[l]{//},
+        morecomment=[s]{/*}{*/},
+        commentstyle=\color{gray}\ttfamily,
+        stringstyle=\color{red}\ttfamily,
+        morestring=[b]',
+        morestring=[b]"
+}
+
+\lstset{ % define general preferences
+        language=pseudo,
+        %backgroundcolor=\color{verylightgray},
+        extendedchars=true,
+        basicstyle=\footnotesize\ttfamily,
+        showstringspaces=false,
+        showspaces=false,
+        numbers=left,
+        numberstyle=\footnotesize,
+        numbersep=9pt,
+        tabsize=2,
+        breaklines=true,
+        showtabs=false,
+        captionpos=b,
+        escapeinside={||},
+}
 
 \begin{document}
 
