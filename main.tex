@@ -6,6 +6,7 @@
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{relsize}
+\usepackage{placeins}
 %\usepackage{enumitem}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -30,13 +31,13 @@
 
 \lstdefinelanguage{pseudo}{
         keywords=[1]{assert, break, case, catch, class, final, continue, default, do, else, extends, false, finally, for, if, implements, import, instanceof, interface, new, private, 
-protected, public, payable, return, super, switch, this, throw, throws, true, try, var, while,in }, % generic keywords including crypto operations
+protected, public, static, payable, return, super, switch, this, throw, throws, true, try, var, while,in }, % generic keywords including crypto operations
         keywordstyle=[1]\color{blue}\bfseries,
         keywords=[2]{Contract, PayableContract, List, int, float, double, short, byte, long, boolean, void, String},
         keywordstyle=[2]\color{teal}\bfseries,
-        keywords=[3]{this, caller, amount},
+        keywords=[3]{this, caller, amount, now},
         keywordstyle=[3]\color{violet}\bfseries,
-        keywords=[4]{push, require, receive, size},
+        keywords=[4]{push, require, receive, size, random},
         keywordstyle=[4]\color{red}\bfseries,
         identifierstyle=\color{black},
         sensitive=true,
@@ -57,7 +58,7 @@ protected, public, payable, return, super, switch, this, throw, throws, true, tr
         showspaces=false,
         numbers=left,
         numberstyle=\footnotesize,
-        numbersep=9pt,
+        numbersep=5pt,
         tabsize=2,
         breaklines=true,
         showtabs=false,

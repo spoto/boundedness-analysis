@@ -12,7 +12,7 @@ keep the syntax to a minimum.
   \begin{lstlisting}[language=pseudo]
 public class Ponzi1 extends Contract {
   private final List<Contract> investors = new List<>();|\label{ponzi1:investors}|
-  private final int MINIMUM_INVESTMENT = 1000;
+  private final static int MINIMUM_INVESTMENT = 1000;
 
   public Ponzi1() {
     investors.push(caller);|\label{ponzi1:creator}|
@@ -63,7 +63,7 @@ unbouded loop at line~\ref{ponzi1:iteration}.
 public class Ponzi2 extends Contract {
   private final List<Contract> investors = new List<>();|\label{ponzi2:investors}|
   private final Map<Contract, int> balances = new Map<>();|\label{ponzi2:balances}|
-  private final int MINIMUM_INVESTMENT = 1000;
+  private final static int MINIMUM_INVESTMENT = 1000;
 
   public Ponzi2() {
     investors.push(caller);|\label{ponzi2:creator}|
@@ -123,7 +123,7 @@ are still unbounded and a sound boundedness analyzer should warn about it.
   \begin{lstlisting}[language=pseudo]
 public class Ponzi3 extends Contract {
   private final List<Contract> investors = new List<>();|\label{ponzi3:investors}|
-  private final int MINIMUM_INVESTMENT = 1000;
+  private final static int MINIMUM_INVESTMENT = 1000;
 
   public Ponzi3() {
     investors.push(caller);|\label{ponzi3:creator}|
@@ -144,7 +144,7 @@ public class Ponzi3 extends Contract {
   \caption{A modified version of the smart contract in Fig.~\ref{fig:ponzi1}, that enforces
     an upper bound to the size of the list \<investors>, at line~\ref{ponzi3:require_limit}.
     The list \<investors>
-    is bounded and, consequently, the loop at line~\ref{ponzi1:iteration} is bounded as well.}
+    is bounded and, consequently, the loop at line~\ref{ponzi3:iteration} is bounded as well.}
   \label{fig:ponzi3}
 \end{figure}
 
@@ -158,4 +158,100 @@ This example shows that the boundedness property is not related to the exact max
 $100$ iterations might be acceptable or not, depending on the specific maximal gas allowed
 by each specific
 blockchain for a transaction. Instead, boundedness is an abstract semantical and blockchain-agnostic
-property about the definitely limited size of iterated collections.
+property about the definitely limited size of iterated containers.
+
+\begin{figure}[th]
+  \begin{lstlisting}[language=pseudo]
+public class Lottery extends Contract {
+  public final static int TICKET_PRICE = 1000;|\label{lottery1:price}|
+  private final List<Round> rounds; // all existing rounds|\label{lottery1:rounds}|
+  private final long duration; // round duration|\label{lottery1:duration}|
+
+  private static class TicketBatchSale {|\label{lottery1:sale}|
+    private final Contract buyer;|\label{lottery1:buyer}|
+    private final int tickets;
+
+    private TicketBatchSale(Contract buyer, int tickets) {
+      this.buyer = buyer;
+      this.tickets = tickets;
+    }
+  }
+
+  private static class Round { // ticket sale round|\label{lottery1:round}|
+    private final long endTime;
+    private final List<TicketBatchSale> sales;
+    private int numTickets;
+    private Contract winner;|\label{lottery1:winner}|
+
+    private Round(long endTime) {
+      this.endTime = endTime;
+      this.sales = new List<>();
+    }
+  }
+
+  public Lottery(long duration) {
+    this.duration = duration;
+    rounds = new List<>();
+    rounds.add(new Round(now + duration));|\label{lottery1:first_round}|
+  }
+  \end{lstlisting}
+  \caption{A smart contract for a recurring lottery. Lottery rounds have a duration,
+    after which a new round is created. Tickets are sold in batches.}
+  \label{fig:lottery1a}
+\end{figure}
+
+Let us consider another example of smart contract, also inspired from an example
+in~\cite{IyerD18}. Fig.~\ref{fig:lottery1a} shows a smart contract for a recurrent lottery.
+Each lottery ticket has a fixed price (line~\ref{lottery1:price}). Tickets are bought in batches
+(inner class \<TicketBatchSale> at line~\ref{lottery1:sale}). The smart contract
+keeps an unbounded list of rounds (line~\ref{lottery1:rounds}), each lasting
+for \<duration> milliseconds (line~\ref{lottery1:duration}). Each round eventually
+gets a winner assigned (line~\ref{lottery1:winner}), which will be
+one of the buyers of its batch sales
+(line~\ref{lottery1:buyer}). The constructor assigns the duration of the rounds
+and initializes the list of rounds to a list of one round, that expires after
+\<duration> milliseconds from now (line~\ref{lottery1:first_round}).
+
+\begin{figure}[th]
+  \begin{lstlisting}[language=pseudo]
+  public payable void buy() {
+    require(amount > 0 && amount % TICKET_PRICE == 0);
+
+    Round last = rounds.getLast();
+    if (now > last.endTime) {
+      last = new Round(now + duration));
+      rounds.add(last);
+    }
+ 
+    int quantity = amount / TICKET_PRICE;
+    last.sales.add(TicketBatchSale(caller, quantity));
+    last.numTickets += quantity;
+  }
+
+  public void drawWinner(int roundNumber) {
+    Round round = rounds[roundNumber];
+    require(round.winner == NULL, "winner already drawn");
+    require(now > round.endTime, "too early");
+    require(round.numTickets > 0, "no tickets in round");
+
+    int counter = random(round.numTickets);
+
+    for sale in round.sales {
+      int tickets = sale.tickets;
+      if (tickets > counter) {
+        round.winner = sale.buyer;
+        round.winner.receive(TICKET_PRICE*round.numTickets);
+        return;
+      }
+      else
+        counter -= tickets;
+    }
+  }
+}
+  \end{lstlisting}
+  \caption{Methods for buying batches of new lottery tickets and for drawing the
+    winner of a round.}
+  \label{fig:lottery1b}
+\end{figure}
+
+\FloatBarrier % forces figures flush
