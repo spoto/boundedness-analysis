@@ -160,9 +160,9 @@ by each specific
 blockchain for a transaction. Instead, boundedness is an abstract semantical and blockchain-agnostic
 property about the definitely limited size of iterated containers.
 
-\begin{figure}[th]
+\begin{figure}
   \begin{lstlisting}[language=pseudo]
-public class Lottery extends Contract {
+public class Lottery1 extends Contract {
   public final static int TICKET_PRICE = 1000;|\label{lottery1:price}|
   private final List<Round> rounds; // all existing rounds|\label{lottery1:rounds}|
   private final long duration; // round duration|\label{lottery1:duration}|
@@ -179,79 +179,149 @@ public class Lottery extends Contract {
 
   private static class Round { // ticket sale round|\label{lottery1:round}|
     private final long endTime;
-    private final List<TicketBatchSale> sales;
-    private int numTickets;
+    private final List<TicketBatchSale> sales;|\label{lottery1:sales}|
+    private int totalTickets;|\label{lottery1:total_tickets}|
     private Contract winner;|\label{lottery1:winner}|
 
     private Round(long endTime) {
       this.endTime = endTime;
-      this.sales = new List<>();
+      sales = new List<>();
     }
   }
 
-  public Lottery(long duration) {
+  public Lottery1(long duration) {
     this.duration = duration;
     rounds = new List<>();
     rounds.add(new Round(now + duration));|\label{lottery1:first_round}|
   }
+
+  public payable void buy() {
+    require(amount > 0 && amount % TICKET_PRICE == 0);|\label{lottery1:amount}|
+
+    Round last = rounds.getLast();|\label{lottery1:last_start}|
+    if (now > last.endTime) {
+      last = new Round(now + duration);
+      rounds.add(last);
+    }|\label{lottery1:last_end}|
+
+    int quantity = amount / TICKET_PRICE;
+    last.sales.add(TicketBatchSale(caller, quantity));|\label{lottery1:add_sale}|
+    last.totalTickets += quantity;
+  }
+
+  public void drawWinner(int roundNumber) {
+    Round round = rounds[roundNumber];
+    require(round.winner == NULL, "winner already drawn");|\label{lottery1:no_winner_yet}|
+    require(now > round.endTime, "too early");|\label{lottery1:expired}|
+    require(round.totalTickets > 0, "no tickets in round");|\label{lottery1:at_least_one_ticket}|
+
+    int numWinningTicket = random(round.totalTickets);|\label{lottery1:random}|
+    for sale in round.sales|\label{lottery1:iteration}|
+      if (sale.tickets > numWinningTicket) {
+        round.winner = sale.buyer;|\label{lottery1:set_winner}|
+        round.winner.receive(TICKET_PRICE * round.totalTickets);|\label{lottery1:win}|
+        return;|\label{lottery1:return}|
+      }
+      else
+        numWinningTicket -= sale.tickets;
+  }
+}
   \end{lstlisting}
   \caption{A smart contract for a recurring lottery. Lottery rounds have a duration,
-    after which a new round is created. Tickets are sold in batches.}
-  \label{fig:lottery1a}
+    after which a new round is created. Tickets are sold in batches. This contract
+    suffers from an unbounded iteration at line~\ref{lottery1:iteration} on the unbounded
+    list of sales in a round.}
+  \label{fig:lottery1}
 \end{figure}
 
 Let us consider another example of smart contract, also inspired from an example
-in~\cite{IyerD18}. Fig.~\ref{fig:lottery1a} shows a smart contract for a recurrent lottery.
+in~\cite{IyerD18}. Fig.~\ref{fig:lottery1} shows a smart contract for a recurrent lottery.
 Each lottery ticket has a fixed price (line~\ref{lottery1:price}). Tickets are bought in batches
 (inner class \<TicketBatchSale> at line~\ref{lottery1:sale}). The smart contract
 keeps an unbounded list of rounds (line~\ref{lottery1:rounds}), each lasting
-for \<duration> milliseconds (line~\ref{lottery1:duration}). Each round eventually
+for \<duration> milliseconds (line~\ref{lottery1:duration}) and containing
+the list of batch sales of tickets in the round (line~\ref{lottery1:sales})
+and the total number of tickets sold in the round (line~\ref{lottery1:total_tickets}).
+Each round eventually
 gets a winner assigned (line~\ref{lottery1:winner}), which will be
 one of the buyers of its batch sales
 (line~\ref{lottery1:buyer}). The constructor assigns the duration of the rounds
 and initializes the list of rounds to a list of one round, that expires after
 \<duration> milliseconds from now (line~\ref{lottery1:first_round}).
+Method \<buy()> is called by who wants to buy a batch of tickets.
+It requires to pay an
+\<amount> of cryptocurrency sufficient to buy exactly a batch of a
+positive number of tickets (line~\ref{lottery1:amount}).
+These tickets are bought for the last, most recent lottery round,
+ensuring that a fresh new last round is added to the list of \<rounds> if its last
+round was already expired (lines~\ref{lottery1:last_start}--\ref{lottery1:last_end}).
+Method \<drawWinner()> draws the winner of a round, if this has not been drawn yet
+(line~\ref{lottery1:no_winner_yet}), if the round has already expired
+(line~\ref{lottery1:expired}) and if at least one ticket has been sold for that round
+(line~\ref{lottery1:at_least_one_ticket}). If all such conditions hold, the number of
+the winning ticket is randomly chosen between 0 (included) and the total number of
+tickets in the round (excluded) (line~\ref{lottery1:random}).
+Then the sales in the round are iterated (line~\ref{lottery1:iteration}), looking for the
+buyer of the winning ticket, which gets assigned as the winner of the round
+(line~\ref{lottery1:set_winner}) and receives all money collected from the ticket sales
+in the round (line~\ref{lottery1:win}).
 
-\begin{figure}[th]
-  \begin{lstlisting}[language=pseudo]
+Method \<drawWinner()> is meant to be called by any actor, most likely by somebody
+who bought some ticket in the round.
+The iteration at line~\ref{lottery1:iteration} is unbounded, since there is
+no upper bound to the number of sales allowed in a round (line~\ref{lottery1:add_sale}).
+Therefore, the smart contract in Fig.~\ref{fig:lottery1}
+suffers from an unboundedness bug and a sound static analyzer should warn
+at line~\ref{lottery1:iteration} about that.
+In practice, this means that there is a limit $X$
+to the number of sales that that iteration can scan before running out of gas.
+Therefore, a sale has a chance to win the round only if it is among the first $X$
+sales of the round (thanks to the \<return> at line~\ref{lottery1:return}, that
+exits the loop). Moreover,
+an attacker might flood a new round with $X$ one-ticket sales and be sure to win
+the round, by repeatingly calling \<drawWinner()> until a
+$\<numWinningTicket>\le X$ is drawn. Other players could be unaware of the bug and
+subsequently buy extra tickets without realizing that they have no chance to win and,
+by buying tickets, they are
+only increasing the jackpot that will be finally collected by the attacker.
+Note that there is another unbounded container in Fig.~\ref{fig:lottery1}, that of the
+\<rounds> (line~\ref{lottery1:rounds}). However, \<rounds> is not iterated in the code,
+hence its unboundedness is not problematic and a static analyzer is expected to
+issue no warning about \<rounds>, if it is precise enough.
+
+\begin{figure}[t]
+  \begin{lstlisting}[language=pseudo,numbers=none]
+public class Lottery2 extends Contract {
+  ...
+  private final List<Round> rounds; // all existing rounds
+  public final static int MAX_SALES = 5000;|\label{lottery2:max_sales}|
+  ...
   public payable void buy() {
     require(amount > 0 && amount % TICKET_PRICE == 0);
 
     Round last = rounds.getLast();
     if (now > last.endTime) {
-      last = new Round(now + duration));
+      last = new Round(now + duration);
       rounds.add(last);
     }
- 
-    int quantity = amount / TICKET_PRICE;
-    last.sales.add(TicketBatchSale(caller, quantity));
-    last.numTickets += quantity;
-  }
 
-  public void drawWinner(int roundNumber) {
-    Round round = rounds[roundNumber];
-    require(round.winner == NULL, "winner already drawn");
-    require(now > round.endTime, "too early");
-    require(round.numTickets > 0, "no tickets in round");
-
-    int counter = random(round.numTickets);
-
-    for sale in round.sales {
-      int tickets = sale.tickets;
-      if (tickets > counter) {
-        round.winner = sale.buyer;
-        round.winner.receive(TICKET_PRICE*round.numTickets);
-        return;
-      }
-      else
-        counter -= tickets;
+    if (last.sales.size() < MAX_SALES) {
+      int quantity = amount / TICKET_PRICE;
+      last.sales.add(TicketBatchSale(caller, quantity));
+      last.totalTickets += quantity;
     }
   }
+  ...
 }
   \end{lstlisting}
-  \caption{Methods for buying batches of new lottery tickets and for drawing the
-    winner of a round.}
-  \label{fig:lottery1b}
+  \caption{A modified version of the smart contract in Fig.~\ref{fig:lottery1},
+    where the list of sales in a round is limited. Therefore, this version does not
+    suffer from any unboundedness bug.}
+  \label{fig:lottery2}
 \end{figure}
 
-\FloatBarrier % forces figures flush
+A solution to the unboundedness bug in Fig.~\ref{fig:lottery1} is to
+limit the maximal number of the sales in each round, as exemplified in
+Fig.~\ref{fig:lottery2}. Note that the list \<rounds> remains unbounded in this new
+version, since that is irrelevant. We expect a static boundedness analyzer to issue no
+boundedness warning in Fig.~\ref{fig:lottery2}, if it is precise enough.
