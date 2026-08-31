@@ -1,1 +1,131 @@
 \section{Boundedness Analysis}\label{sec:analysis}
+
+The static analysis infers size change constraints about the containers
+reachable from the state of the smart contracts, for each public API
+method or constructor of the smart contract. It distinguishes between
+pre-state and after-state by using primed variables for the after-state.
+\textbf{This is a sort of simplified path-length. The simplifying
+  assumptions must be clarified. The idea is that one does not need
+  the supporting analyses such as non-cyclicity or sharing, since the
+  domain of analysis is very specific and lists are very well encapsulated.}
+
+For the example in Fig.~\ref{fig:ponzi1}, the inferred approximations are:
+%
+\begin{description}
+\item[\<Ponzi1()>:] $\<investors>'=1$
+\item[\<invest()>:] $\<investors>'=\<investors>+1$
+\end{description}
+%
+For the esample in Fig.~\ref{fig:ponzi2} they are (\textbf{something about \<balances>? In any case, it is irrelevant for our proof}):
+%
+\begin{description}
+\item[\<Ponzi2()>:] $\<investors>'=1$
+\item[\<invest()>:] $\<investors>'=\<investors>+1$
+\item[\<withdraw()>:] $\<investors>'=\<investors>$
+\end{description}
+%
+For the example in Fig.~\ref{fig:ponzi3} they are:
+%
+\begin{description}
+\item[\<Ponzi3()>:] $\<investors>'=1$
+\item[\<invest()>:] $\<investors><100\wedge\<investors>'=\<investors>+1$
+\end{description}
+%
+For the example in Fig.~\ref{fig:lottery1} they are:
+%
+\begin{description}
+\item[\<Lottery1()>:] $\<rounds>'=1\wedge\<rounds[any].sales>'=0$
+\item[\<buy()>:] $\<rounds>\le\<rounds>'\le\<rounds>+1\wedge\<rounds[any].sales>\le\<rounds[any].sales>'\le\<rounds[any].sales+1>$
+\item[\<drawWinner()>:] $\<rounds>'=\<rounds>\wedge\<rounds[any].sales>'=\<rounds[any].sales>$
+\end{description}
+%
+For the example in Fig.~\ref{fig:lottery2} they are (\textbf{automatically inferring the subsequent constraints might not be obvious}):
+%
+\begin{description}
+\item[\<Lottery2()>:] $\<rounds>'=1\wedge\<rounds[any].sales>'=0$
+\item[\<buy()>:] $\<rounds>\le\<rounds>'\le\<rounds>+1\wedge\<rounds[any].sales>\le\<rounds[any].sales>'\le\max(5000,\<rounds[any].sales>)$
+\item[\<drawWinner()>:] $\<rounds>'=\<rounds>\wedge\<rounds[any].sales>'=\<rounds[any].sales>$
+\end{description}
+
+Such constraints are then used to build class invariant predicates,
+stating that there exists an upper bound to the size of the containers
+such that, if the containers are bounded before the call to the API,
+they are bounded also after the call to the API.
+
+For instance, for \<Ponzi1> the predicate is:
+%
+\[
+  \exists k.\left(\begin{array}{c}
+    (\mathit{true}\wedge\<investors>'=1)\Rightarrow\<investors>'\le k\\
+    \wedge\\
+    (\<investors>\le k\wedge\<investors'>=\<investors>+1)\Rightarrow\<investors>'\le k
+  \end{array}\right)
+\]
+%
+that a theorem prover should reject or fail to prove that it holds. Therefore,
+the analyzer would issue a boundedness warning.
+
+For \<Ponzi2>, the predicate is:
+%
+\[
+  \exists k.\left(\begin{array}{c}
+    (\mathit{true}\wedge\<investors>'=1)\Rightarrow\<investors>'\le k\\
+    \wedge\\
+    (\<investors>\le k\wedge\<investors>'=\<investors>+1)\Rightarrow\<investors>'\le k\\
+    \wedge\\
+    (\<investors>\le k\wedge\<investors>'=\<investors>)\Rightarrow\<investors>'\le k\\
+  \end{array}\right)
+\]
+%
+that a theorem prover should reject or fail to prove that it holds. Therefore,
+the analyzer would issue a boundedness warning.
+
+For \<Ponzi3>, the predicate is:
+%
+\[
+  \exists k.\left(\begin{array}{c}
+    (\mathit{true}\wedge\<investors>'=1)\Rightarrow\<investors>'\le k\\
+    \wedge\\
+    (\<investors>\le k\wedge\<investors><100\wedge\<investors>'=\<investors>+1)\\
+    \Rightarrow\<investors>'\le k
+  \end{array}\right)
+\]
+%
+that a theorem prover should be able to prove true, for instance by taking
+$k=100$ (or $k=200$\ldots). Therefore, the boundedness analyzer would not issue
+any warning.
+
+For \<Lottery1>, there is a predicate for \<rounds> and another for
+\<rounds[any].sales>. The former is irrelevant, since \<rounds> is not
+iterated. The latter is (by writing \<ras> for \<rounds[any].sales>):
+%
+\[
+  \exists k.\left(\begin{array}{c}
+    (\mathit{true}\wedge\<ras>'=0)\Rightarrow\<ras>'\le k\\
+    \wedge\\
+    (\<ras>\le k\wedge\<ras>\le\<ras>'\le\<ras>+1)\Rightarrow\<ras>'\le k\\
+    \wedge\\
+    (\<ras>\le k\wedge\<ras>'=\<ras>)\Rightarrow\<ras>'\le k
+  \end{array}\right)
+\]
+%
+that a theorem prover should reject or fail to prove that it holds. Therefore,
+the analyzer would issue a boundedness warning.
+
+For \<Lottery2>, the predicate for \<rounds[any].sales> is:
+%
+\[
+  \exists k.\left(\begin{array}{c}
+    (\mathit{true}\wedge\<ras>'=0)\Rightarrow\<ras>'\le k\\
+    \wedge\\
+    (\<ras>\le k\wedge\<ras>\le\<ras>'\le\max(5000,\<ras>))\Rightarrow\<ras>'\le k\\
+    \wedge\\
+    (\<ras>\le k\wedge\<ras>'=\<ras>)\Rightarrow\<ras>'\le k
+  \end{array}\right)
+\]
+%
+that a theorem prover should be able to prove true, for instance by taking
+$k=5000$ (or $k=8000$\ldots). Therefore, the boundedness analyzer would not
+issue any warning.
+
+\textbf{Which theorem prover is able to deal with such constraints?}
