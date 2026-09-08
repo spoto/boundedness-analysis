@@ -192,20 +192,20 @@ public class Lottery1 extends Contract {
   public Lottery1(long duration) {
     this.duration = duration;
     rounds = new List<>();
-    rounds.add(new Round(now + duration));|\label{lottery1:first_round}|
+    rounds.push(new Round(now + duration));|\label{lottery1:first_round}|
   }
 
   public payable void buy() {
     require(amount > 0 && amount % TICKET_PRICE == 0);|\label{lottery1:amount}|
 
-    Round last = rounds.getLast();|\label{lottery1:last_start}|
+    Round last = rounds.last();|\label{lottery1:last_start}|
     if (now > last.endTime) {
       last = new Round(now + duration);
-      rounds.add(last);
+      rounds.push(last);
     }|\label{lottery1:last_end}|
 
     int quantity = amount / TICKET_PRICE;
-    last.sales.add(TicketBatchSale(caller, quantity));|\label{lottery1:add_sale}|
+    last.sales.push(new TicketBatchSale(caller, quantity));|\label{lottery1:add_sale}|
     last.totalTickets += quantity;
   }
 
@@ -299,15 +299,15 @@ public class Lottery2 extends Contract {
   public payable void buy() {
     require(amount > 0 && amount % TICKET_PRICE == 0);
 
-    Round last = rounds.getLast();
+    Round last = rounds.last();
     if (now > last.endTime) {
       last = new Round(now + duration);
-      rounds.add(last);
+      rounds.push(last);
     }
 
     if (last.sales.size() < MAX_SALES) {
       int quantity = amount / TICKET_PRICE;
-      last.sales.add(TicketBatchSale(caller, quantity));
+      last.sales.push(new TicketBatchSale(caller, quantity));
       last.totalTickets += quantity;
     }
   }

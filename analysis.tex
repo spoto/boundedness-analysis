@@ -1,5 +1,17 @@
 \section{Boundedness Analysis}\label{sec:analysis}
 
+\begin{definition}[Expressions]\label{def:expressions}
+  Expressions and commands are defined by the following grammar:
+  \begin{align*}
+    \exp::=&\ \mathit{c}\mid\mathit{v}\mid\field{\exp}{f}\mid\op{\exp}{\exp}\mid\readmap{\exp}{\exp}{\exp}\\
+    &\mid\new{C}{\exp^*}\mid\newlist{}\mid\size{\exp}\mid\last{\exp}\mid\random{\exp}\\
+    \com::=&\ \assign{\mathit{v}}{\exp}\mid\assign{\field{\exp}{f}}{\exp}\mid\writemap{\exp}{\exp}{\exp}
+    \mid\require{\exp}\\
+    &\mid\push{\exp}{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\\
+    &\mid\ife{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}
+  \end{align*}
+\end{definition}
+
 The static analysis infers size change constraints about the containers
 reachable from the state of the smart contracts, for each public API
 method or constructor of the smart contract. It distinguishes between
