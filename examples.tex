@@ -11,15 +11,16 @@ keep the syntax to a minimum.
 \begin{figure}[t]
   \begin{lstlisting}[language=pseudo]
 public class Ponzi1 extends Contract {
-  private final List<Contract> investors = new List<>();|\label{ponzi1:investors}|
+  private final List<Contract> investors;|\label{ponzi1:investors}|
   private final static int MINIMUM_INVESTMENT = 1000;
 
   public Ponzi1() {
+    investors = new List();
     investors.push(caller);|\label{ponzi1:creator}|
   }
 
   public payable void invest() {|\label{ponzi1:invest}|
-    require(amount >= MINIMUM_INVESTMENT);|\label{ponzi1:require}|
+    require(amount >= MINIMUM_INVESTMENT, "you invested too little");|\label{ponzi1:require}|
 
     int eachInvestorGets = amount / investors.size();
     for investor in investors|\label{ponzi1:iteration}|
@@ -61,16 +62,18 @@ unbouded loop at line~\ref{ponzi1:iteration}.
 \begin{figure}[t]
   \begin{lstlisting}[language=pseudo]
 public class Ponzi2 extends Contract {
-  private final List<Contract> investors = new List<>();|\label{ponzi2:investors}|
-  private final Map<Contract, int> balances = new Map<>();|\label{ponzi2:balances}|
+  private final List<Contract> investors;|\label{ponzi2:investors}|
+  private final Map<Contract, int> balances;|\label{ponzi2:balances}|
   private final static int MINIMUM_INVESTMENT = 1000;
 
   public Ponzi2() {
+    investors = new List();
+    balances = new Map();
     investors.push(caller);|\label{ponzi2:creator}|
   }
 
   public payable void invest() {|\label{ponzi2:invest}|
-    require(amount >= MINIMUM_INVESTMENT);|\label{ponzi2:require}|
+    require(amount >= MINIMUM_INVESTMENT, "you invested too little");|\label{ponzi2:require}|
 
     int eachInvestorGets = amount / investors.size();
     for investor in investors|\label{ponzi2:iteration}|
@@ -122,16 +125,17 @@ are still unbounded and a sound boundedness analyzer should warn about it.
 \begin{figure}[t]
   \begin{lstlisting}[language=pseudo]
 public class Ponzi3 extends Contract {
-  private final List<Contract> investors = new List<>();|\label{ponzi3:investors}|
+  private final List<Contract> investors;|\label{ponzi3:investors}|
   private final static int MINIMUM_INVESTMENT = 1000;
 
   public Ponzi3() {
+    investors = new List();
     investors.push(caller);|\label{ponzi3:creator}|
   }
 
   public payable void invest() {|\label{ponzi3:invest}|
-    require(amount >= MINIMUM_INVESTMENT);|\label{ponzi3:require}|
-    require(investors.size() < 100, "no more investors");|\label{ponzi3:require_limit}|
+    require(amount >= MINIMUM_INVESTMENT, "you invested too little");|\label{ponzi3:require}|
+    require(investors.size() < 100, "no more investors are allowed");|\label{ponzi3:require_limit}|
 
     int eachInvestorGets = amount / investors.size();
     for investor in investors|\label{ponzi3:iteration}|
@@ -163,7 +167,7 @@ property about the definitely limited size of iterated containers.
 \begin{figure}
   \begin{lstlisting}[language=pseudo]
 public class Lottery1 extends Contract {
-  public final static int TICKET_PRICE = 1000;|\label{lottery1:price}|
+  public final int TICKET_PRICE = 1000;|\label{lottery1:price}|
   private final List<Round> rounds; // all existing rounds|\label{lottery1:rounds}|
   private final long duration; // round duration|\label{lottery1:duration}|
 
@@ -185,13 +189,13 @@ public class Lottery1 extends Contract {
 
     private Round(long endTime) {
       this.endTime = endTime;
-      sales = new List<>();
+      sales = new List();
     }
   }
 
   public Lottery1(long duration) {
     this.duration = duration;
-    rounds = new List<>();
+    rounds = new List();
     rounds.push(new Round(now + duration));|\label{lottery1:first_round}|
   }
 
