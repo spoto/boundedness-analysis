@@ -8,17 +8,23 @@
     \com::=&\ \assign{\mathit{v}}{\exp}\mid\assign{\field{\exp}{f}}{\exp}\mid\writemap{\exp}{\exp}{\exp}
     \mid\require{\exp}\\
     &\mid\push{\exp}{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\\
-    &\mid\ife{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}
+    &\mid\ife{\exp}{\com}{\com}\mid\for{\mathit{v}}{\com}\mid\sequence{\com}{\com}
   \end{align*}
+  Expressions and commands are silently annotated with the program point $p$ where they occur
+  in the source code under analysis\footnote{For instance, a program point might be
+  line number and character position inside the line,
+  by its exact nature is irrelevant here.}. When useful, that annotation is made
+  explicit as $\exp\at{p}$ or $\com\at{p}$.
 \end{definition}
 
 \begin{definition}[Program]\label{def:program}
   A \emph{program} is a collection of \emph{classes}.
   Each class $C$ has a superclass,
-  some \emph{fields}, of the form $C.f$,
-  and some \emph{methods}, given as
-  a map from method signatures $C.m(p_1 t_1,\ldots,p_n t_n)$ to commands
-  (Def.~\ref{def:exp_com}). A class that extends \<Contract>
+  some \emph{field signatures}, of the form $C.f$,
+  and some \emph{methods}, of the form
+  $C.m(p_1 t_1,\ldots,p_n t_n)\mathtt{\ \{}\com\mathtt{\}}$,
+  where $\com$ is the \emph{body} of the method.
+  A class that extends \<Contract>
   (possibly indirectly) is called a \emph{smart contract}.
   A \emph{constructor} is a method named like the class $C$
   that it belongs to.
@@ -26,7 +32,71 @@
 %
 Fields and methods can have modifiers such as \<public>, \<private>,
 \<final> and \<payable>, that we do not introduce formally and have the
-usual meaning as, for instance, in Java or Solidity.
+usual meaning as, for instance, in Java or Solidity. For simplicity, we
+assume that methods do not return any value.
+
+We assume to analyze a statically strongly-typed language. Therefore, each
+expression and command will be evaluated in a context (\emph{typing})
+that specifies which variables are in scope and which is their type.
+This typing is that inferred in the type-checking phase of the compiler.
+%
+\begin{definition}[Typing]\label{def:typing}
+  A type is either \emph{primitive} (such as \<int>, \<boolean> \ldots)
+  or a class name $C$. Generic class types (such as lists) are written as
+  \<List<t\texttt{>}>, where $t$ is the type of the elements of the list.
+  A \emph{typing} $\tau$ is a map from a finite set of variables
+  to their static (\ieinitial declared) type. For any
+  expression $\exp$, we write $\tau(\exp)$ for its \emph{type according to $\tau$},
+  if its computation does not lead to a type error.
+\end{definition}
+%
+The definition of $\tau(\exp)$ is not formalized here, since it is the usual recursive
+definition of the type of an expression, used by any strongly-typed language.
+We assume that each program point $p$ comes with an associated typing $\tau\at{p}$.
+For any expression $\exp\at{p}$, we assume that $\tau\at{p}$ is \emph{correct} for $\exp$\ie the
+computation of $\tau\at{p}(\exp)$ succeeds without type errors.
+Such $\tau\at{p}$ is for instance that inferred by the compiler at $p$ during type-checking.
+
+Given an expression or command in the program, it is possible to identify
+which lists (and more generally,
+which data structures) might be affected by the evaluation of the expression
+or by the execution of the command.
+Previous work has defined precise and complex static analyses for that
+(see for instance the aliasing and side-effect analyses in~\cite{SpotoMP10}).
+Here, for simplicity and lack of space,
+we present a very simple and cheap side-effect analysis that, nevertheless,
+is frequently precise enough on simple programs such as smart contracts.
+%
+\begin{definition}[Side-Effect Analysis]\label{def:side_effect}
+  The set of element types of the lists potentially modified during the evaluation of an
+  expression or the execution of a command in the program
+  is defined as the minimal fixpoint of the following recursive equations:
+  %
+  \begin{align*}
+    \sideeffect{c}&=\sideeffect{v}=\varnothing\\
+    \sideeffect{\new{C}{\exp_1,\ldots,\exp_n}}&=\sideeffect{\com}\cup\bigcup\limits_{i=1}^{n}\sideeffect{\exp_i}\\
+    &\quad\text{where $\com$ is the body of the constructor}\\
+    \sideeffect{\field{\exp}{f}}&=\sideeffect{\exp}\\
+    \sideeffect{\op{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
+    &\quad\text{similarly, recursively, for the other expressions}
+  \end{align*}
+  \begin{align*}
+    \sideeffect{\push{\exp_1\at{p}}{\exp_2}}&=\sideeffect{\exp_2}\cup\{t\}\quad\text{where $\tau\at{p}(\exp_1)=\<List<>t$\<\text{>}>}\\
+    \sideeffect{\call{\exp_0\at{p}}{m}{\exp_1,\ldots,\exp_n}}&=\bigcup\limits_{j=1}^k\sideeffect{\com_j}\cup\bigcup\limits_{i=0}^{n}\sideeffect{\exp_i}\\
+    &\quad\text{where $\com_1\cdots\com_k$ are the bodies of}\\
+    &\quad\text{the methods possibly called at $p$}\\
+    \sideeffect{\sequence{\com_1}{\com_2}}&=\sideeffect{\com_1}\cup\sideeffect{\com_2}\\
+    \sideeffect{\assign{\mathit{v}}{\exp}}&=\sideeffect{\exp}\\
+    &\quad\text{similarly, recursively, for the other commands.}
+  \end{align*}
+\end{definition}
+%
+We recall that a method call in object-oriented languages may actually call a subset
+$\{M_1,\ldots,M_k\}$ of the redefinitions of its static target method, with bodies $\{\com_1,\ldots,\com_k\}$.
+A sound overapproximation of $\{M_1,\ldots,M_k\}$ can always be inferred statically,
+as the set of \emph{all} possible redefinitions. More precise analyses exist~\cite{TipP00},
+but are probably overkill for minimalistic code such as smart contracts,
+that very rarely redefine methods.
 
 The static analysis infers size change constraints about the containers
 reachable from the state of the smart contracts, for each public API
