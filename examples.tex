@@ -306,7 +306,7 @@ public class Lottery2 extends Contract {
     Round last = rounds.last();
     if (now > last.endTime) {
       last = new Round(now + duration);
-      rounds.push(last);
+      rounds.push(last);|\label{lottery2:push_round}|
     }
 
     if (last.sales.size() < MAX_SALES) {

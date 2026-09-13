@@ -107,11 +107,13 @@ field dereferences or list accesses.
   \item if $v\in\dom(\tau\at{p})$ then $v\in\mathbb{P}\at{p}$ and it has type $(\tau\at{p})(v)$
     (all variables in scope at $p$ are a path at $p$);
   \item if $\pi\in\mathbb{P}\at{p}$ has type $C$ and $\mathtt{f}$ is a field of class $C$ of type $t$,
+    already initialized at $p$,
     then $\pi.f\in\mathbb{P}\at{p}$ and it has type $t$ (paths can be expanded by field dereference);
   \item if $\pi\in\mathbb{P}\at{p}$ has type \<List<$t$\texttt{>}>
     then $\pi\<[any]>\in\mathbb{P}\at{p}$ and it has type $t$ (paths can be expanded by list access).
   \end{itemize}
-  A path is \emph{$\kappa$-relevant} if its type is \<List<$t$\texttt{>}> and its depth
+  A path is \emph{$\kappa$-relevant} if its type is \<List<$t$\texttt{>}>, it only dereferences
+  \<final> fields and its depth
   (\ieinitial number of field dereferences and list accesses) is bounded by some constant $\kappa$.
   The (finite) set of all $\kappa$-relevant paths at $p$ is written as $\mathbb{RP}^\kappa\at{p}$. 
 \end{definition}
@@ -124,9 +126,42 @@ For instance, at line~\ref{ponzi1:require} in Fig.~\ref{fig:ponzi1},
 the path \texttt{this.investors} is $\kappa$-relevant, for any $\kappa\ge 1$.
 None of them is $0$-relevant.
 
-The $\kappa$ limit on relevant paths will be essential to define a finitely computable
-boundedness analysis, as shown later. For simplicity, in the following examples,
+In Def.~\ref{def:path}, the constraint on \<final> fields
+simplifies the analysis, since the value of a relevant path
+cannot be affected by the execution of code that modifies some fields.
+The $\kappa$ limit, instead, will be essential to define a finitely computable
+boundedness analysis, as shown later. Larger $\kappa$ lead to more precise analyses,
+in principle, but also potentially more expensive.
+Therefore, $\kappa$ acts as a lever that selects the desired precision for the
+analysis. For simplicity, in the following examples,
 we assume $\kappa=3$ and just say \emph{relevant}, meaning $3$-relevant.
+
+A relevant path \emph{survives} the execution of some code\ie it keeps its value unchanged,
+if it does not access any list that might be modified by that execution. Note how this
+definition is simplified by the constraint that relevant paths only dereference
+\<final> fields, which allows one to focus on side-effects on lists only.
+%
+\begin{definition}\label{def:survival}
+  Given $\pi\in\mathbb{RP}^\kappa\at{p}$ and an expression $\exp\at{p}$, then
+  \emph{$\pi$ survives the evaluation of $\exp$} if, for all prefix $\pi'$ of $\pi$
+  (\ieinitial  $\pi=\pi'\ldots$) of type \<List<$t'$\texttt{>}>
+  and for all $t''\in\sideeffect{\exp}$, the types
+  $t'$ and $t''$ have no common subtype.
+  A similar definition states when \emph{$\pi$ survives the execution of a command $\com$}.
+\end{definition}
+%
+For instance, the relevant path $\pi=\<this.investors>$ at
+line~\ref{ponzi1:expand} in Fig.~\ref{fig:ponzi1} does not survive the execution
+of the command at that line, since $\pi'=\<this.investors>$
+has type \<List<Contract\texttt{>}>,
+$\{\<Contract>\}=\sideeffect{\<investors.push(caller)>}$
+and \<Contract> has a common subtype with itself, obviously.
+Instead, the relevant path $\pi=\<last.sales>$ at line~\ref{lottery2:push_round}
+survives the execution of the command at that line, since
+the only prefix $\pi'$ of $\pi$ of type list is $\pi'=\pi$, of type
+\<List<TicketBatchSale\texttt{>}>,
+$\{\<Round>\}=\sideeffect{\<rounds.push(last)>}$ and
+\<TicketBatchSale> and \<Round> have no common subtype.
 
 The static analysis infers size change constraints about the containers
 reachable from the state of the smart contracts, for each public API
