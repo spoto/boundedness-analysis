@@ -43,7 +43,7 @@ This typing is that inferred in the type-checking phase of the compiler.
 \begin{definition}[Typing]\label{def:typing}
   A type is either \emph{primitive} (such as \<int>, \<boolean> \ldots)
   or a class name $C$. Generic class types (such as lists) are written as
-  \<List<t\texttt{>}>, where $t$ is the type of the elements of the list.
+  \<List<t\texttt{>}>, where \<t> is the type of the elements of the list.
   A \emph{typing} $\tau$ is a map from a finite set of variables
   to their static (\ieinitial declared) type. For any
   expression $\exp$, we write $\tau(\exp)$ for its \emph{type according to $\tau$},
@@ -67,10 +67,10 @@ Here, for simplicity and lack of space,
 we present a very simple and cheap side-effect analysis that, nevertheless,
 is frequently precise enough on simple programs such as smart contracts.
 %
-\begin{definition}[Side-Effect Analysis]\label{def:side_effect}
+\begin{definition}[Side-Effects Analysis]\label{def:side_effect}
   The set of element types of the lists potentially modified during the evaluation of an
   expression or the execution of a command in the program
-  is defined as the minimal fixpoint of the following recursive equations:
+  is overapproximated by the minimal fixpoint of the following recursive equations:
   %
   \begin{align*}
     \sideeffect{c}&=\sideeffect{v}=\varnothing\\
@@ -97,6 +97,36 @@ A sound overapproximation of $\{M_1,\ldots,M_k\}$ can always be inferred statica
 as the set of \emph{all} possible redefinitions. More precise analyses exist~\cite{TipP00},
 but are probably overkill for minimalistic code such as smart contracts,
 that very rarely redefine methods.
+
+A \emph{path} is an expression rooted at a variable in scope, that follows
+field dereferences or list accesses.
+%
+\begin{definition}[Paths]\label{def:path}
+  The set $\mathbb{P}\at{p}$ of the \emph{paths at program point $p$} is the minimal set such that
+  \begin{itemize}
+  \item if $v\in\dom(\tau\at{p})$ then $v\in\mathbb{P}\at{p}$ and it has type $(\tau\at{p})(v)$
+    (all variables in scope at $p$ are a path at $p$);
+  \item if $\pi\in\mathbb{P}\at{p}$ has type $C$ and $\mathtt{f}$ is a field of class $C$ of type $t$,
+    then $\pi.f\in\mathbb{P}\at{p}$ and it has type $t$ (paths can be expanded by field dereference);
+  \item if $\pi\in\mathbb{P}\at{p}$ has type \<List<$t$\texttt{>}>
+    then $\pi\<[any]>\in\mathbb{P}\at{p}$ and it has type $t$ (paths can be expanded by list access).
+  \end{itemize}
+  A path is \emph{$\kappa$-relevant} if its type is \<List<$t$\texttt{>}> and its depth
+  (\ieinitial number of field dereferences and list accesses) is bounded by some constant $\kappa$.
+  The (finite) set of all $\kappa$-relevant paths at $p$ is written as $\mathbb{RP}^\kappa\at{p}$. 
+\end{definition}
+%
+For instance, at line~\ref{ponzi1:require} in Fig.~\ref{fig:ponzi1},
+\texttt{this} is a path of type \texttt{Ponzi1},
+\texttt{amount} is a path of type \texttt{int},
+\texttt{this.investors} is a path of type \<List<Contract\texttt{>}> and
+\texttt{this.investors[any]} is a path of type \<Contract>. Among them, only
+the path \texttt{this.investors} is $\kappa$-relevant, for any $\kappa\ge 1$.
+None of them is $0$-relevant.
+
+The $\kappa$ limit on relevant paths will be essential to define a finitely computable
+boundedness analysis, as shown later. For simplicity, in the following examples,
+we assume $\kappa=3$ and just say \emph{relevant}, meaning $3$-relevant.
 
 The static analysis infers size change constraints about the containers
 reachable from the state of the smart contracts, for each public API
