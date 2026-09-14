@@ -98,51 +98,52 @@ as the set of \emph{all} possible redefinitions. More precise analyses exist~\ci
 but are probably overkill for minimalistic code such as smart contracts,
 that very rarely redefine methods.
 
-A \emph{path} is an expression rooted at a variable in scope, that follows
-field dereferences or list accesses.
+A $\kappa$-\emph{path} is an expression rooted at a variable in scope, that follows
+\<final> field dereferences or list accesses, at most $\kappa$ times.
 %
 \begin{definition}[Paths]\label{def:path}
-  The set $\mathbb{P}\at{p}$ of the \emph{paths at program point $p$} is the minimal set such that
+  Given $\kappa\in\nat$, the finite set $\mathbb{P}^\kappa\at{p}$ of the
+  \emph{$\kappa$-paths at program point $p$} is the minimal set such that
   \begin{itemize}
-  \item if $v\in\dom(\tau\at{p})$ then $v\in\mathbb{P}\at{p}$ and it has type $(\tau\at{p})(v)$
-    (all variables in scope at $p$ are a path at $p$);
-  \item if $\pi\in\mathbb{P}\at{p}$ has type $C$ and $\mathtt{f}$ is a field of class $C$ of type $t$,
+  \item if $\kappa\ge 1$ and $v\in\dom(\tau\at{p})$ then $v\in\mathbb{P}^\kappa\at{p}$, it has type $(\tau\at{p})(v)$
+    and length $1$ (all variables in scope at $p$ are a path at $p$);
+  \item if $\pi\in\mathbb{P}^\kappa\at{p}$ has type $C$ and length $l<\kappa$,
+    and if $\mathtt{f}$ is a \<final> field of class $C$ of type $t$,
     already initialized at $p$,
-    then $\pi.f\in\mathbb{P}\at{p}$ and it has type $t$ (paths can be expanded by field dereference);
-  \item if $\pi\in\mathbb{P}\at{p}$ has type \<List<$t$\texttt{>}>
-    then $\pi\<[any]>\in\mathbb{P}\at{p}$ and it has type $t$ (paths can be expanded by list access).
+    then $\pi.f\in\mathbb{P}^\kappa\at{p}$, it has type $t$ and length $l+1$
+    (paths can be expanded by \<final> field dereference);
+  \item if $\pi\in\mathbb{P}\at{p}$ has type \<List<$t$\texttt{>}> and length $l<\kappa$
+    then $\pi\<[any]>\in\mathbb{P}^\kappa\at{p}$, it has type $t$ and length $l+1$
+    (paths can be expanded by list access).
   \end{itemize}
-  A path is \emph{$\kappa$-relevant} if its type is \<List<$t$\texttt{>}>, it only dereferences
-  \<final> fields and its depth
-  (\ieinitial number of field dereferences and list accesses) is bounded by some constant $\kappa$.
-  The (finite) set of all $\kappa$-relevant paths at $p$ is written as $\mathbb{RP}^\kappa\at{p}$. 
+  A $\kappa$-path is \emph{relevant} if its type is \<List<$t$\texttt{>}> for some $t$.
+  The finite set of all relevant $\kappa$-paths at $p$ is written as $\mathbb{RP}^\kappa\at{p}$. 
 \end{definition}
 %
 For instance, at line~\ref{ponzi1:require} in Fig.~\ref{fig:ponzi1},
-\texttt{this} is a path of type \texttt{Ponzi1},
-\texttt{amount} is a path of type \texttt{int},
-\texttt{this.investors} is a path of type \<List<Contract\texttt{>}> and
-\texttt{this.investors[any]} is a path of type \<Contract>. Among them, only
-the path \texttt{this.investors} is $\kappa$-relevant, for any $\kappa\ge 1$.
-None of them is $0$-relevant.
+\texttt{this} is a $1$-path of type \texttt{Ponzi1},
+\texttt{amount} is a $1$-path of type \texttt{int},
+\texttt{this.investors} is a $2$-path of type \<List<Contract\texttt{>}> and
+\texttt{this.investors[any]} is a $3$-path of type \<Contract>. Among them, only
+\texttt{this.investors} is relevant.
 
 In Def.~\ref{def:path}, the constraint on \<final> fields
-simplifies the analysis, since the value of a relevant path
+simplifies the analysis, since it ensures that the value of a path
 cannot be affected by the execution of code that modifies some fields.
-The $\kappa$ limit, instead, will be essential to define a finitely computable
+The $\kappa$ limit, instead, is essential to define a finitely computable
 boundedness analysis, as shown later. Larger $\kappa$ lead to more precise analyses,
 in principle, but also potentially more expensive.
 Therefore, $\kappa$ acts as a lever that selects the desired precision for the
-analysis. For simplicity, in the following examples,
+analysis. For simplicity, in the examples that follow,
 we assume $\kappa=3$ and just say \emph{relevant}, meaning $3$-relevant.
 
-A relevant path \emph{survives} the execution of some code\ie it keeps its value unchanged,
+A path \emph{survives} the execution of some code\ie it keeps its value unchanged,
 if it does not access any list that might be modified by that execution. Note how this
-definition is simplified by the constraint that relevant paths only dereference
+definition is simplified by the constraint that paths only dereference
 \<final> fields, which allows one to focus on side-effects on lists only.
 %
 \begin{definition}\label{def:survival}
-  Given $\pi\in\mathbb{RP}^\kappa\at{p}$ and an expression $\exp\at{p}$, then
+  Given $\pi\in\mathbb{P}^\kappa\at{p}$ and an expression $\exp\at{p}$, then
   \emph{$\pi$ survives the evaluation of $\exp$} if, for all prefix $\pi'$ of $\pi$
   (\ieinitial  $\pi=\pi'\ldots$) of type \<List<$t'$\texttt{>}>
   and for all $t''\in\sideeffect{\exp}$, the types
@@ -150,13 +151,13 @@ definition is simplified by the constraint that relevant paths only dereference
   A similar definition states when \emph{$\pi$ survives the execution of a command $\com$}.
 \end{definition}
 %
-For instance, the relevant path $\pi=\<this.investors>$ at
+For instance, the path $\pi=\<this.investors>$ at
 line~\ref{ponzi1:expand} in Fig.~\ref{fig:ponzi1} does not survive the execution
 of the command at that line, since $\pi'=\<this.investors>$
 has type \<List<Contract\texttt{>}>,
 $\{\<Contract>\}=\sideeffect{\<investors.push(caller)>}$
 and \<Contract> has a common subtype with itself, obviously.
-Instead, the relevant path $\pi=\<last.sales>$ at line~\ref{lottery2:push_round}
+Instead, the path $\pi=\<last.sales>$ at line~\ref{lottery2:push_round}
 survives the execution of the command at that line, since
 the only prefix $\pi'$ of $\pi$ of type list is $\pi'=\pi$, of type
 \<List<TicketBatchSale\texttt{>}>,
