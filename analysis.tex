@@ -1,18 +1,20 @@
 \section{Boundedness Analysis}\label{sec:analysis}
 
 \begin{definition}[Expressions and Commands]\label{def:exp_com}
-  \emph{Expressions} and \emph{commands} are defined by the following grammar:
+  \emph{Expressions} and \emph{commands} are defined by the following grammar,
+  where $c$ is a literal constant of the language, $\mathit{aop}$ is an arithmetic
+  operator and $\mathit{cop}$ is a comparison operator:
   \begin{align*}
-    \exp::=&\ \mathit{c}\mid\mathit{v}\mid\field{\exp}{f}\mid\op{\exp}{\exp}\mid\readmap{\exp}{\exp}{\exp}\\
+    \exp::=&\ \mathit{c}\mid\mathit{v}\mid\field{\exp}{f}\mid\aop{\exp}{\exp}\mid\readmap{\exp}{\exp}{\exp}\\
     &\mid\new{C}{\exp^*}\mid\size{\exp}\mid\last{\exp}\mid\random{\exp}\\
     \com::=&\ \assign{\mathit{v}}{\exp}\mid\assign{\field{\exp}{f}}{\exp}\mid\writemap{\exp}{\exp}{\exp}
-    \mid\require{\exp}\\
+    \mid\require{\exp}{\exp}\\
     &\mid\push{\exp}{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\\
-    &\mid\ife{\exp}{\com}{\com}\mid\for{\mathit{v}}{\com}\mid\sequence{\com}{\com}
+    &\mid\ife{\exp}{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}{\com}\mid\sequence{\com}{\com}
   \end{align*}
   Expressions and commands are silently annotated with the program point $p$ where they occur
   in the source code under analysis\footnote{For instance, a program point might be
-  line number and character position inside the line,
+  a line number and a character position inside that line,
   by its exact nature is irrelevant here.}. When useful, that annotation is made
   explicit as $\exp\at{p}$ or $\com\at{p}$.
 \end{definition}
@@ -77,12 +79,12 @@ is frequently precise enough on simple programs such as smart contracts.
     \sideeffect{\new{C}{\exp_1,\ldots,\exp_n}}&=\sideeffect{\com}\cup\bigcup\limits_{i=1}^{n}\sideeffect{\exp_i}\\
     &\quad\text{where $\com$ is the body of the constructor}\\
     \sideeffect{\field{\exp}{f}}&=\sideeffect{\exp}\\
-    \sideeffect{\op{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
+    \sideeffect{\aop{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
     &\quad\text{similarly, recursively, for the other expressions}
   \end{align*}
   \begin{align*}
-    \sideeffect{\push{\exp_1\at{p}}{\exp_2}}&=\sideeffect{\exp_2}\cup\{t\}\quad\text{where $\tau\at{p}(\exp_1)=\<List<>t$\<\text{>}>}\\
-    \sideeffect{\call{\exp_0\at{p}}{m}{\exp_1,\ldots,\exp_n}}&=\bigcup\limits_{j=1}^k\sideeffect{\com_j}\cup\bigcup\limits_{i=0}^{n}\sideeffect{\exp_i}\\
+    \sideeffect{\push{\exp_1}{\exp_2}\at{p}}&=\sideeffect{\exp_2}\cup\{t\}\quad\text{where $\tau\at{p}(\exp_1)=\<List<>t$\<\text{>}>}\\
+    \sideeffect{\call{\exp_0}{m}{\exp_1,\ldots,\exp_n}\at{p}}&=\bigcup\limits_{j=1}^k\sideeffect{\com_j}\cup\bigcup\limits_{i=0}^{n}\sideeffect{\exp_i}\\
     &\quad\text{where $\com_1\cdots\com_k$ are the bodies of}\\
     &\quad\text{the methods possibly called at $p$}\\
     \sideeffect{\sequence{\com_1}{\com_2}}&=\sideeffect{\com_1}\cup\sideeffect{\com_2}\\
@@ -98,22 +100,28 @@ as the set of \emph{all} possible redefinitions. More precise analyses exist~\ci
 but are probably overkill for minimalistic code such as smart contracts,
 that very rarely redefine methods.
 
-A $\kappa$-\emph{path} is an expression rooted at a variable in scope, that follows
-\<final> field dereferences or list accesses, at most $\kappa$ times.
+A \emph{path} is an expression rooted at a variable in scope, that follows
+\<final> field dereferences or list accesses, or is an integer constant.
+Paths have a type and a length. A constant $\kappa$ can be used to limit the maximal
+length of a path. A relevant path has type list. While paths will be used
+to define the definite aliasing analysis, relevant paths will be used in the
+subsequent boundness analysis.
 %
 \begin{definition}[Paths]\label{def:path}
   Given $\kappa\in\nat$, the finite set $\mathbb{P}^\kappa\at{p}$ of the
   \emph{$\kappa$-paths at program point $p$} is the minimal set such that
   \begin{itemize}
   \item if $\kappa\ge 1$ and $v\in\dom(\tau\at{p})$ then $v\in\mathbb{P}^\kappa\at{p}$, it has type $(\tau\at{p})(v)$
-    and length $1$ (all variables in scope at $p$ are a $1$-path at $p$);
-  \item if $\pi\in\mathbb{P}^\kappa\at{p}$ has type $C$ and length $l<\kappa$,
-    and if $\mathtt{f}$ is a \<final> field of class $C$ of type $t$,
+    and $\length(v)=1$ (all variables in scope at $p$ are a $1$-path at $p$);
+  \item if $\kappa\ge 1$ and $c\in\nat$ then $c\in\mathbb{P}^\kappa\at{p}$, it has type \<int>
+    and $\length(c)=1$ (all integer constants are a $1$-path at $p$);
+  \item if $\pi\in\mathbb{P}^\kappa\at{p}$ has type $C$ and $\length(\pi)<\kappa$,
+    and if $\mathtt{f}$ is a \<final> field of type $t$ defined in class $C$,
     already initialized at $p$,
-    then $\pi.f\in\mathbb{P}^\kappa\at{p}$, it has type $t$ and length $l+1$
+    then $\pi.f\in\mathbb{P}^\kappa\at{p}$, it has type $t$ and $\length(\pi.f)=\length(\pi)+1$
     (paths can be expanded by \<final> field dereference);
-  \item if $\pi\in\mathbb{P}\at{p}$ has type \<List<$t$\texttt{>}> and length $l<\kappa$
-    then $\pi\<[any]>\in\mathbb{P}^\kappa\at{p}$, it has type $t$ and length $l+1$
+  \item if $\pi\in\mathbb{P}\at{p}$ has type \<List<$t$\texttt{>}> and $\length(\pi)<\kappa$
+    then $\pi\<[any]>\in\mathbb{P}^\kappa\at{p}$, it has type $t$ and $\length(\pi\<[any]>)=\length(\pi)+1$
     (paths can be expanded by list access).
   \end{itemize}
   A $\kappa$-path is \emph{relevant} if its type is \<List<$t$\texttt{>}> for some $t$.
@@ -121,17 +129,15 @@ A $\kappa$-\emph{path} is an expression rooted at a variable in scope, that foll
 \end{definition}
 %
 For instance, at line~\ref{ponzi1:require} in Fig.~\ref{fig:ponzi1},
-\texttt{this} is a $1$-path of type \texttt{Ponzi1},
-\texttt{amount} is a $1$-path of type \texttt{int},
-\texttt{this.investors} is a $2$-path of type \<List<Contract\texttt{>}> and
-\texttt{this.investors[any]} is a $3$-path of type \<Contract>. Among them, only
-\texttt{this.investors} is relevant.
+$42$ is a $1$-path of type \<int>,
+\<this> is a $1$-path of type \<Ponzi1>,
+\<amount> is a $1$-path of type \<int>,
+\<this.investors> is a $2$-path of type \<List<Contract\texttt{>}> and
+\<this.investors[any]> is a $3$-path of type \<Contract>. Among them, only
+\<this.investors> is relevant.
 
-In Def.~\ref{def:path}, the constraint on \<final> fields
-simplifies the analysis, since it ensures that the value of a path
-cannot be affected by the execution of code that modifies some fields.
-The $\kappa$ limit, instead, is essential to define a finitely computable
-boundedness analysis, as shown later. Larger $\kappa$ lead to more precise analyses,
+The $\kappa$ limit is essential to make our analysis finitely computable, as shown later.
+Larger $\kappa$ lead to a more precise analysis,
 in principle, but also potentially more expensive.
 Therefore, $\kappa$ acts as a lever that selects the desired precision for the
 analysis. For simplicity, in the examples that follow,
@@ -140,7 +146,7 @@ we assume $\kappa=3$ and just say \emph{relevant}, meaning $3$-relevant.
 A path \emph{survives} the execution of some code\ie it keeps its value unchanged,
 if it does not access any list that might be modified by that execution. Note how this
 definition is simplified by the constraint that paths only dereference
-\<final> fields, which allows one to focus on side-effects on lists only.
+\<final> fields (Def.~\ref{def:path}), which allows one to focus on side-effects on lists only.
 %
 \begin{definition}\label{def:survival}
   Given $\pi\in\mathbb{P}^\kappa\at{p}$ and an expression $\exp\at{p}$, then
@@ -163,20 +169,28 @@ the only prefix $\pi'$ of $\pi$ of type list is $\pi'=\pi$, of type
 \<List<TicketBatchSale\texttt{>}>,
 $\{\<Round>\}=\sideeffect{\<rounds.push(last)>}$ and
 \<TicketBatchSale> and \<Round> have no common subtype.
+All integer constants survive any expression and command.
 
 \begin{definition}[Definite Aliasing Analysis]\label{def:definite_aliasing}
   An \emph{abstract definite aliasing state at $p$} is a map from each variable
   $v\in\dom(\tau\at{p})$
-  to a set of paths that are definitely alias of $v$ (\ie they hold the same
+  to a set of paths that are definitely alias of $v$ (\ieinitial they have the same
   value as $v$). The \emph{abstract definite aliasing denotation} of an expression
   or command at program point $p$ is a map that transforms abstract definite aliasing
   pre-states at $p$ to abstract definite aliasing post-states at the program point after
   the expression or command, defined as:
   %
   \begin{align*}
-    \daa{c}(\sigma)&=\sigma[\res\mapsto\varnothing]\\
-    \daa{v}(\sigma)&=\sigma[\res\mapsto\sigma(v)]\\
-    \daa{\field{\exp}{f}}(\sigma)&=\sigma'[\res\mapsto\{\pi.f\mid\pi\in\sigma'(\res)\}]\quad\text{if $f$ is \<final>, where $\sigma'=\daa{\exp}(\sigma)$}
+    \da{c}(\sigma)&=\pair{\sigma}{\{c\}}\quad\text{if $\kappa\ge 1$}\\
+    \da{v}(\sigma)&=\pair{\sigma}{\sigma(v)}\\
+    \da{\field{\exp}{f}}(\sigma)&=\begin{cases}
+    \pair{\sigma'}{\{\pi.f\mid\pi\in\val,\ \length(\pi)<\kappa\}} & \text{if $f$ is \<final>}\\
+    \pair{\sigma'}{\varnothing} & \text{otherwise}
+    \end{cases}\\
+    &\quad\text{where $\da{\exp}(\sigma)=\pair{\sigma'}{\val}$}\\
+    \da{\aop{\exp_1}{\exp_2}}(\sigma)&=\pair{\sigma_2}{\{\aop{c_1}{c_2}\mid c_1\in\val_1\cap\nat,\ c_2\in\val_2\cap\nat\}}\\
+    &\quad\text{where $\da{\exp_1}(\sigma)=\pair{\sigma_1}{\val_1}$}\\
+    &\quad\text{and $\da{\exp_2}(\sigma_1)=\pair{\sigma_2}{\val_2}$}
   \end{align*}
 \end{definition}
 

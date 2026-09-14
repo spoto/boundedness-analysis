@@ -25,7 +25,7 @@
 
 \renewcommand{\exp}{\mathit{exp}}
 \newcommand{\com}{\mathit{com}}
-\newcommand{\op}[2]{{#1}\ \mathit{op}\ {#2}}
+\newcommand{\aop}[2]{{#1}\ \mathit{aop}\ {#2}}
 \newcommand{\field}[2]{{#1}\mathtt{.}{\mathit{#2}}}
 \newcommand{\size}[1]{{#1}\mathtt{.size()}}
 \newcommand{\random}[1]{\mathtt{random(}{#1}\mathtt{)}}
@@ -36,12 +36,12 @@
 \newcommand{\writemap}[3]{{#1}\mathtt{[}{#2}\mathtt{]:=}{#3}}
 \newcommand{\push}[2]{{#1}\mathtt{.push(}{#2}\mathtt{)}}
 \newcommand{\receive}[2]{{#1}\mathtt{.receive(}{#2}\mathtt{)}}
-\newcommand{\require}[1]{\mathtt{require(}{#1}\mathtt{)}}
+\newcommand{\require}[2]{\mathtt{require(}{#1}\ \mathit{cop}\ {#2}\mathtt{)}}
 \newcommand{\assign}[2]{{#1}\mathtt{:=}{#2}}
-\newcommand{\ife}[3]{\mathtt{if\ (}{#1}\mathtt{)\ then\ }{#2}\mathtt{\ else\ }{#3}}
-\newcommand{\for}[2]{\mathtt{for\ }{#1}\mathtt{\ in\ }{#2}}
+\newcommand{\ife}[4]{\mathtt{if\ (}{#1}\ \mathit{cop}\ {#2}\mathtt{)\ then\ }{#3}\mathtt{\ else\ }{#4}}
+\newcommand{\for}[3]{\mathtt{for\ }{#1}\mathtt{\ in\ }{#2}\ {#3}}
 \newcommand{\sequence}[2]{{#1}\mathtt{;}{#2}}
-\newcommand{\daa}[1]{\mathbb{DAA}\llbracket{#1}\rrbracket}
+\newcommand{\da}[1]{\mathbb{DA}\llbracket{#1}\rrbracket}
 
 \newcommand{\todo}[1]{{\color{red}\bfseries [[#1]]}}
 \newcommand{\wrt}{\textit{wrt.\ }}
@@ -51,9 +51,12 @@
 \newcommand{\sideeffect}[1]{\mathsf{se(}{#1}\mathsf{)}}
 \newcommand{\at}[1]{@{#1}}
 \newcommand{\dom}{\mathit{dom}}
+\newcommand{\pair}[2]{\langle{#1},{#2}\rangle}
 \newcommand{\unchanged}{\mathit{unchanged}}
 \newcommand{\nat}{\mathbb{N}}
 \newcommand{\res}{\mathit{res}}
+\newcommand{\val}{\mathit{value}}
+\newcommand{\length}{\mathit{len}}
 
 \lstdefinelanguage{pseudo}{
         keywords=[1]{assert, break, case, catch, class, final, continue, default, do, else, extends, false, finally, for, if, implements, import, instanceof, interface, new, private, 
