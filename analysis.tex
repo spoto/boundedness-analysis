@@ -106,7 +106,7 @@ A $\kappa$-\emph{path} is an expression rooted at a variable in scope, that foll
   \emph{$\kappa$-paths at program point $p$} is the minimal set such that
   \begin{itemize}
   \item if $\kappa\ge 1$ and $v\in\dom(\tau\at{p})$ then $v\in\mathbb{P}^\kappa\at{p}$, it has type $(\tau\at{p})(v)$
-    and length $1$ (all variables in scope at $p$ are a path at $p$);
+    and length $1$ (all variables in scope at $p$ are a $1$-path at $p$);
   \item if $\pi\in\mathbb{P}^\kappa\at{p}$ has type $C$ and length $l<\kappa$,
     and if $\mathtt{f}$ is a \<final> field of class $C$ of type $t$,
     already initialized at $p$,
@@ -163,6 +163,22 @@ the only prefix $\pi'$ of $\pi$ of type list is $\pi'=\pi$, of type
 \<List<TicketBatchSale\texttt{>}>,
 $\{\<Round>\}=\sideeffect{\<rounds.push(last)>}$ and
 \<TicketBatchSale> and \<Round> have no common subtype.
+
+\begin{definition}[Definite Aliasing Analysis]\label{def:definite_aliasing}
+  An \emph{abstract definite aliasing state at $p$} is a map from each variable
+  $v\in\dom(\tau\at{p})$
+  to a set of paths that are definitely alias of $v$ (\ie they hold the same
+  value as $v$). The \emph{abstract definite aliasing denotation} of an expression
+  or command at program point $p$ is a map that transforms abstract definite aliasing
+  pre-states at $p$ to abstract definite aliasing post-states at the program point after
+  the expression or command, defined as:
+  %
+  \begin{align*}
+    \daa{c}(\sigma)&=\sigma[\res\mapsto\varnothing]\\
+    \daa{v}(\sigma)&=\sigma[\res\mapsto\sigma(v)]\\
+    \daa{\field{\exp}{f}}(\sigma)&=\sigma'[\res\mapsto\{\pi.f\mid\pi\in\sigma'(\res)\}]\quad\text{if $f$ is \<final>, where $\sigma'=\daa{\exp}(\sigma)$}
+  \end{align*}
+\end{definition}
 
 The static analysis infers size change constraints about the containers
 reachable from the state of the smart contracts, for each public API

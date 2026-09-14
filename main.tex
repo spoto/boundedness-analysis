@@ -8,6 +8,7 @@
 \usepackage{relsize}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{stmaryrd}
 \usepackage{graphicx}
 \usepackage[T1]{fontenc}
 \usepackage{listings, framed}
@@ -40,6 +41,7 @@
 \newcommand{\ife}[3]{\mathtt{if\ (}{#1}\mathtt{)\ then\ }{#2}\mathtt{\ else\ }{#3}}
 \newcommand{\for}[2]{\mathtt{for\ }{#1}\mathtt{\ in\ }{#2}}
 \newcommand{\sequence}[2]{{#1}\mathtt{;}{#2}}
+\newcommand{\daa}[1]{\mathbb{DAA}\llbracket{#1}\rrbracket}
 
 \newcommand{\todo}[1]{{\color{red}\bfseries [[#1]]}}
 \newcommand{\wrt}{\textit{wrt.\ }}
@@ -49,7 +51,9 @@
 \newcommand{\sideeffect}[1]{\mathsf{se(}{#1}\mathsf{)}}
 \newcommand{\at}[1]{@{#1}}
 \newcommand{\dom}{\mathit{dom}}
+\newcommand{\unchanged}{\mathit{unchanged}}
 \newcommand{\nat}{\mathbb{N}}
+\newcommand{\res}{\mathit{res}}
 
 \lstdefinelanguage{pseudo}{
         keywords=[1]{assert, break, case, catch, class, final, continue, default, do, else, extends, false, finally, for, if, implements, import, instanceof, interface, new, private, 
