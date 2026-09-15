@@ -10,54 +10,45 @@
     \com::=&\ \assign{\mathit{v}}{\exp}\mid\assign{\field{\exp}{f}}{\exp}\mid\writemap{\exp}{\exp}{\exp}
     \mid\require{\exp}{\exp}\\
     &\mid\push{\exp}{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\\
-    &\mid\ife{\exp}{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}{\com}\mid\sequence{\com}{\com}
+    &\mid\ife{\exp}{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}{\com}\mid\sequence{\com}{\com}.
   \end{align*}
-  Expressions and commands are silently annotated with the program point $p$ where they occur
-  in the source code under analysis\footnote{For instance, a program point might be
-  a line number and a character position inside that line,
-  by its exact nature is irrelevant here.}. When useful, that annotation is made
-  explicit as $\exp\at{p}$ or $\com\at{p}$.
 \end{definition}
 
 \begin{definition}[Program]\label{def:program}
   A \emph{program} is a collection of \emph{classes}.
-  Each class $C$ has a superclass,
-  some \emph{field signatures}, of the form $C.f$,
-  and some \emph{methods}, of the form
-  $C.m(p_1 t_1,\ldots,p_n t_n)\mathtt{\ \{}\com\mathtt{\}}$,
-  where $\com$ is the \emph{body} of the method.
+  Each class $C$ has a superclass, some \emph{field signatures} $C.f$
+  and some \emph{methods} $C.m$, declared as
+  \[
+  C.m(p_1:t_1,\ldots,p_n:t_n)\ \<let>\ l_1:t_1',\ldots,l_q:t_q'\ \<in>\ \com,
+  \]
+  where $\com$ is the \emph{body} of the method, $p_1\cdots p_n$ are its
+  formal parameters, of type $t_1\cdots t_n$, and $l_1\cdots l_q$ are its
+  local variables, of type $t_1'\cdots t_q'$. Local variables include the
+  implicit variables \<this> (the \emph{receiver} of $C.m$),
+  \<caller> (the contract that called $C.m$) and \<now> (the current time).
+  If $C.m$ is \<payable>, local variables include also
+  \<amount> (the cryptocurrency paid for calling $C.m$).
   A class that extends \<Contract>
   (possibly indirectly) is called a \emph{smart contract}.
-  A \emph{constructor} is a method named like the class $C$
-  that it belongs to.
+  A \emph{constructor} is a method $C.C$ named like the class $C$ that declares it.
+  A type is either \emph{primitive} (such as \<int>)
+  or a class name $C$. Generic class types (such as lists) are written as
+  \<List<t\texttt{>}>, where \<t> is the type of the elements of the list.
+  The variables in scope inside a method
+  form its \emph{typing}\ie a map from each variable in scope to
+  its declared type. Namely, the typing $\tau_{C.m}$ of the method $C.m$ above is the map
+  $\tau_{C.m}=\{p_1\mapsto t_1,\ldots,p_n\mapsto t_n,l_1\mapsto t_1',\ldots,l_q\mapsto t_q'\}$.
 \end{definition}
 %
 Fields and methods can have modifiers such as \<public>, \<private>,
 \<final> and \<payable>, that we do not introduce formally and have the
 usual meaning as, for instance, in Java or Solidity. For simplicity, we
 assume that methods do not return any value.
-
-We assume to analyze a statically strongly-typed language. Therefore, each
-expression and command will be evaluated in a context (\emph{typing})
-that specifies which variables are in scope and which is their type.
-This typing is that inferred in the type-checking phase of the compiler.
-%
-\begin{definition}[Typing]\label{def:typing}
-  A type is either \emph{primitive} (such as \<int>, \<boolean> \ldots)
-  or a class name $C$. Generic class types (such as lists) are written as
-  \<List<t\texttt{>}>, where \<t> is the type of the elements of the list.
-  A \emph{typing} $\tau$ is a map from a finite set of variables
-  to their static (\ieinitial declared) type. For any
-  expression $\exp$, we write $\tau(\exp)$ for its \emph{type according to $\tau$},
-  if its computation does not lead to a type error.
-\end{definition}
-%
-The definition of $\tau(\exp)$ is not formalized here, since it is the usual recursive
-definition of the type of an expression, used by any strongly-typed language.
-We assume that each program point $p$ comes with an associated typing $\tau\at{p}$.
-For any expression $\exp\at{p}$, we assume that $\tau\at{p}$ is \emph{correct} for $\exp$\ie the
-computation of $\tau\at{p}(\exp)$ succeeds without type errors.
-Such $\tau\at{p}$ is for instance that inferred by the compiler at $p$ during type-checking.
+We assume programs type-checked. Therefore, the evaluation
+of expressions and the execution of commands in a method never lead to type errors.
+We write $\tau_{C.m}(\exp)$ for the static type of an expression $\exp$ occurring inside
+method $C.m$. Its definition is not formalized here, since it is the usual recursive
+definition used by any strongly-typed language.
 
 Given an expression or command in the program, it is possible to identify
 which lists (and more generally,
@@ -71,77 +62,81 @@ is frequently precise enough on simple programs such as smart contracts.
 %
 \begin{definition}[Side-Effects Analysis]\label{def:side_effect}
   The set of element types of the lists potentially modified during the evaluation of an
-  expression or the execution of a command in the program
-  is overapproximated by the minimal fixpoint of the following recursive equations:
+  expression $\exp$ or during the execution of a command $\com$ occurring in a method $C.m$
+  is overapproximated by $\sideeffect{C.m}{\exp}$ and $\sideeffect{C.m}{\com}$, respectively,
+  defined as the minimal solution of the following recursive equations:
   %
   \begin{align*}
-    \sideeffect{c}&=\sideeffect{v}=\varnothing\\
-    \sideeffect{\new{C}{\exp_1,\ldots,\exp_n}}&=\sideeffect{\com}\cup\bigcup\limits_{i=1}^{n}\sideeffect{\exp_i}\\
-    &\quad\text{where $\com$ is the body of the constructor}\\
-    \sideeffect{\field{\exp}{f}}&=\sideeffect{\exp}\\
-    \sideeffect{\aop{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
+    \sideeffect{C.m}{c}&=\sideeffect{C.m}{v}=\varnothing\\
+    \sideeffect{C.m}{\new{C'}{\exp_1,\ldots,\exp_n}}&=\sideeffect{C'.C'}{\com}\cup\bigcup\limits_{i=1}^{n}\sideeffect{C.m}{\exp_i}\\
+    &\quad\text{where $\com$ is the body of the}\\
+    &\quad\text{constructor $C'.C'$ called here}\\
+    \sideeffect{C.m}{\field{\exp}{f}}&=\sideeffect{C.m}{\exp}\\
+    \sideeffect{C.m}{\aop{\exp_1}{\exp_2}}&=\sideeffect{C.m}{\exp_1}\cup\sideeffect{C.m}{\exp_2}\\
     &\quad\text{similarly, recursively, for the other expressions}
   \end{align*}
   \begin{align*}
-    \sideeffect{\push{\exp_1}{\exp_2}\at{p}}&=\sideeffect{\exp_2}\cup\{t\}\quad\text{where $\tau\at{p}(\exp_1)=\<List<>t$\<\text{>}>}\\
-    \sideeffect{\call{\exp_0}{m}{\exp_1,\ldots,\exp_n}\at{p}}&=\bigcup\limits_{j=1}^k\sideeffect{\com_j}\cup\bigcup\limits_{i=0}^{n}\sideeffect{\exp_i}\\
+    \sideeffect{C.m}{\push{\exp_1}{\exp_2}}&=\sideeffect{C.m}{\exp_2}\cup\{t\}\quad\text{where $\tau_{C.m}(\exp_1)=\<List<>t$\<\text{>}>}\\
+    \sideeffect{C.m}{\call{\exp_0}{m'}{\exp_1,\ldots,\exp_n}}&=\bigcup\limits_{j=1}^k\sideeffect{C_j.m'}{\com_j}\cup\bigcup\limits_{i=0}^{n}\sideeffect{C.m}{\exp_i}\\
     &\quad\text{where $\com_1\cdots\com_k$ are the bodies of}\\
-    &\quad\text{the methods possibly called at $p$}\\
-    \sideeffect{\sequence{\com_1}{\com_2}}&=\sideeffect{\com_1}\cup\sideeffect{\com_2}\\
-    \sideeffect{\assign{\mathit{v}}{\exp}}&=\sideeffect{\exp}\\
+    &\quad\text{the methods $C_1.m'\cdots C_k.m'$ possibly called here}\\
+    \sideeffect{C.m}{\sequence{\com_1}{\com_2}}&=\sideeffect{C.m}{\com_1}\cup\sideeffect{C.m}{\com_2}\\
+    \sideeffect{C.m}{\assign{\mathit{v}}{\exp}}&=\sideeffect{C.m}{\exp}\\
     &\quad\text{similarly, recursively, for the other commands.}
   \end{align*}
 \end{definition}
 %
 We recall that a method call in object-oriented languages may actually call a subset
-$\{M_1,\ldots,M_k\}$ of the redefinitions of its static target method, with bodies $\{\com_1,\ldots,\com_k\}$.
-A sound overapproximation of $\{M_1,\ldots,M_k\}$ can always be inferred statically,
-as the set of \emph{all} possible redefinitions. More precise analyses exist~\cite{TipP00},
-but are probably overkill for minimalistic code such as smart contracts,
+$C_1.m'\cdots C_k.m'$ of the redefinitions of its static target method, with bodies
+$\{\com_1,\ldots,\com_k\}$.
+A sound overapproximation of $C_1.m'\cdots C_k.m'$ can always be easily inferred statically,
+as the set of \emph{all} possible redefinitions. More precise analyses exist~\cite{TipP00} as well,
+but they are probably overkill for minimalistic code such as smart contracts,
 that very rarely redefine methods.
 
 A \emph{path} is an expression rooted at a variable in scope, that follows
 \<final> field dereferences or list accesses, or is an integer constant.
-Paths have a type and a length. A constant $\kappa$ can be used to limit the maximal
-length of a path. A relevant path has type list. While paths will be used
+Paths have a type and a length. A constant $\kappa\in\nat$ limits the maximal
+length of a path. We assume that $\kappa$ is a global constant in this work,
+so that we not need to clutter each definition with the parameter $\kappa$.
+A relevant path has type list. While paths will be used
 to define the definite aliasing analysis, relevant paths will be used in the
 subsequent boundness analysis.
 %
 \begin{definition}[Paths]\label{def:path}
-  Given $\kappa\in\nat$, the finite set $\mathbb{P}^\kappa\at{p}$ of the
-  \emph{$\kappa$-paths at program point $p$} is the minimal set such that
+  Given a method $C.m$, the finite set $\paths{C.m}$ of the
+  \emph{paths in $C.m$} is the minimal set such that
   \begin{itemize}
-  \item if $\kappa\ge 1$ and $v\in\dom(\tau\at{p})$ then $v\in\mathbb{P}^\kappa\at{p}$, it has type $(\tau\at{p})(v)$
-    and $\length(v)=1$ (all variables in scope at $p$ are a $1$-path at $p$);
-  \item if $\kappa\ge 1$ and $c\in\nat$ then $c\in\mathbb{P}^\kappa\at{p}$, it has type \<int>
-    and $\length(c)=1$ (all integer constants are a $1$-path at $p$);
-  \item if $\pi\in\mathbb{P}^\kappa\at{p}$ has type $C$ and $\length(\pi)<\kappa$,
+  \item if $\kappa\ge 1$ and $v\in\dom(\tau_{C.m})$ then $v\in\paths{C.m}$, it has type $(\tau_{C.m})(v)$
+    and $\length(v)=1$ (all variables in scope in $C.m$ are a $1$-path in $C.m$);
+  \item if $\kappa\ge 1$ and $c\in\nat$ then $c\in\paths{C.m}$, it has type \<int>
+    and $\length(c)=1$ (all integer constants are a path in $C.m$);
+  \item if $\pi\in\paths{C.m}$ has type $C$, if $\length(\pi)<\kappa$
     and if $\mathtt{f}$ is a \<final> field of type $t$ defined in class $C$,
-    already initialized at $p$,
-    then $\pi.f\in\mathbb{P}^\kappa\at{p}$, it has type $t$ and $\length(\pi.f)=\length(\pi)+1$
+    then $\pi.f\in\paths{C.m}$, it has type $t$ and $\length(\pi.f)=\length(\pi)+1$
     (paths can be expanded by \<final> field dereference);
-  \item if $\pi\in\mathbb{P}\at{p}$ has type \<List<$t$\texttt{>}> and $\length(\pi)<\kappa$
-    then $\pi\<[any]>\in\mathbb{P}^\kappa\at{p}$, it has type $t$ and $\length(\pi\<[any]>)=\length(\pi)+1$
+  \item if $\pi\in\paths{C.m}$ has type \<List<$t$\texttt{>}> and $\length(\pi)<\kappa$
+    then $\pi\<[any]>\in\paths{C.m}$, it has type $t$ and $\length(\pi\<[any]>)=\length(\pi)+1$
     (paths can be expanded by list access).
   \end{itemize}
-  A $\kappa$-path is \emph{relevant} if its type is \<List<$t$\texttt{>}> for some $t$.
-  The finite set of all relevant $\kappa$-paths at $p$ is written as $\mathbb{RP}^\kappa\at{p}$. 
+  A path is \emph{relevant} if its type is \<List<$t$\texttt{>}> for some $t$.
+  The finite set of all relevant paths in $C.m$ is $\relevantpaths{C.m}$.
+  When clear from the context, we write $\paths{}$ for $\paths{C.m}$ and
+  $\relevantpaths{}$ for $\relevantpaths{C.m}$.
 \end{definition}
 %
-For instance, at line~\ref{ponzi1:require} in Fig.~\ref{fig:ponzi1},
-$42$ is a $1$-path of type \<int>,
-\<this> is a $1$-path of type \<Ponzi1>,
-\<amount> is a $1$-path of type \<int>,
-\<this.investors> is a $2$-path of type \<List<Contract\texttt{>}> and
-\<this.investors[any]> is a $3$-path of type \<Contract>. Among them, only
+For instance, at line~\ref{ponzi1:require} in Fig.~\ref{fig:ponzi1}, assuming $\kappa\ge 3$,
+$42$ is a path of type \<int>, \<this> is a path of type \<Ponzi1>,
+\<amount> is a path of type \<int>,
+\<this.investors> is a path of type \<List<Contract\texttt{>}> and
+\<this.investors[any]> is a path of type \<Contract>. Among them, only
 \<this.investors> is relevant.
 
 The $\kappa$ limit is essential to make our analysis finitely computable, as shown later.
 Larger $\kappa$ lead to a more precise analysis,
 in principle, but also potentially more expensive.
 Therefore, $\kappa$ acts as a lever that selects the desired precision for the
-analysis. For simplicity, in the examples that follow,
-we assume $\kappa=3$ and just say \emph{relevant}, meaning $3$-relevant.
+analysis. For simplicity, in the examples that follow, we assume $\kappa=3$.
 
 A path \emph{survives} the execution of some code\ie it keeps its value unchanged,
 if it does not access any list that might be modified by that execution. Note how this
@@ -149,48 +144,56 @@ definition is simplified by the constraint that paths only dereference
 \<final> fields (Def.~\ref{def:path}), which allows one to focus on side-effects on lists only.
 %
 \begin{definition}\label{def:survival}
-  Given $\pi\in\mathbb{P}^\kappa\at{p}$ and an expression $\exp\at{p}$, then
-  \emph{$\pi$ survives the evaluation of $\exp$} if, for all prefix $\pi'$ of $\pi$
-  (\ieinitial  $\pi=\pi'\ldots$) of type \<List<$t'$\texttt{>}>
-  and for all $t''\in\sideeffect{\exp}$, the types
+  Given $\pi\in\paths{C.m}$ and an expression $\exp$ occurring in $C.m$, then
+  \emph{$\pi$ survives $\exp$} if, for all prefix $\pi'$ of $\pi$
+  (\ieinitial  $\pi=\pi'\cdots$) of type \<List<$t'$\texttt{>}>
+  and for all $t''\in\sideeffect{C.m}{\exp}$, the types
   $t'$ and $t''$ have no common subtype.
-  A similar definition states when \emph{$\pi$ survives the execution of a command $\com$}.
+  A similar definition states when \emph{$\pi$ survives a command $\com$
+  occurring in $C.m$}.
 \end{definition}
 %
 For instance, the path $\pi=\<this.investors>$ at
-line~\ref{ponzi1:expand} in Fig.~\ref{fig:ponzi1} does not survive the execution
-of the command at that line, since $\pi'=\<this.investors>$
+line~\ref{ponzi1:expand} in Fig.~\ref{fig:ponzi1} does not survive
+the command \<investors.push(caller)> at that line, since $\pi'=\<this.investors>$
 has type \<List<Contract\texttt{>}>,
-$\{\<Contract>\}=\sideeffect{\<investors.push(caller)>}$
+$\{\<Contract>\}=\sideeffect{\<Ponzi1.invest>}{\<investors.push(caller)>}$
 and \<Contract> has a common subtype with itself, obviously.
-Instead, the path $\pi=\<last.sales>$ at line~\ref{lottery2:push_round}
-survives the execution of the command at that line, since
+Instead, the path $\pi=\<last.sales>$
+survives the command \<rounds.push(last)>
+at line~\ref{lottery2:push_round}, since
 the only prefix $\pi'$ of $\pi$ of type list is $\pi'=\pi$, of type
 \<List<TicketBatchSale\texttt{>}>,
-$\{\<Round>\}=\sideeffect{\<rounds.push(last)>}$ and
+$\{\<Round>\}=\sideeffect{\<Lottery2.buy>}{\<rounds.push(last)>}$ and
 \<TicketBatchSale> and \<Round> have no common subtype.
 All integer constants survive any expression and command.
 
+The definite aliasing analysis propagates abstract states that bind each
+variable $v$ in scope to a set of paths that are definitely alias to $v$
+(\ieinitial they have the same value as $v$).
+%
 \begin{definition}[Definite Aliasing Analysis]\label{def:definite_aliasing}
-  An \emph{abstract definite aliasing state at $p$} is a map from each variable
-  $v\in\dom(\tau\at{p})$
-  to a set of paths that are definitely alias of $v$ (\ieinitial they have the same
-  value as $v$). The \emph{abstract definite aliasing denotation} of an expression
-  or command at program point $p$ is a map that transforms abstract definite aliasing
-  pre-states at $p$ to abstract definite aliasing post-states at the program point after
-  the expression or command, defined as:
+  Given a method $C.m$, the set of the \emph{abstract definite aliasing states in $C.m$} is
+  \[
+  \dastates{C.m}=\{\sigma\mid\sigma:\dom(\tau_{C.m})\mapsto\paths{C.m}\}
+  \]
+  The \emph{abstract definite aliasing denotation} of an expression
+  $\exp$ occurring in $C.m$ is a function
+  \[
+  \da{C.m}{\exp}:\dastates{C.m}\mapsto\left(\dastates{C.m}\times\paths{C.m}\right)
+  \]
+  from the approximation of the pre-state to the approximation of the post-state and
+  the approximation of the paths aliased to the expression.
+  It is defined as (we leave $C.m$ implicit to simplify the notation):
   %
   \begin{align*}
-    \da{c}(\sigma)&=\pair{\sigma}{\{c\}}\quad\text{if $\kappa\ge 1$}\\
-    \da{v}(\sigma)&=\pair{\sigma}{\sigma(v)}\\
-    \da{\field{\exp}{f}}(\sigma)&=\begin{cases}
-    \pair{\sigma'}{\{\pi.f\mid\pi\in\val,\ \length(\pi)<\kappa\}} & \text{if $f$ is \<final>}\\
-    \pair{\sigma'}{\varnothing} & \text{otherwise}
-    \end{cases}\\
-    &\quad\text{where $\da{\exp}(\sigma)=\pair{\sigma'}{\val}$}\\
-    \da{\aop{\exp_1}{\exp_2}}(\sigma)&=\pair{\sigma_2}{\{\aop{c_1}{c_2}\mid c_1\in\val_1\cap\nat,\ c_2\in\val_2\cap\nat\}}\\
-    &\quad\text{where $\da{\exp_1}(\sigma)=\pair{\sigma_1}{\val_1}$}\\
-    &\quad\text{and $\da{\exp_2}(\sigma_1)=\pair{\sigma_2}{\val_2}$}
+    \da{}{c}(\sigma)&=\pair{\sigma}{\{c\}\cap\paths{}}\\
+    \da{}{v}(\sigma)&=\pair{\sigma}{\sigma(v)}\\
+    \da{}{\field{\exp}{f}}(\sigma)&=\pair{\sigma'}{\{\pi.f\mid\pi\in\val\}\cap\paths{}}\\
+    &\quad\text{where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}\\
+    \da{}{\aop{\exp_1}{\exp_2}}(\sigma)&=\pair{\sigma_2}{\{\aop{c_1}{c_2}\mid c_1\in\val_1,\ c_2\in\val_2\}\cap\paths{}}\\
+    &\quad\text{where $\da{}{\exp_1}(\sigma)=\pair{\sigma_1}{\val_1}$}\\
+    &\quad\text{and $\da{}{\exp_2}(\sigma_1)=\pair{\sigma_2}{\val_2}$}
   \end{align*}
 \end{definition}
 

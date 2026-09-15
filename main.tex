@@ -41,15 +41,17 @@
 \newcommand{\ife}[4]{\mathtt{if\ (}{#1}\ \mathit{cop}\ {#2}\mathtt{)\ then\ }{#3}\mathtt{\ else\ }{#4}}
 \newcommand{\for}[3]{\mathtt{for\ }{#1}\mathtt{\ in\ }{#2}\ {#3}}
 \newcommand{\sequence}[2]{{#1}\mathtt{;}{#2}}
-\newcommand{\da}[1]{\mathbb{DA}\llbracket{#1}\rrbracket}
+\newcommand{\da}[2]{\mathbb{DA}_{{#1}}\llbracket{#2}\rrbracket}
+\newcommand{\dastates}[1]{\mathsf{DA}_{{#1}}}
+\newcommand{\paths}[1]{\mathsf{P}_{{#1}}}
+\newcommand{\relevantpaths}[1]{\mathsf{RP}_{{#1}}}
 
 \newcommand{\todo}[1]{{\color{red}\bfseries [[#1]]}}
 \newcommand{\wrt}{\textit{wrt.\ }}
 \newcommand{\ie}{, \textit{ie.}, }
 \newcommand{\ieinitial}{\textit{ie.}, }
 
-\newcommand{\sideeffect}[1]{\mathsf{se(}{#1}\mathsf{)}}
-\newcommand{\at}[1]{@{#1}}
+\newcommand{\sideeffect}[2]{\mathsf{se}_{{#1}}\mathsf{(}{#2}\mathsf{)}}
 \newcommand{\dom}{\mathit{dom}}
 \newcommand{\pair}[2]{\langle{#1},{#2}\rangle}
 \newcommand{\unchanged}{\mathit{unchanged}}
