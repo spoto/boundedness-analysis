@@ -144,13 +144,17 @@ definition is simplified by the constraint that paths only dereference
 \<final> fields (Def.~\ref{def:path}), which allows one to focus on side-effects on lists only.
 %
 \begin{definition}\label{def:survival}
-  Given $\pi\in\paths{C.m}$ and an expression $\exp$ occurring in $C.m$, then
-  \emph{$\pi$ survives $\exp$} if, for all prefix $\pi'$ of $\pi$
+  Let $\pi\in\paths{C.m}$. Given an expression $\exp$ occurring in $C.m$, then
+  \emph{$\pi$ survives $\exp$}, written $\pi\survives{\exp}$, if, for all prefix $\pi'$ of $\pi$
   (\ieinitial  $\pi=\pi'\cdots$) of type \<List<$t'$\texttt{>}>
   and for all $t''\in\sideeffect{C.m}{\exp}$, the types
   $t'$ and $t''$ have no common subtype.
-  A similar definition states when \emph{$\pi$ survives a command $\com$
-  occurring in $C.m$}.
+  Given a command $\com$ occurring in $C.m$, then \emph{$\pi$ survives $\com$}, written $\pi\survives{\com}$, if
+  the same condition as above holds and, moreover, $\com$ does not assign the starting
+  variable of $\pi$, if any.
+  This survival test is extended to a filter on sets $S$ of paths, as $S\survives X=\{\pi\in S\mid\pi\survives{X}\}$,
+  and further extended pointwise to functions $\phi$ into sets of paths
+  $(\phi\survives X)(y)=\phi(y)\survives X$ for every $y\in\dom(\phi)$. 
 \end{definition}
 %
 For instance, the path $\pi=\<this.investors>$ at
@@ -183,9 +187,20 @@ variable $v$ in scope to a set of paths that are definitely alias to $v$
   \da{C.m}{\exp}:\dastates{C.m}\mapsto\left(\dastates{C.m}\times\paths{C.m}\right)
   \]
   from the approximation of the pre-state to the approximation of the post-state and
-  the approximation of the paths aliased to the expression.
-  It is defined as (we leave $C.m$ implicit to simplify the notation):
-  %
+  the approximation of the paths aliased to the expression. The annotation
+  $C.m$ is dropped when clear from the context.
+  The definition of $\da{}{\exp}$ is in Fig.~\ref{fig:daa_expressions}.
+  The \emph{abstract definite aliasing denotation} of a command
+  $\com$ occurring in $C.m$ is a function
+  \[
+  \da{C.m}{\com}:\dastates{C.m}\mapsto\dastates{C.m}
+  \]
+  from the approximation of the pre-state to the approximation of the post-state.
+  The annotation $C.m$ is dropped when clear from the context.
+  The definition of $\da{}{\com}$ is in Fig.~\ref{fig:daa_commands}.
+\end{definition}
+%
+\begin{figure}[t]
   \begin{align*}
     \da{}{c}(\sigma)&=\pair{\sigma}{\{c\}\cap\paths{}}\\
     \da{}{v}(\sigma)&=\pair{\sigma}{\sigma(v)}\\
@@ -193,9 +208,39 @@ variable $v$ in scope to a set of paths that are definitely alias to $v$
     &\quad\text{where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}\\
     \da{}{\aop{\exp_1}{\exp_2}}(\sigma)&=\pair{\sigma_2}{\{\aop{c_1}{c_2}\mid c_1\in\val_1,\ c_2\in\val_2\}\cap\paths{}}\\
     &\quad\text{where $\da{}{\exp_1}(\sigma)=\pair{\sigma_1}{\val_1}$}\\
-    &\quad\text{and $\da{}{\exp_2}(\sigma_1)=\pair{\sigma_2}{\val_2}$}
+    &\quad\text{and $\da{}{\exp_2}(\sigma_1)=\pair{\sigma_2}{\val_2}$}\\
+    \da{}{\readmap{\exp_1}{\exp_2}{\exp_3}}&=\pair{\sigma_3}{\varnothing}\\
+    &\quad\text{where $\da{}{\exp_1}(\sigma)=\pair{\sigma_1}{\val_1}$,}\\
+    &\quad\text{$\da{}{\exp_2}(\sigma_1)=\pair{\sigma_2}{\val_2}$}\\
+    &\quad\text{and $\da{}{\exp_3}(\sigma_2)=\pair{\sigma_3}{\val_3}$}\\
+    \da{}{\new{C'}{\exp_1,\ldots,\exp_n}}(\sigma)&=\pair{\sigma_n\survives{\new{C'}{\exp_1,\ldots,\exp_n}}\sigma'}{\varnothing}\\
+    &\quad\text{where $\da{}{\exp_1}(\sigma)=\pair{\sigma_1}{\val_1}$,}\\
+    &\quad\text{$\da{}{\exp_2}(\sigma_1)=\pair{\sigma_2}{\val_2}$}\\
+    &\quad\vdots\\
+    &\quad\text{and $\da{}{\exp_n}(\sigma_{n-1})=\pair{\sigma_n}{\val_n}$}\\
+    \da{}{\size{\exp}}(\sigma)&=\pair{\sigma'}{\varnothing}\\
+    &\quad\text{where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}\\
+    \da{}{\last{\exp}}(\sigma)&=\pair{\sigma'}{\{\pi\<[any]>\mid\pi\in\val\}\cap\paths{}}\\
+    &\quad\text{where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}\\
+    \da{}{\random{\exp}}(\sigma)&=\pair{\sigma'}{\varnothing}\\
+    &\quad\text{where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}
   \end{align*}
-\end{definition}
+  \caption{The definite aliasing analysis for expressions.}
+  \label{fig:daa_expressions}
+\end{figure}
+%
+\begin{figure}[t]
+  \begin{align*}
+    \da{}{c}(\sigma)&=\pair{\sigma}{\{c\}\cap\paths{}}\\
+    \da{}{v}(\sigma)&=\pair{\sigma}{\sigma(v)}
+  \end{align*}
+  \caption{The definite aliasing analysis for commands.}
+  \label{fig:daa_commands}
+\end{figure}
+%
+In Fig.~\ref{fig:daa}, the intersection with $\paths{}$ ensures that no illegal path
+is generated (\ieinitial with non-\<final> fields, or longer than $\kappa$ or not
+for the variables in $C.m$).
 
 The static analysis infers size change constraints about the containers
 reachable from the state of the smart contracts, for each public API
