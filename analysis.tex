@@ -2,7 +2,7 @@
 
 \begin{definition}[Expressions and Commands]\label{def:exp_com}
   \emph{Expressions} and \emph{commands} are defined by the following grammar,
-  where $c$ is a literal constant of the language, $\mathit{aop}$ is an arithmetic
+  where $c$ is a literal constant of the language, $v$ is a variable, $\mathit{aop}$ is an arithmetic
   operator and $\mathit{cop}$ is a comparison operator:
   \begin{align*}
     \exp::=&\ \mathit{c}\mid\mathit{v}\mid\field{\exp}{f}\mid\aop{\exp}{\exp}\mid\readmap{\exp}{\exp}{\exp}\\
@@ -94,8 +94,9 @@ as the set of \emph{all} possible redefinitions. More precise analyses exist~\ci
 but they are probably overkill for minimalistic code such as smart contracts,
 that very rarely redefine methods.
 
-A \emph{path} is an expression rooted at a variable in scope, that follows
-\<final> field dereferences or list accesses, or is an integer constant.
+A \emph{path} is an expression rooted at either a \<final>
+local variable in scope, that follows
+\<final> field dereferences or list accesses, or an integer constant.
 Paths have a type and a length. A constant $\kappa\in\nat$ limits the maximal
 length of a path. We assume that $\kappa$ is a global constant in this work,
 so that we not need to clutter each definition with the parameter $\kappa$.
@@ -107,8 +108,9 @@ subsequent boundness analysis.
   Given a method $C.m$, the finite set $\paths{C.m}$ of the
   \emph{paths in $C.m$} is the minimal set such that
   \begin{itemize}
-  \item if $\kappa\ge 1$ and $v\in\dom(\tau_{C.m})$ then $v\in\paths{C.m}$, it has type $(\tau_{C.m})(v)$
-    and $\length(v)=1$ (all variables in scope in $C.m$ are a $1$-path in $C.m$);
+  \item if $\kappa\ge 1$ and $v\in\dom(\tau_{C.m})$ is \<final>,
+    then $v\in\paths{C.m}$, it has type $(\tau_{C.m})(v)$
+    and $\length(v)=1$ (all \<final> variables in scope in $C.m$ are a path in $C.m$);
   \item if $\kappa\ge 1$ and $c\in\nat$ then $c\in\paths{C.m}$, it has type \<int>
     and $\length(c)=1$ (all integer constants are a path in $C.m$);
   \item if $\pi\in\paths{C.m}$ has type $C$, if $\length(\pi)<\kappa$
@@ -149,11 +151,9 @@ definition is simplified by the constraint that paths only dereference
   (\ieinitial  $\pi=\pi'\cdots$) of type \<List<$t'$\texttt{>}>
   and for all $t''\in\sideeffect{C.m}{\exp}$, the types
   $t'$ and $t''$ have no common subtype.
-  Given a command $\com$ occurring in $C.m$, then \emph{$\pi$ survives $\com$}, written $\pi\survives{\com}$, if
-  the same condition as above holds and, moreover, $\com$ does not assign the starting
-  variable of $\pi$, if any.
+  Given a command $\com$ occurring in $C.m$, then \emph{$\pi$ survives $\com$}, written $\pi\survives{\com}$, is defined similarly.
   This survival test is extended to a filter on sets $S$ of paths, as $S\survives X=\{\pi\in S\mid\pi\survives{X}\}$,
-  and further extended pointwise to functions $\phi$ into sets of paths
+  and further extended pointwise to functions $\phi$ into sets of paths as
   $(\phi\survives X)(y)=\phi(y)\survives X$ for every $y\in\dom(\phi)$. 
 \end{definition}
 %
@@ -176,54 +176,56 @@ The definite aliasing analysis propagates abstract states that bind each
 variable $v$ in scope to a set of paths that are definitely alias to $v$
 (\ieinitial they have the same value as $v$).
 %
-\begin{definition}[Definite Aliasing Analysis]\label{def:definite_aliasing}
-  Given a method $C.m$, the set of the \emph{abstract definite aliasing states in $C.m$} is
+\begin{definition}[Definite Aliasing Analysis States]\label{def:definite_aliasing_domain}
+  Given a method $C.m$, the set of the
+  \emph{definite aliasing states in $C.m$} is
   \[
   \dastates{C.m}=\{\sigma\mid\sigma:\dom(\tau_{C.m})\mapsto\paths{C.m}\}
   \]
-  The \emph{abstract definite aliasing denotation} of an expression
-  $\exp$ occurring in $C.m$ is a function
+  where $C.m$ is dropped when clear from the context.
+\end{definition}
+%
+\begin{definition}[Definite Aliasing Analysis]\label{def:definite_aliasing}
+  Given a method $C.m$, the \emph{definite aliasing denotation} of an expression
+  $\exp$ occurring in $C.m$ is a map
   \[
   \da{C.m}{\exp}:\dastates{C.m}\mapsto\left(\dastates{C.m}\times\paths{C.m}\right)
   \]
-  from the approximation of the pre-state to the approximation of the post-state and
-  the approximation of the paths aliased to the expression. The annotation
+  from the approximation of the pre-states to the approximation of the post-states and
+  the approximation of the paths aliased to $\exp$, where
   $C.m$ is dropped when clear from the context.
-  The definition of $\da{}{\exp}$ is in Fig.~\ref{fig:daa_expressions}.
-  The \emph{abstract definite aliasing denotation} of a command
-  $\com$ occurring in $C.m$ is a function
+  Given $\pair{\sigma}{\val}\in\dastates{}\times\paths{}$, we define
+  $\pair{\sigma}{\val}|_{\val'}=\pair{\sigma}{\val'}$ and $\pair{\sigma}{\val}|=\sigma$.
+  Both operations are pointwise extended to maps
+  in $\dastates{}\mapsto(\dastates{}\times\paths{})$.
+  This lets us define the composition of two such maps $\delta_1,\delta_2$ as
+  $\delta_2(\delta_1(\sigma))=\delta_2(\delta_1(\sigma)|)$.
+  Fig.~\ref{fig:daa_expressions} defines $\da{}{\exp}$.
+
+  The \emph{definite aliasing denotation} of a command $\com$ occurring in $C.m$ is a map
   \[
   \da{C.m}{\com}:\dastates{C.m}\mapsto\dastates{C.m}
   \]
-  from the approximation of the pre-state to the approximation of the post-state.
-  The annotation $C.m$ is dropped when clear from the context.
-  The definition of $\da{}{\com}$ is in Fig.~\ref{fig:daa_commands}.
+  from the approximation of the pre-states to the approximation of the post-states,
+  where $C.m$ is dropped when clear from the context.
+  Fig.~\ref{fig:daa_commands} defines $\da{}{\com}$.
 \end{definition}
 %
 \begin{figure}[t]
   \begin{align*}
     \da{}{c}(\sigma)&=\pair{\sigma}{\{c\}\cap\paths{}}\\
-    \da{}{v}(\sigma)&=\pair{\sigma}{\sigma(v)}\\
+    \da{}{v}(\sigma)&=\pair{\sigma}{(\sigma(v)\cup\{v\})\cap\paths{}}\\
     \da{}{\field{\exp}{f}}(\sigma)&=\pair{\sigma'}{\{\pi.f\mid\pi\in\val\}\cap\paths{}}\\
-    &\quad\text{where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}\\
+    \noalign{\centering where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}
     \da{}{\aop{\exp_1}{\exp_2}}(\sigma)&=\pair{\sigma_2}{\{\aop{c_1}{c_2}\mid c_1\in\val_1,\ c_2\in\val_2\}\cap\paths{}}\\
-    &\quad\text{where $\da{}{\exp_1}(\sigma)=\pair{\sigma_1}{\val_1}$}\\
-    &\quad\text{and $\da{}{\exp_2}(\sigma_1)=\pair{\sigma_2}{\val_2}$}\\
-    \da{}{\readmap{\exp_1}{\exp_2}{\exp_3}}&=\pair{\sigma_3}{\varnothing}\\
-    &\quad\text{where $\da{}{\exp_1}(\sigma)=\pair{\sigma_1}{\val_1}$,}\\
-    &\quad\text{$\da{}{\exp_2}(\sigma_1)=\pair{\sigma_2}{\val_2}$}\\
-    &\quad\text{and $\da{}{\exp_3}(\sigma_2)=\pair{\sigma_3}{\val_3}$}\\
-    \da{}{\new{C'}{\exp_1,\ldots,\exp_n}}(\sigma)&=\pair{\sigma_n\survives{\new{C'}{\exp_1,\ldots,\exp_n}}\sigma'}{\varnothing}\\
-    &\quad\text{where $\da{}{\exp_1}(\sigma)=\pair{\sigma_1}{\val_1}$,}\\
-    &\quad\text{$\da{}{\exp_2}(\sigma_1)=\pair{\sigma_2}{\val_2}$}\\
-    &\quad\vdots\\
-    &\quad\text{and $\da{}{\exp_n}(\sigma_{n-1})=\pair{\sigma_n}{\val_n}$}\\
-    \da{}{\size{\exp}}(\sigma)&=\pair{\sigma'}{\varnothing}\\
-    &\quad\text{where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}\\
+    \noalign{\centering where $\da{}{\exp_1}(\sigma)=\pair{\sigma_1}{\val_1}$ and $\da{}{\exp_2}(\sigma_1)=\pair{\sigma_2}{\val_2}$}
+    \da{}{\readmap{\exp_1}{\exp_2}{\exp_3}}&=\da{}{\exp_3}(\da{}{\exp_2}(\da{}{\exp_1}(\sigma)))|_\varnothing\\
+    \da{}{\new{C'}{\exp_1,\ldots,\exp_n}}(\sigma)&=\pair{\sigma'\survives{\new{C'}{\exp_1,\ldots,\exp_n}}}{\varnothing}\\
+    \noalign{\centering where $\sigma'=\da{}{\exp_n}(\da{}{\exp_{n-1}}(\ldots(\da{}{\exp_1}(\sigma))\ldots))|$}
+    \da{}{\size{\exp}}(\sigma)&=\da{}{\exp}(\sigma)|_\varnothing\\
     \da{}{\last{\exp}}(\sigma)&=\pair{\sigma'}{\{\pi\<[any]>\mid\pi\in\val\}\cap\paths{}}\\
-    &\quad\text{where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}\\
-    \da{}{\random{\exp}}(\sigma)&=\pair{\sigma'}{\varnothing}\\
-    &\quad\text{where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}
+    \noalign{\centering where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}
+    \da{}{\random{\exp}}(\sigma)&=\da{}{\exp}(\sigma)|_\varnothing
   \end{align*}
   \caption{The definite aliasing analysis for expressions.}
   \label{fig:daa_expressions}
@@ -231,15 +233,28 @@ variable $v$ in scope to a set of paths that are definitely alias to $v$
 %
 \begin{figure}[t]
   \begin{align*}
-    \da{}{c}(\sigma)&=\pair{\sigma}{\{c\}\cap\paths{}}\\
-    \da{}{v}(\sigma)&=\pair{\sigma}{\sigma(v)}
+    \da{}{\assign{v}{\exp}}(\sigma)&=\sigma'[v\mapsto\val]\\
+    &\quad\text{where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}\\
+    \da{}{\assign{\field{\exp_1}{f}}{\exp_2}}(\sigma)&=\da{}{\exp_2}(\da{}{\exp_1}(\sigma))|\\
+    \da{}{\writemap{\exp_1}{\exp_2}{\exp_3}}(\sigma)&=\da{}{\exp_3}(\da{}{\exp_2}(\da{}{\exp_1}(\sigma)))|\\
+    \da{}{\require{\exp_1}{\exp_2}}(\sigma)&=\da{}{\exp_2}(\da{}{\exp_1}(\sigma))|\\
+    \da{}{\underbrace{\push{\exp_1}{\exp_2}}_{\mathit{push}}}(\sigma)&=\sigma''\\
+    \noalign{\centering where $\da{}{\exp_1}(\sigma)=\pair{\sigma_1}{\val_1}$, $\da{}{\exp_2}(\sigma_1)=\pair{\sigma_2}{\val_2}$, $\sigma'=\sigma_2\survives{\mathit{push}}$}
+    \noalign{\centering and $\sigma''=\sigma'\left[\left.v\mapsto\sigma'(v)\cup\left\{\pi\<[any]>\left|
+        \begin{array}{l}
+          \pi\in\val_1\\
+          \pi\survives{\exp_2}\\
+          \pi\survives{\mathit{push}}
+        \end{array}\right.\right\}\right|\forall v\in\dom(\sigma')\cap\val_2\right]$}
+    \da{}{\receive{\exp_1}{\exp_2}}(\sigma)&=\da{}{\exp_2}(\da{}{\exp_1}(\sigma))|
   \end{align*}
   \caption{The definite aliasing analysis for commands.}
   \label{fig:daa_commands}
 \end{figure}
 %
-In Fig.~\ref{fig:daa}, the intersection with $\paths{}$ ensures that no illegal path
-is generated (\ieinitial with non-\<final> fields, or longer than $\kappa$ or not
+In Fig.~\ref{fig:daa_expressions},
+the intersection with $\paths{}$ ensures that no illegal path
+is generated (\ieinitial dereferencing non-\<final> fields, or longer than $\kappa$ or not
 for the variables in $C.m$).
 
 The static analysis infers size change constraints about the containers
