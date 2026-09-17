@@ -39,9 +39,13 @@
 \newcommand{\require}[2]{\mathtt{require(}{#1}\ \mathit{cop}\ {#2}\mathtt{)}}
 \newcommand{\assign}[2]{{#1}\mathtt{:=}{#2}}
 \newcommand{\ife}[4]{\mathtt{if\ (}{#1}\ \mathit{cop}\ {#2}\mathtt{)\ then\ }{#3}\mathtt{\ else\ }{#4}}
+\newcommand{\ifetwo}[4]{\begin{array}{l}
+    \mathtt{if\ (}{#1}\ \mathit{cop}\ {#2}\mathtt{)}\\
+    \mathtt{\ then\ }{#3}\mathtt{\ else\ }{#4}
+\end{array}}
 \newcommand{\for}[3]{\mathtt{for\ }{#1}\mathtt{\ in\ }{#2}\ {#3}}
 \newcommand{\sequence}[2]{{#1}\mathtt{;}{#2}}
-\newcommand{\da}[2]{\mathbb{DA}_{{#1}}\llbracket{#2}\rrbracket}
+\newcommand{\da}[2]{\mathbb{DA}_{{#1}}\left\llbracket{#2}\right\rrbracket}
 \newcommand{\dastates}[1]{\mathsf{DA}_{{#1}}}
 \newcommand{\paths}[1]{\mathsf{P}_{{#1}}}
 \newcommand{\relevantpaths}[1]{\mathsf{RP}_{{#1}}}
@@ -60,6 +64,7 @@
 \newcommand{\res}{\mathit{res}}
 \newcommand{\val}{\mathit{value}}
 \newcommand{\length}{\mathit{len}}
+\newcommand{\lfp}{\mathit{lfp}}
 
 \lstdefinelanguage{pseudo}{
         keywords=[1]{assert, break, case, catch, class, final, continue, default, do, else, extends, false, finally, for, if, implements, import, instanceof, interface, new, private, 

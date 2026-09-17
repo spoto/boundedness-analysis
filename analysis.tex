@@ -246,7 +246,18 @@ variable $v$ in scope to a set of paths that are definitely alias to $v$
           \pi\survives{\exp_2}\\
           \pi\survives{\mathit{push}}
         \end{array}\right.\right\}\right|\forall v\in\dom(\sigma')\cap\val_2\right]$}
-    \da{}{\receive{\exp_1}{\exp_2}}(\sigma)&=\da{}{\exp_2}(\da{}{\exp_1}(\sigma))|
+    \da{}{\receive{\exp_1}{\exp_2}}(\sigma)&=\da{}{\exp_2}(\da{}{\exp_1}(\sigma))|\\
+    \da{}{\underbrace{\call{\exp_0}{m}{\exp_1,\ldots,\exp_n}}_{\mathit{call}}}(\sigma)&=\sigma'\survives{\mathit{call}}\\
+    \noalign{\centering where $\sigma'=\da{}{\exp_n}(\da{}{\exp_{n-1}}(\ldots(\da{}{\exp_1}(\da{}{\exp_0}(\sigma)))\ldots))|$}
+    \da{}{\ifetwo{\exp_1}{\exp_2}{\com_1}{\com_2}}(\sigma)&=\{v\mapsto\sigma_1(v)\cap\sigma_2(v)\mid v\in\dom(\sigma)\}\\
+    \noalign{\centering where $\sigma'=\da{}{\exp_2}(\da{}{\exp_1}(\sigma))|$,
+      $\sigma_1=\da{}{\com_1}(\sigma')$ and $\sigma_2=\da{}{\com_2}(\sigma')$}
+    \da{}{\size{\exp}}(\sigma)&=\da{}{\exp}(\sigma)|_\varnothing\\
+    \da{}{\last{\exp}}(\sigma)&=\pair{\sigma'}{\{\pi\<[any]>\mid\pi\in\val\}\cap\paths{}}\\
+    \noalign{\centering where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}
+    \da{}{\for{v}{\exp}{\com}}(\sigma)&=\lfp(\lambda\sigma''.\sigma'\cap\da{}{\com}(\sigma''[v\mapsto\{\pi\<[any]>\mid\pi\in\val\}]))(\sigma)\\
+    \noalign{\centering where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}
+    \da{}{\sequence{\com_1}{\com_2}}(\sigma)&=\da{}{\com_2}(\da{}{\com_1}(\sigma))
   \end{align*}
   \caption{The definite aliasing analysis for commands.}
   \label{fig:daa_commands}
