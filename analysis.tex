@@ -12,6 +12,8 @@
     &\mid\push{v}{v}\mid\receive{v}{v}\mid\call{v}{m}{v^*}\\
     &\mid\ife{v}{v}{\com}{\com}\mid\for{\mathit{v}}{v}{\com}\mid\sequence{\com}{\com}.
   \end{align*}
+  %
+  The set of all expressions is $\Exp$ and the set of all commands is $\Com$.
 \end{definition}
 
 \begin{definition}[Program]\label{def:program}
@@ -38,20 +40,20 @@
   form its \emph{typing}\ie a map from each variable in scope to
   its declared type. Namely, the typing $\tau_{C.m}$ of the method $C.m$ above is the map
   $\tau_{C.m}=\{p_1\mapsto t_1,\ldots,p_n\mapsto t_n,l_1\mapsto t_1',\ldots,l_q\mapsto t_q'\}$.
-  We assume that programs are type-checked and in single assignment form\ie local variables are never reassigned
-  after being initialized.
+  We assume that programs are type-checked and in static single assignment form\ie local
+  variables are assigned exactly once along each execution path.
 \end{definition}
 %
 Fields and methods can have modifiers such as \<public>, \<private>,
 \<final> and \<payable>, that we do not introduce formally and have the
 usual meaning as, for instance, in Java or Solidity. For simplicity, we
 assume that methods do not return any value.
-We write $\tau_{C.m}(\exp)$ for the static type of an expression $\exp$ occurring inside
-method $C.m$. Its definition is not formalized here, since it is the usual recursive
-definition used by any strongly-typed language.
+%We write $\tau_{C.m}(\exp)$ for the static type of an expression $\exp$ occurring inside
+%method $C.m$. Its definition is not formalized here, since it is the usual recursive
+%definition used by any strongly-typed language.
 
-Given an expression or command in a program, it is possible to identify
-which lists might be affected by the evaluation of the expression
+Given an expression or command, it is possible to identify
+which already existing lists might be affected by the evaluation of the expression
 or by the execution of the command.
 Previous work has defined precise and complex static analyses for that
 (see for instance the aliasing and side-effect analyses in~\cite{SpotoMP10}).
@@ -60,43 +62,100 @@ we present a very simple and cheap side-effect analysis that, nevertheless,
 is frequently precise enough on simple programs such as smart contracts.
 %
 \begin{definition}[Side-Effects Analysis]\label{def:side_effect}
-  The set of element types of the lists potentially modified during the evaluation of an
-  expression $\exp$ or during the execution of a command $\com$ occurring in a method $C.m$
+  The set of element types of the already existing lists potentially modified during the evaluation of an
+  expression $\exp$ or during the execution of a command $\com$
   is overapproximated by $\sideeffect{C.m}{\exp}$ and $\sideeffect{C.m}{\com}$, respectively,
   where $C.m$ is dropped when clear from the context.
-  It is defined as the minimal solution of the recursive equations in Fig.~\ref{fig:side_effect}.
+  They are defined in Fig.~\ref{fig:side_effect}, by using an \emph{interpretation} $I$ that
+  provides the possible side-effects of constructors and methods.
   %
   \begin{figure}[t]
   \begin{align*}
-    \sideeffect{C.m}{\new{C'}{v^*}}&=\sideeffect{C'.C'}{\com}\\
-    \noalign{\centering\text{where $\com$ is the body of the constructor $C'.C'$ called here}}
-    \sideeffect{C.m}{\exp}&=\varnothing\\
-    \noalign{\centering for all other expressions}
+    \sideeffect{}{\new{C}{v^*}}&=I(C.C)\text{, where $C.C$ is the constructor called here}\\
+    \sideeffect{}{\exp}&=\varnothing\text{, for all other expressions}
   \end{align*}
   \begin{align*}
-    \sideeffect{C.m}{\assign{\mathit{v}}{\exp}}&=\sideeffect{C.m}{\exp}\\
-    \sideeffect{C.m}{\assign{\field{v}{f}}{v}}&=\sideeffect{C.m}{\aop{v}{v}}=\sideeffect{C.m}{\readmap{v}{v}{v}}=\varnothing\\
-    \sideeffect{C.m}{\require{v}{v}}&=\varnothing\\
-    \sideeffect{C.m}{\push{v_1}{v_2}}&=\{t\mid\tau_{C.m}(v_1)=\<List<>t\<\text{>}>\}\\
-    \sideeffect{C.m}{\receive{v}{v}}&=\varnothing\\
-    \sideeffect{C.m}{\call{v}{m'}{v^*}}&=\cup_{j=1}^k\sideeffect{C_j.m'}{\com_j}\\
-    \noalign{\centering\text{where $\com_1\cdots\com_k$ are the bodies of methods $C_1.m'\cdots C_k.m'$ possibly called here}}
-    \sideeffect{C.m}{\ifetwo{v}{v}{\com_1}{\com_2}}&=\sideeffect{C.m}{\com_1}\cup\sideeffect{C.m}{\com_2}\\
-    \sideeffect{C.m}{\for{v}{v}{\com}}&=\sideeffect{C.m}{\com}\\
-    \sideeffect{C.m}{\sequence{\com_1}{\com_2}}&=\sideeffect{C.m}{\com_1}\cup\sideeffect{C.m}{\com_2}
+    \sideeffect{}{\assign{\mathit{v}}{\exp}}&=\sideeffect{}{\exp}\\
+    \sideeffect{}{\push{v_1}{v_2}}&=\{t\mid v_1\text{ has type }\<List<>t\<\text{>}>\}\\
+    \sideeffect{}{\call{v}{m}{v^*}}&=\cup_{j=1}^k I(C_j.m)\\
+    \noalign{\centering\text{where $C_1.m\cdots C_k.m$ are the methods possibly called here}}
+    \sideeffect{}{\ife{v}{v}{\com_1}{\com_2}}&=\sideeffect{}{\com_1}\cup\sideeffect{}{\com_2}\\
+    \sideeffect{}{\for{v}{v}{\com}}&=\sideeffect{}{\com}\\
+    \sideeffect{}{\sequence{\com_1}{\com_2}}&=\sideeffect{}{\com_1}\cup\sideeffect{}{\com_2}\\
+    \sideeffect{}{\com}&=\varnothing\text{, for all other commands.}
   \end{align*}
-  \caption{The side-effect analysis.}
+  \caption{The side-effect analysis, that uses an interpretation $I$ for constructors and methods.}
   \label{fig:side_effect}
   \end{figure}
 \end{definition}
 %
 We recall that a method call in object-oriented languages may actually call a subset
-$C_1.m'\cdots C_k.m'$ of the redefinitions of its static target method, with bodies
-$\{\com_1,\ldots,\com_k\}$.
-A sound overapproximation of $C_1.m'\cdots C_k.m'$ can always be easily inferred statically,
+$\{C_1.m\cdots C_k.m\}$ of the redefinitions of its static target method.
+A sound overapproximation of $\{C_1.m\cdots C_k.m\}$ can always be easily inferred statically,
 as the set of \emph{all} possible redefinitions. More precise analyses exist~\cite{TipP00} as well,
 but they are probably overkill for minimalistic code such as smart contracts,
 that very rarely redefine methods.
+
+The analysis in Fig.~\ref{fig:side_effect} is an abstract interpretation of execution traces.
+Consequently, it is presented as a bottom-up denotational semantics using an interpretation.
+Its computation starts from the empty interpretation $I_0$ (providing $\varnothing$ as
+side-effects of every method and constructor). The bodies of the methods and constructors
+of the program are then analyzed with the equations
+in Fig.~\ref{fig:side_effect} to get an improved interpretation $I_1$.
+This process is repeated to yield $I_2$ and so on, until a fixpoint $\intsideeffect$
+is reached. This is guaranteed to happen after a finite number of iterations
+since the equations in Fig.~\ref{fig:side_effect} are monotonic and the set of element types
+of lists used in each given program is finite.
+We do not discuss this further here, since it is standard technology in semantics~\cite{Winskel93}
+and abstract interpretation~\cite{CousotC77}. In the following, we just assume that $I_\mathsf{se}$ has been computed.
+
+\begin{example}\label{ex:side_effect}
+  Fig.~\ref{fig:side_effect_examples} reports $\intsideeffect$ for the smart contracts from
+  Sec.~\ref{sec:examples}\ie the element types of the lists potentially modified during
+  the execution of each of their constructors or methods. Note that these approximations are correct
+  but sometimes imprecise. For instance, $\intsideeffect(\<Ponzi1.Ponzi1>)=\{\<Contract>\}$
+  is correct but could be improved to a more precise $\intsideeffect(\<Ponzi1.Ponzi1>)=\varnothing$,
+  since no existing list of \<Contract> is modified by the execution of that constructor:
+  the list modified at line~\ref{ponzi1:creator} of Fig.~\ref{fig:ponzi1}
+  is a fresh new list created at the previous line, not a list that existed before the
+  execution of the constructor. These imprecisions could be overcome with more complex analyses,
+  but the results in Fig.~\ref{fig:side_effect_examples} are good enough for our purposes.
+  %
+  \begin{figure}[t]
+    \begin{center}
+    \begin{subfigure}{0.42\textwidth}
+      \begin{align*}
+        \intsideeffect(\<Ponzi1.Ponzi1>)&=\{\<Contract>\}\\
+        \intsideeffect(\<Ponzi1.invest>)&=\{\<Contract>\}
+      \end{align*}
+      \caption{The side-effect analysis of the smart contract in Fig.~\ref{fig:ponzi1}
+      (similar analysis also for that in Fig.~\ref{fig:ponzi3}).}
+    \end{subfigure}
+    \qquad
+    \begin{subfigure}{0.42\textwidth}
+      \begin{align*}
+        \intsideeffect(\<Ponzi2.Ponzi2>)&=\{\<Contract>\}\\
+        \intsideeffect(\<Ponzi2.invest>)&=\{\<Contract>\}\\
+        \intsideeffect(\<Ponzi2.withdraw>)&=\varnothing
+      \end{align*}
+      \caption{The side-effect analysis of the smart contract in Fig.~\ref{fig:ponzi2}.}
+    \end{subfigure}\\
+    \begin{subfigure}{\textwidth}
+      \begin{align*}
+        \intsideeffect(\<TicketBatchSale.TicketBatchSale>)&=\varnothing\\
+        \intsideeffect(\<Round.Round>)&=\varnothing\\
+        \intsideeffect(\<Lottery1.Lottery1>)&=\{\<Round>\}\\
+        \intsideeffect(\<Lottery1.buy>)&=\{\<Round,TicketBatchSale>\}\\
+        \intsideeffect(\<Lottery1.drawWinner>)&=\varnothing
+      \end{align*}
+      \caption{The side-effect analysis of the smart contract in Fig.~\ref{fig:lottery1}
+      (the analysis remains similar after the modification in Fig.~\ref{fig:lottery2}).}
+    \end{subfigure}
+    \end{center}
+    \caption{The side-effect analysis of the smart contracts from Sec.~\ref{sec:examples}.}
+    \label{fig:side_effect_examples}
+  \end{figure}
+\end{example}
 
 A \emph{path} is either an expression rooted at a local variable, that follows
 \<final> field dereferences or list accesses, or an integer constant.
@@ -157,8 +216,8 @@ definition is simplified by the hypothesis that ocal variables are not reassigne
   $t'$ and $t''$ have no common subtype.
   Given a command $\com$ occurring in $C.m$, then \emph{$\pi$ survives $\com$}, written $\pi\survives{\com}$, is defined similarly.
   This survival test is extended to a filter on sets $S$ of paths, as $S\survives X=\{\pi\in S\mid\pi\survives{X}\}$,
-  and further extended pointwise to functions $\phi$ into sets of paths as
-  $(\phi\survives X)(y)=\phi(y)\survives X$ for every $y\in\dom(\phi)$. 
+  and further extended pointwise to functions $\sigma$ into sets of paths as
+  $(\sigma\survives X)(y)=\sigma(y)\survives X$ for every $y\in\dom(\sigma)$. 
 \end{definition}
 %
 For instance, the path $\pi=\<this.investors>$ at

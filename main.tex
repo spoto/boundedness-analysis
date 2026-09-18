@@ -14,6 +14,7 @@
 \usepackage{listings, framed}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{orcidlink}
+\usepackage{subcaption}
 
 % \|name| or \mathid{name} denotes identifiers and slots in formulas
 \def\|#1|{\mathid{#1}}
@@ -46,6 +47,8 @@
 \newcommand{\for}[3]{\mathtt{for\ }{#1}\mathtt{\ in\ }{#2}\ {#3}}
 \newcommand{\sequence}[2]{{#1}\mathtt{;}{#2}}
 \newcommand{\da}[2]{\mathbb{DA}_{{#1}}\left\llbracket{#2}\right\rrbracket}
+\newcommand{\Exp}{\mathsf{Exp}}
+\newcommand{\Com}{\mathsf{Com}}
 \newcommand{\dastates}[1]{\mathsf{DA}_{{#1}}}
 \newcommand{\paths}[1]{\mathsf{P}_{{#1}}}
 \newcommand{\relevantpaths}[1]{\mathsf{RP}_{{#1}}}
@@ -56,6 +59,7 @@
 \newcommand{\ieinitial}{\textit{ie.}, }
 
 \newcommand{\sideeffect}[2]{\mathsf{se}_{{#1}}\left({#2}\right)}
+\newcommand{\intsideeffect}{I_{\mathsf{se}}}
 \newcommand{\dom}{\mathit{dom}}
 \newcommand{\pair}[2]{\langle{#1},{#2}\rangle}
 \newcommand{\unchanged}{\mathit{unchanged}}
