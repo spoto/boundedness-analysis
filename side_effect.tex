@@ -1,0 +1,106 @@
+\section{Side-Effect Analysis}\label{sec:side_effect}
+
+Given an expression or command, it is possible to identify
+which already existing lists might be affected by the evaluation of the expression
+or by the execution of the command.
+Previous work has defined precise and complex static analyses for that
+(see for instance the aliasing and side-effect analyses in~\cite{SpotoMP10}).
+Here, for simplicity and lack of space,
+we present a very simple and cheap side-effect analysis that, nevertheless,
+is frequently precise enough on simple programs such as smart contracts.
+%
+\begin{definition}[Side-Effects Analysis]\label{def:side_effect}
+  The set of element types of the already existing lists potentially modified during the evaluation of an
+  expression $\exp$ or during the execution of a command $\com$
+  is overapproximated by $\sideeffect{C.m}{\exp}$ and $\sideeffect{C.m}{\com}$, respectively,
+  where $C.m$ is dropped when clear from the context.
+  They are defined in Fig.~\ref{fig:side_effect}, by using an \emph{interpretation} $I$ that
+  provides the possible side-effects of constructors and methods.
+  %
+  \begin{figure}[t]
+  \begin{align*}
+    \sideeffect{}{\new{C}{v^*}}&=I(C.C)\text{, where $C.C$ is the constructor called here}\\
+    \sideeffect{}{\exp}&=\varnothing\text{, for all other expressions}
+  \end{align*}
+  \begin{align*}
+    \sideeffect{}{\assign{\mathit{v}}{\exp}}&=\sideeffect{}{\exp}\\
+    \sideeffect{}{\push{v_1}{v_2}}&=\{t\mid v_1\text{ has type }\<List<>t\<\text{>}>\}\\
+    \sideeffect{}{\call{v}{m}{v^*}}&=\cup_{j=1}^k I(C_j.m)\\
+    \noalign{\centering\text{where $C_1.m\cdots C_k.m$ are the methods possibly called here}}
+    \sideeffect{}{\ife{v}{v}{\com_1}{\com_2}}&=\sideeffect{}{\com_1}\cup\sideeffect{}{\com_2}\\
+    \sideeffect{}{\for{v}{v}{\com}}&=\sideeffect{}{\com}\\
+    \sideeffect{}{\sequence{\com_1}{\com_2}}&=\sideeffect{}{\com_1}\cup\sideeffect{}{\com_2}\\
+    \sideeffect{}{\com}&=\varnothing\text{, for all other commands.}
+  \end{align*}
+  \caption{The side-effect analysis, that uses an interpretation $I$ for constructors and methods.}
+  \label{fig:side_effect}
+  \end{figure}
+\end{definition}
+%
+We recall that a method call in object-oriented languages may actually call a subset
+$\{C_1.m\cdots C_k.m\}$ of the redefinitions of its static target method.
+A sound overapproximation of $\{C_1.m\cdots C_k.m\}$ can always be easily inferred statically,
+as the set of \emph{all} possible redefinitions. More precise analyses exist~\cite{TipP00} as well,
+but they are probably overkill for minimalistic code such as smart contracts,
+that very rarely redefine methods.
+
+The analysis in Fig.~\ref{fig:side_effect} is an abstract interpretation of execution traces.
+Consequently, it is presented as a bottom-up denotational semantics using an interpretation.
+Its computation starts from the empty interpretation $I_0$ (providing $\varnothing$ as
+side-effects of every method and constructor). The bodies of the methods and constructors
+of the program are then analyzed with the equations
+in Fig.~\ref{fig:side_effect} to get an improved interpretation $I_1$.
+This process is repeated to yield $I_2$ and so on, until a fixpoint $\intsideeffect$
+is reached. This is guaranteed to happen after a finite number of iterations
+since the equations in Fig.~\ref{fig:side_effect} are monotonic and the set of element types
+of lists used in each given program is finite.
+We do not discuss this further here, since it is standard technology in semantics~\cite{Winskel93}
+and abstract interpretation~\cite{CousotC77}. In the following, we just assume that $I_\mathsf{se}$ has been computed.
+
+\begin{example}\label{ex:side_effect}
+  Fig.~\ref{fig:side_effect_examples} reports $\intsideeffect$ for the smart contracts from
+  Sec.~\ref{sec:examples}\ie the element types of the lists potentially modified during
+  the execution of each of their constructors or methods. Note that these approximations are correct
+  but sometimes imprecise. For instance, $\intsideeffect(\<Ponzi1.Ponzi1>)=\{\<Contract>\}$
+  is correct but could be improved to a more precise $\intsideeffect(\<Ponzi1.Ponzi1>)=\varnothing$,
+  since no existing list of \<Contract> is modified by the execution of that constructor:
+  the list modified at line~\ref{ponzi1:creator} of Fig.~\ref{fig:ponzi1}
+  is a fresh new list created at the previous line, not a list that existed before the
+  execution of the constructor. These imprecisions could be overcome with more complex analyses,
+  but the results in Fig.~\ref{fig:side_effect_examples} are good enough for our purposes.
+  %
+  \begin{figure}[t]
+    \begin{center}
+    \begin{subfigure}{0.42\textwidth}
+      \begin{align*}
+        \intsideeffect(\<Ponzi1.Ponzi1>)&=\{\<Contract>\}\\
+        \intsideeffect(\<Ponzi1.invest>)&=\{\<Contract>\}
+      \end{align*}
+      \caption{The side-effect analysis of the smart contract in Fig.~\ref{fig:ponzi1}
+      (similar analysis also for that in Fig.~\ref{fig:ponzi3}).}
+    \end{subfigure}
+    \qquad
+    \begin{subfigure}{0.42\textwidth}
+      \begin{align*}
+        \intsideeffect(\<Ponzi2.Ponzi2>)&=\{\<Contract>\}\\
+        \intsideeffect(\<Ponzi2.invest>)&=\{\<Contract>\}\\
+        \intsideeffect(\<Ponzi2.withdraw>)&=\varnothing
+      \end{align*}
+      \caption{The side-effect analysis of the smart contract in Fig.~\ref{fig:ponzi2}.}
+    \end{subfigure}\\
+    \begin{subfigure}{\textwidth}
+      \begin{align*}
+        \intsideeffect(\<TicketBatchSale.TicketBatchSale>)&=\varnothing\\
+        \intsideeffect(\<Round.Round>)&=\varnothing\\
+        \intsideeffect(\<Lottery1.Lottery1>)&=\{\<Round>\}\\
+        \intsideeffect(\<Lottery1.buy>)&=\{\<Round,TicketBatchSale>\}\\
+        \intsideeffect(\<Lottery1.drawWinner>)&=\varnothing
+      \end{align*}
+      \caption{The side-effect analysis of the smart contract in Fig.~\ref{fig:lottery1}
+      (the analysis remains similar after the modification in Fig.~\ref{fig:lottery2}).}
+    \end{subfigure}
+    \end{center}
+    \caption{The side-effect analysis of the smart contracts from Sec.~\ref{sec:examples}.}
+    \label{fig:side_effect_examples}
+  \end{figure}
+\end{example}

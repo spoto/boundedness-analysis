@@ -1,0 +1,53 @@
+\section{Syntax of a Minimalistic Smart Contract Language}\label{sec:syntax}
+
+\begin{definition}[Expressions and Commands]\label{def:exp_com}
+  \emph{Expressions} and \emph{commands} are defined by the following grammar,
+  where $c$ is a literal constant of the language, $v$ is a variable, $\mathit{aop}$ is an arithmetic
+  operator and $\mathit{cop}$ is a comparison operator:
+  \begin{align*}
+    \exp::=&\ \mathit{c}\mid\mathit{v}\mid\field{v}{f}\mid\aop{v}{v}\mid\readmap{v}{v}{v}\\
+    &\mid\new{C}{v^*}\mid\size{v}\mid\last{v}\mid\random{v}\\
+    \com::=&\ \assign{\mathit{v}}{\exp}\mid\assign{\field{v}{f}}{v}\mid\writemap{v}{v}{v}
+    \mid\require{v}{v}\\
+    &\mid\push{v}{v}\mid\receive{v}{v}\mid\call{v}{m}{v^*}\\
+    &\mid\ife{v}{v}{\com}{\com}\mid\for{\mathit{v}}{v}{\com}\mid\sequence{\com}{\com}.
+  \end{align*}
+  %
+  The set of all expressions is $\Exp$ and the set of all commands is $\Com$.
+\end{definition}
+
+\begin{definition}[Program]\label{def:program}
+  A \emph{program} is a collection of \emph{classes}.
+  Each class $C$ has a superclass, some \emph{field signatures} $C.f$
+  and some \emph{methods} $C.m$, declared as
+  \[
+  C.m(p_1:t_1,\ldots,p_n:t_n)\ \<let>\ l_1:t_1',\ldots,l_q:t_q'\ \<in>\ \com,
+  \]
+  where $\com$ is the \emph{body} of the method, $p_1\cdots p_n$ are its
+  formal parameters, of type $t_1\cdots t_n$, and $l_1\cdots l_q$ are its
+  local variables, of type $t_1'\cdots t_q'$. Local variables include the
+  implicit variables \<this> (the \emph{receiver} of $C.m$),
+  \<caller> (the contract that called $C.m$) and \<now> (the current time).
+  If $C.m$ is \<payable>, local variables include also
+  \<amount> (the cryptocurrency paid for calling $C.m$).
+  A class that extends \<Contract>
+  (possibly indirectly) is called a \emph{smart contract}.
+  A \emph{constructor} is a method $C.C$ named like the class $C$ that declares it.
+  A type is either \emph{primitive} (such as \<int>)
+  or a class name $C$. Generic class types (such as lists) are written as
+  \<List<t\texttt{>}>, where \<t> is the type of the elements of the list.
+  The variables in scope inside a method
+  form its \emph{typing}\ie a map from each variable in scope to
+  its declared type. Namely, the typing $\tau_{C.m}$ of the method $C.m$ above is the map
+  $\tau_{C.m}=\{p_1\mapsto t_1,\ldots,p_n\mapsto t_n,l_1\mapsto t_1',\ldots,l_q\mapsto t_q'\}$.
+  We assume that programs are type-checked and in static single assignment form\ie local
+  variables are assigned exactly once along each execution path.
+\end{definition}
+%
+Fields and methods can have modifiers such as \<public>, \<private>,
+\<final> and \<payable>, that we do not introduce formally and have the
+usual meaning as, for instance, in Java or Solidity. For simplicity, we
+assume that methods do not return any value.
+%We write $\tau_{C.m}(\exp)$ for the static type of an expression $\exp$ occurring inside
+%method $C.m$. Its definition is not formalized here, since it is the usual recursive
+%definition used by any strongly-typed language.

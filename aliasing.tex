@@ -1,0 +1,159 @@
+\section{Definite Aliasing Analysis}\label{sec:aliasing}
+
+A \emph{path} is either an expression rooted at a local variable, that follows
+\<final> field dereferences or list accesses, or an integer constant.
+Paths have a type and a length. A constant $\kappa\in\nat$ limits the maximal
+length of a path. We assume that $\kappa$ is a global constant in this work,
+so that we not need to clutter each definition with this parameter.
+This limit is essential to make our analysis finitely computable, as shown later.
+Larger $\kappa$ lead to a more precise analysis,
+in principle, but also potentially more expensive.
+Therefore, $\kappa$ acts as a lever that selects the desired precision for the
+analysis. For simplicity, in the examples that follow, we assume $\kappa=3$.
+
+A relevant path has type list. While paths will be used
+to define the definite aliasing analysis, relevant paths will be used in the
+subsequent boundness analysis.
+%
+\begin{definition}[Paths]\label{def:path}
+  Given a method $C.m$, the finite set $\paths{C.m}$ of the
+  \emph{paths in $C.m$} is the minimal set such that
+  \begin{itemize}
+  \item if $\kappa\ge 1$ and $v\in\dom(\tau_{C.m})$,
+    then $v\in\paths{C.m}$, it has type $(\tau_{C.m})(v)$
+    and $\length(v)=1$ (all local variables of $C.m$ are a path in $C.m$);
+  \item if $\kappa\ge 1$ and $c\in\nat$ then $c\in\paths{C.m}$, it has type \<int>
+    and $\length(c)=1$ (all integer constants are a path in $C.m$);
+  \item if $\pi\in\paths{C.m}$ has type $C$, if $\length(\pi)<\kappa$
+    and if $\mathtt{f}$ is a \<final> field of type $t$ defined in class $C$,
+    then $\pi.f\in\paths{C.m}$, it has type $t$ and $\length(\pi.f)=\length(\pi)+1$
+    (paths can be expanded by \<final> field dereference);
+  \item if $\pi\in\paths{C.m}$ has type \<List<$t$\texttt{>}> and $\length(\pi)<\kappa$
+    then $\pi\<[any]>\in\paths{C.m}$, it has type $t$ and $\length(\pi\<[any]>)=\length(\pi)+1$
+    (paths can be expanded by list access).
+  \end{itemize}
+  A path is \emph{relevant} if its type is \<List<$t$\texttt{>}> for some $t$.
+  The finite set of all relevant paths in $C.m$ is $\relevantpaths{C.m}$.
+  When clear from the context, we write $\paths{}$ for $\paths{C.m}$ and
+  $\relevantpaths{}$ for $\relevantpaths{C.m}$.
+\end{definition}
+%
+For instance, at line~\ref{ponzi1:require} in Fig.~\ref{fig:ponzi1},
+$42$ is a path of type \<int>, \<this> is a path of type \<Ponzi1>,
+\<amount> is a path of type \<int>,
+\<this.investors> is a path of type \<List<Contract\texttt{>}> and
+\<this.investors[any]> is a path of type \<Contract>. Among them, only
+\<this.investors> is relevant.
+
+A path \emph{survives} the execution of some code\ie it keeps its value unchanged,
+if it does not access any list that might be modified by that execution. Note how this
+definition is simplified by the hypothesis that ocal variables are not reassigned
+(Def.~\ref{def:program}) and that paths only dereference
+\<final> fields (Def.~\ref{def:path}). This allows one to focus on side-effects on lists only.
+%
+\begin{definition}\label{def:survival}
+  Let $\pi\in\paths{C.m}$. Given an expression $\exp$ occurring in $C.m$, then
+  \emph{$\pi$ survives $\exp$}, written $\pi\survives{\exp}$, if, for all prefix $\pi'$ of $\pi$
+  (\ieinitial  $\pi=\pi'\cdots$) of type \<List<$t'$\texttt{>}>
+  and for all $t''\in\sideeffect{C.m}{\exp}$, the types
+  $t'$ and $t''$ have no common subtype.
+  Given a command $\com$ occurring in $C.m$, then \emph{$\pi$ survives $\com$}, written $\pi\survives{\com}$, is defined similarly.
+  This survival test is extended to a filter on sets $S$ of paths, as $S\survives X=\{\pi\in S\mid\pi\survives{X}\}$,
+  and further extended pointwise to functions $\sigma$ into sets of paths as
+  $(\sigma\survives X)(y)=\sigma(y)\survives X$ for every $y\in\dom(\sigma)$. 
+\end{definition}
+%
+For instance, the path $\pi=\<this.investors>$ at
+line~\ref{ponzi1:expand} in Fig.~\ref{fig:ponzi1} does not survive
+the command \<investors.push(caller)> at that line, since $\pi'=\<this.investors>$
+has type \<List<Contract\texttt{>}>,
+$\{\<Contract>\}=\sideeffect{\<Ponzi1.invest>}{\<investors.push(caller)>}$
+and \<Contract> has a common subtype with itself, obviously.
+Instead, the path $\pi=\<last.sales>$
+survives the command \<rounds.push(last)>
+at line~\ref{lottery2:push_round}, since
+the only prefix $\pi'$ of $\pi$ of type list is $\pi'=\pi$, of type
+\<List<TicketBatchSale\texttt{>}>,
+$\{\<Round>\}=\sideeffect{\<Lottery2.buy>}{\<rounds.push(last)>}$ and
+\<TicketBatchSale> and \<Round> have no common subtype.
+All integer constants survive any expression and command.
+
+The definite aliasing analysis propagates abstract states that bind each
+variable $v$ in scope to a set of paths that are definitely alias to $v$
+(\ieinitial they have the same value as $v$).
+%
+\begin{definition}[Definite Aliasing Analysis States]\label{def:definite_aliasing_domain}
+  Given a method $C.m$, the set of the
+  \emph{definite aliasing states in $C.m$} is
+  \[
+  \dastates{C.m}=\{\sigma\mid\sigma:\dom(\tau_{C.m})\mapsto\paths{C.m}\}
+  \]
+  where $C.m$ is dropped when clear from the context.
+\end{definition}
+%
+\begin{definition}[Definite Aliasing Analysis]\label{def:definite_aliasing}
+  Given a method $C.m$, the \emph{definite aliasing denotation} of an expression
+  $\exp$ occurring in $C.m$ is a map
+  \[
+  \da{C.m}{\exp}:\dastates{C.m}\mapsto\left(\dastates{C.m}\times\paths{C.m}\right)
+  \]
+  from the approximation of the pre-states to the approximation of the post-states and
+  the approximation of the paths aliased to $\exp$, where
+  $C.m$ is dropped when clear from the context.
+%  Given $\pair{\sigma}{\val}\in\dastates{}\times\paths{}$, we define
+%  $\pair{\sigma}{\val}|_{\val'}=\pair{\sigma}{\val'}$ and $\pair{\sigma}{\val}|=\sigma$.
+%  Both operations are pointwise extended to maps
+%  in $\dastates{}\mapsto(\dastates{}\times\paths{})$.
+%  This lets us define the composition of two such maps $\delta_1,\delta_2$ as
+%  $\delta_2(\delta_1(\sigma))=\delta_2(\delta_1(\sigma)|)$.
+  Fig.~\ref{fig:daa_expressions} defines $\da{}{\exp}$.
+%
+  \begin{figure}[t]
+    \begin{align*}
+      \da{}{c}(\sigma)&=\pair{\sigma}{\{c\}\cap\paths{}}\\
+      \da{}{v}(\sigma)&=\pair{\sigma}{(\sigma(v)\cup\{v\})\cap\paths{}}\\
+      \da{}{\field{v}{f}}(\sigma)&=\pair{\sigma}{\{\pi.f\mid\pi\in\sigma(v)\}\cap\paths{}}\\
+      \da{}{\aop{v_1}{v_2}}(\sigma)&=\pair{\sigma}{\{\aop{c_1}{c_2}\mid c_1\in\sigma(v_1),\ c_2\in\sigma(v_2)\}\cap\paths{}}\\
+      \da{}{\readmap{v_1}{v_2}{v_3}}(\sigma)&=\pair{\sigma}{\varnothing}\\
+      \da{}{\new{C'}{v^*}}(\sigma)&=\pair{\sigma\survives{\new{C'}{v^*}}}{\varnothing}\\
+      \da{}{\size{v}}(\sigma)&=\pair{\sigma}{\varnothing}\\
+      \da{}{\last{v}}(\sigma)&=\pair{\sigma}{\{\pi\<[any]>\mid\pi\in\sigma(v)\}\cap\paths{}}\\
+      \da{}{\random{v}}(\sigma)&=\pair{\sigma}{\varnothing}
+    \end{align*}
+    \caption{The definite aliasing analysis for expressions.}
+    \label{fig:daa_expressions}
+  \end{figure}
+%
+  The \emph{definite aliasing denotation} of a command $\com$ occurring in $C.m$ is a map
+  \[
+  \da{C.m}{\com}:\dastates{C.m}\mapsto\dastates{C.m}
+  \]
+  from the approximation of the pre-states to the approximation of the post-states,
+  where $C.m$ is dropped when clear from the context.
+  Fig.~\ref{fig:daa_commands} defines $\da{}{\com}$.
+%
+  \begin{figure}[t]
+    \begin{align*}
+      \da{}{\assign{v}{\exp}}(\sigma)&=\sigma'[v\mapsto\val]\\
+      &\quad\text{where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}\\
+      \da{}{\assign{\field{v}{f}}{v}}(\sigma)&=\sigma\\
+      \da{}{\writemap{v}{v}{v}}(\sigma)&=\sigma\\
+      \da{}{\require{v}{v}}(\sigma)&=\sigma\\
+      \da{}{\push{v_1}{v_2}}(\sigma)&=\sigma''\\
+      \noalign{\centering where $\sigma'=\sigma\survives{\push{v_1}{v_2}}$ and $\sigma''=\sigma'[v\mapsto\sigma'(v)\cup(\{\pi\<[any]>\mid\pi\in\sigma'(v_1)\}\cap\paths{})
+          \mid\forall v\in\sigma(v_2)]$}
+      \da{}{\receive{v}{v}}(\sigma)&=\sigma\\
+      \da{}{\call{v}{m}{v^*}}(\sigma)&=\sigma\survives{\mathit{\call{v}{m}{v^*}}}\\
+      \da{}{\ifetwo{v}{v}{\com_1}{\com_2}}(\sigma)&=\da{}{\com_1}(\sigma)\cap\da{}{\com_2}(\sigma)\\
+      \da{}{\for{v_1}{v_2}{\com}}(\sigma)&=\lfp(\lambda\sigma'.\sigma\cap\da{}{\com}(\sigma'[v_1\mapsto\{\pi\<[any]>\mid\pi\in\sigma'(v_2)\}\cap\paths{}]))(\sigma)\\
+      \da{}{\sequence{\com_1}{\com_2}}(\sigma)&=\da{}{\com_2}(\da{}{\com_1}(\sigma))
+    \end{align*}
+    \caption{The definite aliasing analysis for commands.}
+    \label{fig:daa_commands}
+  \end{figure}
+%
+\end{definition}
+%
+In Fig.~\ref{fig:daa_expressions},
+the intersection with $\paths{}$ ensures that no illegal path
+is generated (\ieinitial dereferencing non-\<final> fields or longer than $\kappa$).
