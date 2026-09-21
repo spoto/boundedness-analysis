@@ -91,63 +91,64 @@ variable $v$ in scope to a set of paths that are definitely alias to $v$
   where $C.m$ is dropped when clear from the context.
 \end{definition}
 %
+Since the definite aliasing analysis approximates states, it is more naturally
+presented as an operational abstract semantics.
+%
 \begin{definition}[Definite Aliasing Analysis]\label{def:definite_aliasing}
-  Given a method $C.m$, the \emph{definite aliasing denotation} of an expression
-  $\exp$ occurring in $C.m$ is a map
+  Given a method $C.m$, the \emph{definite aliasing semantics} of expressions
+  in $C.m$ is given as a derivation function
   \[
-  \da{C.m}{\exp}:\dastates{C.m}\mapsto\left(\dastates{C.m}\times\paths{C.m}\right)
+  \left(\Exp\times\dastates{C.m}\right)\da{C.m}\left(\dastates{C.m}\times\paths{C.m}\right)
   \]
   from the approximation of the pre-states to the approximation of the post-states and
-  the approximation of the paths aliased to $\exp$, where
+  the approximation of the paths aliased to the expression, where
   $C.m$ is dropped when clear from the context.
-%  Given $\pair{\sigma}{\val}\in\dastates{}\times\paths{}$, we define
-%  $\pair{\sigma}{\val}|_{\val'}=\pair{\sigma}{\val'}$ and $\pair{\sigma}{\val}|=\sigma$.
-%  Both operations are pointwise extended to maps
-%  in $\dastates{}\mapsto(\dastates{}\times\paths{})$.
-%  This lets us define the composition of two such maps $\delta_1,\delta_2$ as
-%  $\delta_2(\delta_1(\sigma))=\delta_2(\delta_1(\sigma)|)$.
-  Fig.~\ref{fig:daa_expressions} defines $\da{}{\exp}$.
+  Fig.~\ref{fig:daa_expressions} defines $\da{}$ for expressions.
 %
   \begin{figure}[t]
     \begin{align*}
-      \da{}{c}(\sigma)&=\pair{\sigma}{\{c\}\cap\paths{}}\\
-      \da{}{v}(\sigma)&=\pair{\sigma}{(\sigma(v)\cup\{v\})\cap\paths{}}\\
-      \da{}{\field{v}{f}}(\sigma)&=\pair{\sigma}{\{\pi.f\mid\pi\in\sigma(v)\}\cap\paths{}}\\
-      \da{}{\aop{v_1}{v_2}}(\sigma)&=\pair{\sigma}{\{\aop{c_1}{c_2}\mid c_1\in\sigma(v_1),\ c_2\in\sigma(v_2)\}\cap\paths{}}\\
-      \da{}{\readmap{v_1}{v_2}{v_3}}(\sigma)&=\pair{\sigma}{\varnothing}\\
-      \da{}{\new{C'}{v^*}}(\sigma)&=\pair{\sigma\survives{\new{C'}{v^*}}}{\varnothing}\\
-      \da{}{\size{v}}(\sigma)&=\pair{\sigma}{\varnothing}\\
-      \da{}{\last{v}}(\sigma)&=\pair{\sigma}{\{\pi\<[any]>\mid\pi\in\sigma(v)\}\cap\paths{}}\\
-      \da{}{\random{v}}(\sigma)&=\pair{\sigma}{\varnothing}
+      \pair{c}{\sigma}&\da{}\pair{\sigma}{\{c\}\cap\paths{}}\\
+      \pair{v}{\sigma}&\da{}\pair{\sigma}{(\sigma(v)\cup\{v\})\cap\paths{}}\\
+      \pair{\field{v}{f}}{\sigma}&\da{}\pair{\sigma}{\{\pi.f\mid\pi\in\sigma(v)\}\cap\paths{}}\\
+      \pair{\aop{v_1}{v_2}}{\sigma}&\da{}\pair{\sigma}{\{\aop{c_1}{c_2}\mid c_1\in\sigma(v_1),\ c_2\in\sigma(v_2)\}\cap\paths{}}\\
+      \pair{\readmap{v_1}{v_2}{v_3}}{\sigma}&\da{}\pair{\sigma}{\varnothing}\\
+      \pair{\new{C}{v^*}}{\sigma}&\da{}\pair{\sigma\survives{\new{C}{v^*}}}{\varnothing}\\
+      \pair{\size{v}}{\sigma}&\da{}\pair{\sigma}{\varnothing}\\
+      \pair{\last{v}}{\sigma}&\da{}\pair{\sigma}{\{\pi\<[any]>\mid\pi\in\sigma(v)\}\cap\paths{}}\\
+      \pair{\random{v}}{\sigma}&\da{}\pair{\sigma}{\varnothing}
     \end{align*}
-    \caption{The definite aliasing analysis for expressions.}
+    \caption{The definite aliasing derivation rules for expressions.}
     \label{fig:daa_expressions}
   \end{figure}
-%
-  The \emph{definite aliasing denotation} of a command $\com$ occurring in $C.m$ is a map
+
+  The \emph{definite aliasing semantics} of a command $\com$ occurring in $C.m$ is
+  a derivation function
   \[
-  \da{C.m}{\com}:\dastates{C.m}\mapsto\dastates{C.m}
+  \left(\Com\times\dastates{C.m}\right)\da{C.m}\dastates{C.m}
   \]
   from the approximation of the pre-states to the approximation of the post-states,
   where $C.m$ is dropped when clear from the context.
-  Fig.~\ref{fig:daa_commands} defines $\da{}{\com}$.
+  Fig.~\ref{fig:daa_commands} defines $\da{}$ for commands.
 %
   \begin{figure}[t]
-    \begin{align*}
-      \da{}{\assign{v}{\exp}}(\sigma)&=\sigma'[v\mapsto\val]\\
-      &\quad\text{where $\da{}{\exp}(\sigma)=\pair{\sigma'}{\val}$}\\
-      \da{}{\assign{\field{v}{f}}{v}}(\sigma)&=\sigma\\
-      \da{}{\writemap{v}{v}{v}}(\sigma)&=\sigma\\
-      \da{}{\require{v}{v}}(\sigma)&=\sigma\\
-      \da{}{\push{v_1}{v_2}}(\sigma)&=\sigma''\\
-      \noalign{\centering where $\sigma'=\sigma\survives{\push{v_1}{v_2}}$ and $\sigma''=\sigma'[v\mapsto\sigma'(v)\cup(\{\pi\<[any]>\mid\pi\in\sigma'(v_1)\}\cap\paths{})
-          \mid\forall v\in\sigma(v_2)]$}
-      \da{}{\receive{v}{v}}(\sigma)&=\sigma\\
-      \da{}{\call{v}{m}{v^*}}(\sigma)&=\sigma\survives{\mathit{\call{v}{m}{v^*}}}\\
-      \da{}{\ifetwo{v}{v}{\com_1}{\com_2}}(\sigma)&=\da{}{\com_1}(\sigma)\cap\da{}{\com_2}(\sigma)\\
-      \da{}{\for{v_1}{v_2}{\com}}(\sigma)&=\lfp(\lambda\sigma'.\sigma\cap\da{}{\com}(\sigma'[v_1\mapsto\{\pi\<[any]>\mid\pi\in\sigma'(v_2)\}\cap\paths{}]))(\sigma)\\
-      \da{}{\sequence{\com_1}{\com_2}}(\sigma)&=\da{}{\com_2}(\da{}{\com_1}(\sigma))
-    \end{align*}
+    \begin{gather*}
+      \frac{\pair{\exp}{\sigma}\da{}\pair{\sigma'}{\val}}{\pair{\assign{v}{\exp}}{\sigma}\da{}\sigma'[v\mapsto\val]}\\[4pt]
+      \pair{\assign{\field{v}{f}}{v}}{\sigma}\da{}\sigma\\[4pt]
+      \pair{\writemap{v}{v}{v}}{\sigma}\da{}\sigma\\[4pt]
+      \pair{\require{v}{v}}{\sigma}\da{}\sigma\\[4pt]
+      \frac{\begin{array}{c}
+          \sigma'=\sigma\survives{\push{v_1}{v_2}}\\
+          \sigma''=\sigma'[v\mapsto\sigma'(v)\cup(\{\pi\<[any]>\mid\pi\in\sigma'(v_1)\}\cap\paths{})\mid\forall v\in\sigma(v_2)]
+      \end{array}}{\pair{\push{v_1}{v_2}}{\sigma}\da{}\sigma''}\\[4pt]
+      \pair{\receive{v}{v}}{\sigma}\da{}\sigma\\[4pt]
+      \pair{\call{v}{m}{v^*}}{\sigma}\da{}\sigma\survives{\mathit{\call{v}{m}{v^*}}}\\[4pt]
+      \frac{\pair{\com_1}{\sigma}\da{}\sigma'}{\pair{\ife{v}{v}{\com_1}{\com_2}}{\sigma}\da{}\sigma'}\\[4pt]
+      \frac{\pair{\com_2}{\sigma}\da{}\sigma'}{\pair{\ife{v}{v}{\com_1}{\com_2}}{\sigma}\da{}\sigma'}\\[4pt]
+      \frac{\pair{\com^*}{\sigma[v_1\mapsto\{\pi\<[any]>\mid\pi\in\sigma(v_2)\}\cap\paths{}]}\da{}\sigma'}{\pair{\for{v_1}{v_2}{\com}}{\sigma}\da{}\sigma'}\\[4pt]
+      \pair{\com^*}{\sigma}\da{}\sigma\\[4pt]
+      \frac{\pair{\com}{\sigma}\da{}\sigma'\quad\pair{\com^*}{\sigma'}\da{}\sigma''}{\pair{\com^*}{\sigma}\da{}\sigma''}\\[4pt]
+      \frac{\pair{\com_1}{\sigma}\da{}\sigma'\quad\pair{\com_2}{\sigma'}\da{}\sigma''}{\pair{\sequence{\com_1}{\com_2}}{\sigma}=\sigma''}
+    \end{gather*}
     \caption{The definite aliasing analysis for commands.}
     \label{fig:daa_commands}
   \end{figure}
