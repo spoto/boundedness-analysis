@@ -9,7 +9,7 @@ This limit is essential to make our analysis finitely computable, as shown later
 Larger $\kappa$ lead to a more precise analysis,
 in principle, but also potentially more expensive.
 Therefore, $\kappa$ acts as a lever that selects the desired precision for the
-analysis. For simplicity, in the examples that follow, we assume $\kappa=3$.
+analysis. For simplicity, in the examples that follow, we assume $\kappa=4$.
 
 A relevant path has type list. While paths will be used
 to define the definite aliasing analysis, relevant paths will be used in the
@@ -30,7 +30,10 @@ subsequent boundness analysis.
     (paths can be expanded by \<final> field dereference);
   \item if $\pi\in\paths{C.m}$ has type \<List<$t$\texttt{>}> and $\length(\pi)<\kappa$
     then $\pi\<[any]>\in\paths{C.m}$, it has type $t$ and $\length(\pi\<[any]>)=\length(\pi)+1$
-    (paths can be expanded by list access).
+    (paths can be expanded by list access);
+  \item if $\pi\in\paths{C.m}$ has type \<List<$t$\texttt{>}> and $\length(\pi)<\kappa$
+    then $\pi\<.size()>\in\paths{C.m}$, it has type $\<int>$ and $\length(\pi\<.size()>)=\length(\pi)+1$
+    (paths can be expanded by list size computation).
   \end{itemize}
   A path is \emph{relevant} if its type is \<List<$t$\texttt{>}> for some $t$.
   The finite set of all relevant paths in $C.m$ is $\relevantpaths{C.m}$.
@@ -41,8 +44,9 @@ subsequent boundness analysis.
 For instance, at line~\ref{ponzi1:require} in Fig.~\ref{fig:ponzi1},
 $42$ is a path of type \<int>, \<this> is a path of type \<Ponzi1>,
 \<amount> is a path of type \<int>,
-\<this.investors> is a path of type \<List<Contract\texttt{>}> and
-\<this.investors[any]> is a path of type \<Contract>. Among them, only
+\<this.investors> is a path of type \<List<Contract\texttt{>}>,
+\<this.investors[any]> is a path of type \<Contract>
+and, finally, \<this.investors.size()> is a path of type \<int>. Among them, only
 \<this.investors> is relevant.
 
 A path \emph{survives} the execution of some code\ie it keeps its value unchanged,
@@ -113,7 +117,7 @@ presented as an operational abstract semantics.
       \pair{\aop{v_1}{v_2}}{\sigma}&\da{}\pair{\sigma}{\{\aop{c_1}{c_2}\mid c_1\in\sigma(v_1),\ c_2\in\sigma(v_2)\}\cap\paths{}}\\
       \pair{\readmap{v_1}{v_2}{v_3}}{\sigma}&\da{}\pair{\sigma}{\varnothing}\\
       \pair{\new{C}{v^*}}{\sigma}&\da{}\pair{\sigma\survives{\new{C}{v^*}}}{\varnothing}\\
-      \pair{\size{v}}{\sigma}&\da{}\pair{\sigma}{\varnothing}\\
+      \pair{\size{v}}{\sigma}&\da{}\pair{\sigma}{\{\pi\<.size()>\mid\pi\in\sigma(v)\}\cap\paths{}}\\
       \pair{\last{v}}{\sigma}&\da{}\pair{\sigma}{\{\pi\<[any]>\mid\pi\in\sigma(v)\}\cap\paths{}}\\
       \pair{\random{v}}{\sigma}&\da{}\pair{\sigma}{\varnothing}
     \end{align*}
@@ -158,3 +162,17 @@ presented as an operational abstract semantics.
 In Fig.~\ref{fig:daa_expressions},
 the intersection with $\paths{}$ ensures that no illegal path
 is generated (\ieinitial dereferencing non-\<final> fields or longer than $\kappa$).
+
+The derivations in Fig.~\ref{fig:daa_commands} allow one to compute a definite
+aliasing approximation at the beginning of every command in the program, through an
+intraprocedural fixpoint that saturates all execution paths. Namely, one starts at
+the beginning of a method with the less precise approximation, that maps each variable
+to the empty set of paths. This approximation is propagated according to the rules
+in Fig.~\ref{fig:daa_commands}, recording the abstract state whevener a new program point is
+reached. If the propagation passes over an already visited program point, the
+recorded approximation is the (per variable) intersection of the previously recorded
+approximation and of the new approximation. This process must terminate since $\paths{}$ is finite
+and intersection can only reduce the number of paths approximating each given variable.
+In the following section, we assume that such definite aliasing approximation has been computed
+at each command $\com$ in the program, and we write it as $\dastates{}@\com$.
+

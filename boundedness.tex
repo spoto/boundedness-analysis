@@ -1,5 +1,40 @@
 \section{Boundedness Analysis}\label{sec:boundedness}
 
+\begin{definition}\label{def:bo}
+  Given a method $C.m$, the \emph{boundness constraints for $C.m$}
+  are the linear constraints over $\relevantpaths{C.m}$ (Def.~\ref{def:path}),
+  using two versions for each program variable: $v$ is a variable in the pre-state
+  and $v'$ is the same variable in the post-state.
+  Such constraints are enriched with the $\max$ operator.
+  The set of such conatraints is written as $\bodenotations{C.m}$.
+\end{definition}
+%
+Boundness constraits are an abstraction of denotations\ie they express how
+the execution of a command modifies the boundness of some lists. Therefore, we provide
+the boundness analysis as an abstract denotational semantics.
+%
+\begin{definition}[Definite Boundedness Analysis]\label{def:definite_boundness}
+  Given a method $C.m$, the \emph{definite boundedness analysis} for commands
+  is the map $\bo{C.m}{}:\Com\to\bodenotations{C.m}$ given
+  in Fig.~\ref{fig:bo_commands}, where $C.m$ is dropped when clear
+  from the context. That figure uses a frame condition constraint $U$ (for \emph{unchanged})
+  that states that all paths keep their value, if they survive the command. For instance, for
+  the command $\assign{v}{\exp}$, it is $U=\{\pi'=\pi\mid\pi\survives{\assign{v}{\exp}}\}$.
+  %
+  \begin{figure}[t]
+    \begin{align*}
+      \bo{}{\assign{v}{\new{C}{w^*}}}&=\{v'=0\}\cup U\\
+      \underset{\text{(for any other $\exp$)}}{\bo{}{\assign{v}{\exp}}}&=\left\{v'=\pi\left|\begin{array}{l}
+      v\text{ has type \<List<$t$\texttt{>}> }\\
+      \pair{\exp}{\dastates{}@(\assign{v}{\exp})}\da{}\pair{\sigma'}{S}\\
+      \pi\in S
+      \end{array}\right.\right\}\cup U
+    \end{align*}
+    \caption{The definite boundness analysis of the commands.}
+    \label{fig:bo_commands}
+  \end{figure}
+\end{definition}
+
 The static analysis infers size change constraints about the containers
 reachable from the state of the smart contracts, for each public API
 method or constructor of the smart contract. It distinguishes between
