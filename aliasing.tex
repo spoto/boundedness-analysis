@@ -49,22 +49,21 @@ $42$ is a path of type \<int>, \<this> is a path of type \<Ponzi1>,
 and, finally, \<this.investors.size()> is a path of type \<int>. Among them, only
 \<this.investors> is relevant.
 
-A path \emph{survives} the execution of some code\ie it keeps its value unchanged,
+A path \emph{survives} the execution of a command\ie it keeps its value unchanged,
 if it does not access any list that might be modified by that execution. Note how this
-definition is simplified by the hypothesis that ocal variables are not reassigned
+definition is simplified by the hypothesis that local variables are not reassigned
 (Def.~\ref{def:program}) and that paths only dereference
 \<final> fields (Def.~\ref{def:path}). This allows one to focus on side-effects on lists only.
 %
 \begin{definition}\label{def:survival}
-  Let $\pi\in\paths{C.m}$. Given an expression $\exp$ occurring in $C.m$, then
-  \emph{$\pi$ survives $\exp$}, written $\pi\survives{\exp}$, if, for all prefix $\pi'$ of $\pi$
+  Let $\pi\in\paths{C.m}$. Given a command $\com$ occurring in $C.m$, then
+  \emph{$\pi$ survives $\com$}, written $\pi\survives{\com}$, if, for all prefix $\pi'$ of $\pi$
   (\ieinitial  $\pi=\pi'\cdots$) of type \<List<$t'$\texttt{>}>
-  and for all $t''\in\sideeffect{C.m}{\exp}$, the types
+  and for all $t''\in\sideeffect{C.m}{\com}$, the types
   $t'$ and $t''$ have no common subtype.
-  Given a command $\com$ occurring in $C.m$, then \emph{$\pi$ survives $\com$}, written $\pi\survives{\com}$, is defined similarly.
-  This survival test is extended to a filter on sets $S$ of paths, as $S\survives X=\{\pi\in S\mid\pi\survives{X}\}$,
+  This survival test is extended to a filter on sets $S$ of paths, as $S\survives\com=\{\pi\in S\mid\pi\survives{\com}\}$,
   and further extended pointwise to functions $\sigma$ into sets of paths as
-  $(\sigma\survives X)(y)=\sigma(y)\survives X$ for every $y\in\dom(\sigma)$. 
+  $(\sigma\survives\com)(y)=\sigma(y)\survives\com$ for every $y\in\dom(\sigma)$. 
 \end{definition}
 %
 For instance, the path $\pi=\<this.investors>$ at

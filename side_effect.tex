@@ -10,20 +10,16 @@ we present a very simple and cheap side-effect analysis that, nevertheless,
 is frequently precise enough on simple programs such as smart contracts.
 %
 \begin{definition}[Side-Effects Analysis]\label{def:side_effect}
-  The set of element types of the already existing lists potentially modified during the evaluation of an
-  expression $\exp$ or during the execution of a command $\com$
-  is overapproximated by $\sideeffect{C.m}{\exp}$ and $\sideeffect{C.m}{\com}$, respectively,
+  The set of element types of the already existing lists potentially modified during the
+  execution of a command $\com$ is overapproximated by $\sideeffect{C.m}{\com}$,
   where $C.m$ is dropped when clear from the context.
-  They are defined in Fig.~\ref{fig:side_effect}, by using an \emph{interpretation} $I$ that
+  It is defined in Fig.~\ref{fig:side_effect}, by using an \emph{interpretation} $I$ that
   provides the possible side-effects of constructors and methods.
   %
   \begin{figure}[t]
   \begin{align*}
-    \sideeffect{}{\new{C}{v^*}}&=I(C.C)\text{, where $C.C$ is the constructor called here}\\
-    \sideeffect{}{\exp}&=\varnothing\text{, for all other expressions}
-  \end{align*}
-  \begin{align*}
-    \sideeffect{}{\assign{\mathit{v}}{\exp}}&=\sideeffect{}{\exp}\\
+    \sideeffect{}{\assign{\mathit{v}}{\new{C}{v^*}}}&=I(C.C)\\
+    \sideeffect{}{\assign{\mathit{v}}{\exp}}&=\varnothing\text{ for any other $\exp$}\\
     \sideeffect{}{\push{v_1}{v_2}}&=\{t\mid v_1\text{ has type }\<List<>t\<\text{>}>\}\\
     \sideeffect{}{\call{v}{m}{v^*}}&=\cup_{j=1}^k I(C_j.m)\\
     \noalign{\centering\text{where $C_1.m\cdots C_k.m$ are the methods possibly called here}}
@@ -32,7 +28,7 @@ is frequently precise enough on simple programs such as smart contracts.
     \sideeffect{}{\sequence{\com_1}{\com_2}}&=\sideeffect{}{\com_1}\cup\sideeffect{}{\com_2}\\
     \sideeffect{}{\com}&=\varnothing\text{, for all other commands.}
   \end{align*}
-  \caption{The side-effect analysis, that uses an interpretation $I$ for constructors and methods.}
+  \caption{The side-effect analysis. It uses an interpretation $I$ for constructors and methods.}
   \label{fig:side_effect}
   \end{figure}
 \end{definition}

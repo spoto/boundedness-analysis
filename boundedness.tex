@@ -23,7 +23,7 @@ the boundness analysis as an abstract denotational semantics.
   %
   \begin{figure}[t]
     \begin{align*}
-      \bo{}{\assign{v}{\new{C}{w^*}}}&=\{v'=0\}\cup U\\
+      \bo{}{\assign{v}{\new{\<List>}{}}}&=\{v'=0\}\cup U\\
       \underset{\text{(for any other $\exp$)}}{\bo{}{\assign{v}{\exp}}}&=\left\{v'=\pi\left|\begin{array}{l}
       v\text{ has type \<List<$t$\texttt{>}> }\\
       \pair{\exp}{\dastates{}@(\assign{v}{\exp})}\da{}\pair{\sigma'}{S}\\
