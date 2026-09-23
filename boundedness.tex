@@ -22,6 +22,9 @@ the boundness analysis as an abstract denotational semantics.
   \begin{figure}[t]
     \begin{align*}
       \bo{}{\assign{v}{\new{\<List>}{}}}&=\{v'=0\}\cup U\\
+      \bo{}{\assign{v_1}{\size{v_2}}}&=\left\{v_1'=\pi\left|\begin{array}{l}
+      \pi\in(\dastates{}@\mathit{here})(v_2)
+      \end{array}\right.\right\}\cup U\\
       \underset{\text{(for any other $\exp$)}}{\bo{}{\assign{v}{\exp}}}&=\left\{v'=\pi\left|\begin{array}{l}
       %v\text{ has type \<List<$t$\texttt{>}> }\\
       \pair{\exp}{\dastates{}@\mathit{here}}\da{}\pair{\sigma'}{S}\\
@@ -38,7 +41,15 @@ the boundness analysis as an abstract denotational semantics.
       \pi_2\in\dastates{}@\mathit{here}(v_2)\cap\relevantpaths{}
       \end{array}\right.\right\}\cup U\\
       \bo{}{\push{v_1}{v_2}}&=\left\{\pi_1'=\pi_1+1\left|\begin{array}{l}
-      \pi_1\in\dastates{}@\mathit{here}(v_1)\cap\relevantpaths{}
+      \pi_1\in\dastates{}@\mathit{here}(v_1)\cap\relevantpaths{}\\
+      \pi_1\survives{\push{v_1}{v_2}}
+      \end{array}\right.\right\}\\
+      &\qquad\cup\left\{(\pi_1\<[any]>\pi)'=\max(\pi_1\<[any]>\pi,\pi_2\pi)
+      \left|\begin{array}{l}
+      \pi_1\in\dastates{}@\mathit{here}(v_1)\\
+      \pi_2\in\dastates{}@\mathit{here}(v_2)\cap\relevantpaths{}\\
+      \pi_1\<[any]>\pi'\survives{\push{v_1}{v_2}}\\
+      \pi_2\pi\survives{\push{v_1}{v_2}}
       \end{array}\right.\right\}\\
       &\qquad\cup\left\{\pi'=\pi\in U\left|\begin{array}{l}
       \tau(v_1)=\text{\<List<$t'$\texttt{>}>}\\
@@ -50,7 +61,9 @@ the boundness analysis as an abstract denotational semantics.
       \bo{}{\ifetwo{v_1}{v_2}{\com_1}{\com_2}}&=\left(\left\{\pi_1\ \mathit{cop}\ \pi_2\left|\begin{array}{l}
       \pi_1\in\dastates{}@\mathit{here}(v_1)\cap\relevantpaths{}\\
       \pi_2\in\dastates{}@\mathit{here}(v_2)\cap\relevantpaths{}     
-      \end{array}\right.\right\}\cup\bo{}{\com_1}\right)\sqcup\bo{}{\com_2}
+      \end{array}\right.\right\}\cup\bo{}{\com_1}\right)\oplus\bo{}{\com_2}\\
+      \bo{}{\for{v_1}{v_2}{\com}}&=\lfp.F\mapsto\mathit{Id}\oplus(\bo{}{\com}\otimes F)\\
+      \bo{}{\sequence{\com_1}{\com_2}}&=\bo{}{\com_1}\otimes\bo{}{\com_2}
     \end{align*}
     \caption{The definite boundness analysis of the commands. It uses the definite
       aliasing analysis at the command on the left-hand side of each equation,
