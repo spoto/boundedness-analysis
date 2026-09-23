@@ -35,7 +35,7 @@ subsequent boundness analysis.
     then $\pi\<.size()>\in\paths{C.m}$, it has type $\<int>$ and $\length(\pi\<.size()>)=\length(\pi)+1$
     (paths can be expanded by list size computation).
   \end{itemize}
-  A path is \emph{relevant} if its type is \<List<$t$\texttt{>}> for some $t$.
+  A path is \emph{relevant} if its type can be assigned \<List<$t$\texttt{>}> for some $t$.
   The finite set of all relevant paths in $C.m$ is $\relevantpaths{C.m}$.
   When clear from the context, we write $\paths{}$ for $\paths{C.m}$ and
   $\relevantpaths{}$ for $\relevantpaths{C.m}$.

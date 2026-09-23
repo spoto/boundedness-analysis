@@ -6,7 +6,7 @@
   using two versions for each program variable: $v$ is a variable in the pre-state
   and $v'$ is the same variable in the post-state.
   Such constraints are enriched with the $\max$ operator.
-  The set of such conatraints is written as $\bodenotations{C.m}$.
+  The set of such constraints is written as $\bodenotations{C.m}$.
 \end{definition}
 %
 Boundness constraits are an abstraction of denotations\ie they express how
@@ -17,20 +17,47 @@ the boundness analysis as an abstract denotational semantics.
   Given a method $C.m$, the \emph{definite boundedness analysis} for commands
   is the map $\bo{C.m}{}:\Com\to\bodenotations{C.m}$ given
   in Fig.~\ref{fig:bo_commands}, where $C.m$ is dropped when clear
-  from the context. That figure uses a frame condition constraint $U$ (for \emph{unchanged})
-  that states that all paths keep their value, if they survive the command. For instance, for
-  the command $\assign{v}{\exp}$, it is $U=\{\pi'=\pi\mid\pi\survives{\assign{v}{\exp}}\}$.
+  from the context.
   %
   \begin{figure}[t]
     \begin{align*}
       \bo{}{\assign{v}{\new{\<List>}{}}}&=\{v'=0\}\cup U\\
       \underset{\text{(for any other $\exp$)}}{\bo{}{\assign{v}{\exp}}}&=\left\{v'=\pi\left|\begin{array}{l}
-      v\text{ has type \<List<$t$\texttt{>}> }\\
-      \pair{\exp}{\dastates{}@(\assign{v}{\exp})}\da{}\pair{\sigma'}{S}\\
-      \pi\in S
-      \end{array}\right.\right\}\cup U
+      %v\text{ has type \<List<$t$\texttt{>}> }\\
+      \pair{\exp}{\dastates{}@\mathit{here}}\da{}\pair{\sigma'}{S}\\
+      \pi\in S\cap\relevantpaths{}
+      \end{array}\right.\right\}\cup U\\
+      \bo{}{\assign{\field{v_1}{f}}{v_2}}&=\left\{(\pi_1.f)'=\pi_2\left|\begin{array}{l}
+      \pi_1\in\dastates{}@\mathit{here}(v_1)\\
+      \pi_2\in\dastates{}@\mathit{here}(v_2)\cap\relevantpaths{}\\
+      \pi_1.f\in\relevantpaths{}
+      \end{array}\right.\right\}\cup U\\
+      \bo{}{\readmap{v}{v}{v}}&=U\\
+      \bo{}{\require{v_1}{v_2}}&=\left\{\pi'_1\ \mathit{cop}\ \pi'_2\left|\begin{array}{l}
+      \pi_1\in\dastates{}@\mathit{here}(v_1)\cap\relevantpaths{}\\
+      \pi_2\in\dastates{}@\mathit{here}(v_2)\cap\relevantpaths{}
+      \end{array}\right.\right\}\cup U\\
+      \bo{}{\push{v_1}{v_2}}&=\left\{\pi_1'=\pi_1+1\left|\begin{array}{l}
+      \pi_1\in\dastates{}@\mathit{here}(v_1)\cap\relevantpaths{}
+      \end{array}\right.\right\}\\
+      &\qquad\cup\left\{\pi'=\pi\in U\left|\begin{array}{l}
+      \tau(v_1)=\text{\<List<$t'$\texttt{>}>}\\
+      \text{the type of $\pi$ is \<List<$t''$\texttt{>}>}\\
+      \text{and $t'$ and $t''$ have no shared subtype}
+      \end{array}\right.\right\}\\
+      \bo{}{\receive{v}{v}}&=U\\
+      \bo{}{\call{v}{m}{v^*}}&=U\\
+      \bo{}{\ifetwo{v_1}{v_2}{\com_1}{\com_2}}&=\left(\left\{\pi_1\ \mathit{cop}\ \pi_2\left|\begin{array}{l}
+      \pi_1\in\dastates{}@\mathit{here}(v_1)\cap\relevantpaths{}\\
+      \pi_2\in\dastates{}@\mathit{here}(v_2)\cap\relevantpaths{}     
+      \end{array}\right.\right\}\cup\bo{}{\com_1}\right)\sqcup\bo{}{\com_2}
     \end{align*}
-    \caption{The definite boundness analysis of the commands.}
+    \caption{The definite boundness analysis of the commands. It uses the definite
+      aliasing analysis at the command on the left-hand side of each equation,
+      written as $\dastates{}@\mathit{here}$. The \emph{frame condition} $U$ (for \emph{unchanged})
+      states that no existing relevant paths is affected, unless it is modified by side-effect.
+      For instance, for the first equation,
+      it is $U=\{\pi'=\pi\mid\pi\in\relevantpaths{}\text{ and }\pi\survives{\assign{v}{\new{\<List>}{}}}\}$.}
     \label{fig:bo_commands}
   \end{figure}
 \end{definition}
