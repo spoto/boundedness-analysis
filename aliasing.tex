@@ -59,7 +59,7 @@ definition is simplified by the hypothesis that local variables are not reassign
   Let $\pi\in\paths{C.m}$. Given a command $\com$ occurring in $C.m$, then
   \emph{$\pi$ survives $\com$}, written $\pi\survives{\com}$, if, for all prefix $\pi'$ of $\pi$
   (\ieinitial  $\pi=\pi'\cdots$) of type \<List<$t'$\texttt{>}>
-  and for all $t''\in\sideeffect{C.m}{\com}$, the types
+  and for all $t''\in\sideeffect{\com}$, the types
   $t'$ and $t''$ have no common subtype.
   This survival test is extended to a filter on sets $S$ of paths, as $S\survives\com=\{\pi\in S\mid\pi\survives{\com}\}$,
   and further extended pointwise to functions $\sigma$ into sets of paths as
@@ -70,14 +70,14 @@ For instance, the path $\pi=\<this.investors>$ at
 line~\ref{ponzi1:expand} in Fig.~\ref{fig:ponzi1} does not survive
 the command \<investors.push(caller)> at that line, since $\pi'=\<this.investors>$
 has type \<List<Contract\texttt{>}>,
-$\{\<Contract>\}=\sideeffect{\<Ponzi1.invest>}{\<investors.push(caller)>}$
+$\{\<Contract>\}=\sideeffect{\<investors.push(caller)>}$
 and \<Contract> has a common subtype with itself, obviously.
 Instead, the path $\pi=\<last.sales>$
 survives the command \<rounds.push(last)>
 at line~\ref{lottery2:push_round}, since
 the only prefix $\pi'$ of $\pi$ of type list is $\pi'=\pi$, of type
 \<List<TicketBatchSale\texttt{>}>,
-$\{\<Round>\}=\sideeffect{\<Lottery2.buy>}{\<rounds.push(last)>}$ and
+$\{\<Round>\}=\sideeffect{\<rounds.push(last)>}$ and
 \<TicketBatchSale> and \<Round> have no common subtype.
 All integer constants survive any expression and command.
 

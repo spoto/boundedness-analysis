@@ -1,5 +1,15 @@
 \section{Syntax of a Minimalistic Smart Contract Language}\label{sec:syntax}
 
+The pseudocode used in Sec.~\ref{sec:examples} is human-readable,
+but still too complicated for analysis. In particular, we want to simplify
+the definition of the abstract analyses as much as possible. Therefore, we
+assume to analyze programs written in a minimalistic language where,
+for instance, variables are only assigned once and commands operates on variables only.
+These constraints are not restrictive, but make the code under analysis longer
+and require to introduce temporary variables. This is why this minimalistic language
+has not been used in Sec.~\ref{sec:examples}. The translation of the smart contracts
+from Sec.~\ref{sec:examples} in this language can be found in \textbf{[cite Github repository eventually]}.
+
 \begin{definition}[Expressions and Commands]\label{def:exp_com}
   \emph{Expressions} and \emph{commands} are defined by the following grammar,
   where $c$ is a literal constant of the language, $v$ is a variable, $\mathit{aop}$ is an arithmetic
@@ -10,7 +20,7 @@
     \com::=&\ \assign{\mathit{v}}{\exp}\mid\assign{\field{v}{f}}{v}\mid\writemap{v}{v}{v}
     \mid\require{v}{v}\\
     &\mid\push{v}{v}\mid\receive{v}{v}\mid\call{v}{m}{v^*}\\
-    &\mid\ife{v}{v}{\com}{\com}\mid\for{\mathit{v}}{v}{\com}\mid\sequence{\com}{\com}.
+    &\mid\ife{v}{v}{\com}{\com}\mid\for{\mathit{v}}{v}{\com}\mid\sequence{\com}{\com}\mid\nop.
   \end{align*}
   %
   The set of all expressions is $\Exp$ and the set of all commands is $\Com$.
@@ -36,18 +46,20 @@
   A type is either \emph{primitive} (such as \<int>)
   or a class name $C$. Generic class types (such as lists) are written as
   \<List<t\texttt{>}>, where \<t> is the type of the elements of the list.
-  The variables in scope inside a method
-  form its \emph{typing}\ie a map from each variable in scope to
-  its declared type. Namely, the typing $\tau_{C.m}$ of the method $C.m$ above is the map
-  $\tau_{C.m}=\{p_1\mapsto t_1,\ldots,p_n\mapsto t_n,l_1\mapsto t_1',\ldots,l_q\mapsto t_q'\}$.
+  %The variables in scope inside a method
+  %form its \emph{typing}\ie a map from each variable in scope to
+  %its declared type. Namely, the typing $\tau_{C.m}$ of the method $C.m$ above is the map
+  %$\tau_{C.m}=\{p_1\mapsto t_1,\ldots,p_n\mapsto t_n,l_1\mapsto t_1',\ldots,l_q\mapsto t_q'\}$.
+  Fields $C.f$ can be \<final>, if they are assigned exactly once in each
+  constructor of $C$.
   We assume that programs are type-checked and in static single assignment form\ie local
   variables are assigned exactly once along each execution path.
 \end{definition}
 %
-Fields and methods can have modifiers such as \<public>, \<private>,
-\<final> and \<payable>, that we do not introduce formally and have the
-usual meaning as, for instance, in Java or Solidity. For simplicity, we
-assume that methods do not return any value.
+%Fields and methods can have modifiers such as \<public>, \<private>,
+%\<final> and \<payable>, that we do not introduce formally and have the
+%usual meaning as, for instance, in Java or Solidity. For simplicity, we
+%assume that methods do not return any value.
 %We write $\tau_{C.m}(\exp)$ for the static type of an expression $\exp$ occurring inside
 %method $C.m$. Its definition is not formalized here, since it is the usual recursive
 %definition used by any strongly-typed language.

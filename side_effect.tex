@@ -1,34 +1,40 @@
 \section{Side-Effect Analysis}\label{sec:side_effect}
 
-Given an expression or command, it is possible to identify
-which already existing lists might be affected by the evaluation of the expression
-or by the execution of the command.
+Given a command, it is useful to know
+which already existing lists might be affected during the execution of the command.
 Previous work has defined precise and complex static analyses for that
 (see for instance the aliasing and side-effect analyses in~\cite{SpotoMP10}).
 Here, for simplicity and lack of space,
-we present a very simple and cheap side-effect analysis that, nevertheless,
-is frequently precise enough on simple programs such as smart contracts.
+we present a simpler and cheaper side-effect analysis that, nevertheless,
+is often precise enough on simple programs such as smart contracts.
+
+Possible side-effects are an abstract interpretation of execution traces.
+Therefore, the side-effect analysis is presented as a bottom-up denotational
+semantics that uses an interpretation\ie inductive information about
+the side-effect of the method calls triggered by the execution of a command.
+We do not discuss this further here, since it is standard technology
+in semantics~\cite{Winskel93} and abstract interpretation~\cite{CousotC77}.
+An example of computation is reported later.
 %
 \begin{definition}[Side-Effects Analysis]\label{def:side_effect}
-  The set of element types of the already existing lists potentially modified during the
-  execution of a command $\com$ is overapproximated by $\sideeffect{C.m}{\com}$,
-  where $C.m$ is dropped when clear from the context.
-  It is defined in Fig.~\ref{fig:side_effect}, by using an \emph{interpretation} $I$ that
-  provides the possible side-effects of constructors and methods.
+  The set of element types of the already existing lists possibly modified during the
+  execution of a command $\com$ is overapproximated by $\sideeffect{\com}$,
+  defined in Fig.~\ref{fig:side_effect} by using an \emph{interpretation} $I$ that
+  provides the possible side-effects of the methods.
   %
   \begin{figure}[t]
   \begin{align*}
-    \sideeffect{}{\assign{\mathit{v}}{\new{C}{v^*}}}&=I(C.C)\\
-    \sideeffect{}{\assign{\mathit{v}}{\exp}}&=\varnothing\text{ for any other $\exp$}\\
-    \sideeffect{}{\push{v_1}{v_2}}&=\{t\mid v_1\text{ has type }\<List<>t\<\text{>}>\}\\
-    \sideeffect{}{\call{v}{m}{v^*}}&=\cup_{j=1}^k I(C_j.m)\\
+    \sideeffect{\assign{\mathit{v}}{\new{C}{v^*}}}&=I(C.C)\\
+    \sideeffect{\assign{\mathit{v}}{\exp}}&=\varnothing\text{ for any other $\exp$}\\
+    \sideeffect{\push{v_1}{v_2}}&=\{t\mid v_1\text{ has type }\<List<>t\<\text{>}>\}\\
+    \sideeffect{\call{v}{m}{v^*}}&=\cup_{j=1}^k I(C_j.m)\\
     \noalign{\centering\text{where $C_1.m\cdots C_k.m$ are the methods possibly called here}}
-    \sideeffect{}{\ife{v}{v}{\com_1}{\com_2}}&=\sideeffect{}{\com_1}\cup\sideeffect{}{\com_2}\\
-    \sideeffect{}{\for{v}{v}{\com}}&=\sideeffect{}{\com}\\
-    \sideeffect{}{\sequence{\com_1}{\com_2}}&=\sideeffect{}{\com_1}\cup\sideeffect{}{\com_2}\\
-    \sideeffect{}{\com}&=\varnothing\text{, for all other commands.}
+    \sideeffect{\ife{v}{v}{\com_1}{\com_2}}&=\sideeffect{\com_1}\cup\sideeffect{\com_2}\\
+    \sideeffect{\for{v}{v}{\com}}&=\sideeffect{\com}\\
+    \sideeffect{\sequence{\com_1}{\com_2}}&=\sideeffect{\com_1}\cup\sideeffect{\com_2}\\
+    \sideeffect{\com}&=\varnothing\text{, for all other commands.}
   \end{align*}
-  \caption{The side-effect analysis. It uses an interpretation $I$ for constructors and methods.}
+  \caption{The side-effect rules. They use an interpretation $I$ for the methods.}
   \label{fig:side_effect}
   \end{figure}
 \end{definition}
@@ -40,18 +46,15 @@ as the set of \emph{all} possible redefinitions. More precise analyses exist~\ci
 but they are probably overkill for minimalistic code such as smart contracts,
 that very rarely redefine methods.
 
-The analysis in Fig.~\ref{fig:side_effect} is an abstract interpretation of execution traces.
-Consequently, it is presented as a bottom-up denotational semantics using an interpretation.
-Its computation starts from the empty interpretation $I_0$ (providing $\varnothing$ as
-side-effects of every method and constructor). The bodies of the methods and constructors
-of the program are then analyzed with the equations
-in Fig.~\ref{fig:side_effect} to get an improved interpretation $I_1$.
+The computation of the side-effect analysis
+starts from the empty interpretation $I_0$, that provides $\varnothing$ as
+side-effects of every method. The bodies of the methods
+(hence also of the constructors) of the program are then analyzed with the rules
+in Fig.~\ref{fig:side_effect}, using $I=I_0$, to get an improved interpretation $I_1$.
 This process is repeated to yield $I_2$ and so on, until a fixpoint $\intsideeffect$
 is reached. This is guaranteed to happen after a finite number of iterations
-since the equations in Fig.~\ref{fig:side_effect} are monotonic and the set of element types
+since the rules in Fig.~\ref{fig:side_effect} are monotonic and the set of element types
 of lists used in each given program is finite.
-We do not discuss this further here, since it is standard technology in semantics~\cite{Winskel93}
-and abstract interpretation~\cite{CousotC77}. In the following, we just assume that $I_\mathsf{se}$ has been computed.
 
 \begin{example}\label{ex:side_effect}
   Fig.~\ref{fig:side_effect_examples} reports $\intsideeffect$ for the smart contracts from
@@ -100,3 +103,5 @@ and abstract interpretation~\cite{CousotC77}. In the following, we just assume t
     \label{fig:side_effect_examples}
   \end{figure}
 \end{example}
+
+In the following, we just assume that $I_\mathsf{se}$ has been computed.

@@ -42,6 +42,7 @@
 \newcommand{\receive}[2]{{#1}\mathtt{.receive(}{#2}\mathtt{)}}
 \newcommand{\require}[2]{\mathtt{require(}{#1}\ \mathit{cop}\ {#2}\mathtt{)}}
 \newcommand{\assign}[2]{{#1}\mathtt{:=}{#2}}
+\newcommand{\nop}{\mathtt{nop}}
 \newcommand{\ife}[4]{\mathtt{if\ (}{#1}\ \mathit{cop}\ {#2}\mathtt{)\ then\ }{#3}\mathtt{\ else\ }{#4}}
 \newcommand{\ifetwo}[4]{\begin{array}{l}
     \mathtt{if\ (}{#1}\ \mathit{cop}\ {#2}\mathtt{)}\\
@@ -63,7 +64,7 @@
 \newcommand{\ie}{, \textit{ie.}, }
 \newcommand{\ieinitial}{\textit{ie.}, }
 
-\newcommand{\sideeffect}[2]{\mathsf{se}_{{#1}}\left({#2}\right)}
+\newcommand{\sideeffect}[1]{\mathsf{se}\left({#1}\right)}
 \newcommand{\intsideeffect}{I_{\mathsf{se}}}
 \newcommand{\dom}{\mathit{dom}}
 \newcommand{\pair}[2]{\langle{#1},{#2}\rangle}
