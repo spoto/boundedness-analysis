@@ -22,9 +22,7 @@ the boundness analysis as an abstract denotational semantics.
   \begin{figure}[t]
     \begin{align*}
       \bo{}{\assign{v}{\new{\<List>}{}}}&=\{v'=0\}\cup U\\
-      \bo{}{\assign{v_1}{\size{v_2}}}&=\left\{v_1'=\pi\left|\begin{array}{l}
-      \pi\in(\dastates{}@\mathit{here})(v_2)
-      \end{array}\right.\right\}\cup U\\
+      \bo{}{\assign{v_1}{\size{v_2}}}&=\{v_1'=v_2\}\cup U\\
       \underset{\text{(for any other $\exp$)}}{\bo{}{\assign{v}{\exp}}}&=\left\{v'=\pi\left|\begin{array}{l}
       %v\text{ has type \<List<$t$\texttt{>}> }\\
       \pair{\exp}{\dastates{}@\mathit{here}}\da{}\pair{\sigma'}{S}\\
@@ -36,20 +34,17 @@ the boundness analysis as an abstract denotational semantics.
       \pi_1.f\in\relevantpaths{}
       \end{array}\right.\right\}\cup U\\
       \bo{}{\readmap{v}{v}{v}}&=U\\
-      \bo{}{\require{v_1}{v_2}}&=\left\{\pi'_1\ \mathit{cop}\ \pi'_2\left|\begin{array}{l}
-      \pi_1\in\dastates{}@\mathit{here}(v_1)\cap\relevantpaths{}\\
-      \pi_2\in\dastates{}@\mathit{here}(v_2)\cap\relevantpaths{}
-      \end{array}\right.\right\}\cup U\\
-      \bo{}{\push{v_1}{v_2}}&=\left\{\pi_1'=\pi_1+1\left|\begin{array}{l}
-      \pi_1\in\dastates{}@\mathit{here}(v_1)\cap\relevantpaths{}\\
-      \pi_1\survives{\push{v_1}{v_2}}
+      \bo{}{\require{v_1}{v_2}}&=\{v_1\ \mathit{cop}\ v_2\}\cup U\\
+      \bo{}{\push{v_1}{v_2}}&=
+      \left\{\pi'=\pi+1\left|\begin{array}{l}
+      \pi\in\dastates{}@\mathit{here}(v_1)\\
+      \text{\<[any]> does not occur in $\pi$}
       \end{array}\right.\right\}\\
-      &\qquad\cup\left\{(\pi_1\<[any]>\pi)'=\max(\pi_1\<[any]>\pi,\pi_2\pi)
+      &\qquad\cup\left\{\pi'=\max(\pi,v_1+1)
       \left|\begin{array}{l}
-      \pi_1\in\dastates{}@\mathit{here}(v_1)\\
-      \pi_2\in\dastates{}@\mathit{here}(v_2)\cap\relevantpaths{}\\
-      \pi_1\<[any]>\pi'\survives{\push{v_1}{v_2}}\\
-      \pi_2\pi\survives{\push{v_1}{v_2}}
+      \pi\in\dastates{}@\mathit{here}(v_1)\\
+      \text{\<[any]> occurs in $\pi$}\\
+      \pi\survives{\push{v_1}{v_2}}
       \end{array}\right.\right\}\\
       &\qquad\cup\left\{\pi'=\pi\in U\left|\begin{array}{l}
       \tau(v_1)=\text{\<List<$t'$\texttt{>}>}\\
@@ -58,10 +53,8 @@ the boundness analysis as an abstract denotational semantics.
       \end{array}\right.\right\}\\
       \bo{}{\receive{v}{v}}&=U\\
       \bo{}{\call{v}{m}{v^*}}&=U\\
-      \bo{}{\ifetwo{v_1}{v_2}{\com_1}{\com_2}}&=\left(\left\{\pi_1\ \mathit{cop}\ \pi_2\left|\begin{array}{l}
-      \pi_1\in\dastates{}@\mathit{here}(v_1)\cap\relevantpaths{}\\
-      \pi_2\in\dastates{}@\mathit{here}(v_2)\cap\relevantpaths{}     
-      \end{array}\right.\right\}\cup\bo{}{\com_1}\right)\oplus\bo{}{\com_2}\\
+      \bo{}{\ifetwo{v_1}{v_2}{\com_1}{\com_2}}&=\left(\{v_1\ \mathit{cop}\ v_2\}
+      \cup\bo{}{\com_1}\right)\oplus\bo{}{\com_2}\\
       \bo{}{\for{v_1}{v_2}{\com}}&=\lfp.F\mapsto\mathit{Id}\oplus(\bo{}{\com}\otimes F)\\
       \bo{}{\sequence{\com_1}{\com_2}}&=\bo{}{\com_1}\otimes\bo{}{\com_2}
     \end{align*}
@@ -75,14 +68,14 @@ the boundness analysis as an abstract denotational semantics.
   \end{figure}
 \end{definition}
 
-The static analysis infers size change constraints about the containers
-reachable from the state of the smart contracts, for each public API
-method or constructor of the smart contract. It distinguishes between
-pre-state and after-state by using primed variables for the after-state.
 \textbf{This is a sort of simplified path-length. The simplifying
   assumptions must be clarified. The idea is that one does not need
   the supporting analyses such as non-cyclicity or sharing, since the
   domain of analysis is very specific and lists are very well encapsulated.}
+
+The static analysis infers size change constraints about the containers
+reachable from the state of the smart contracts, for each public API
+method or constructor of the smart contract.
 
 For the example in Fig.~\ref{fig:ponzi1}, the inferred approximations are:
 %
@@ -91,7 +84,7 @@ For the example in Fig.~\ref{fig:ponzi1}, the inferred approximations are:
 \item[\<invest()>:] $\<investors>'=\<investors>+1$
 \end{description}
 %
-For the esample in Fig.~\ref{fig:ponzi2} they are (\textbf{something about \<balances>? In any case, it is irrelevant for our proof}):
+For the esample in Fig.~\ref{fig:ponzi2} they are:
 %
 \begin{description}
 \item[\<Ponzi2()>:] $\<investors>'=1$
@@ -114,93 +107,10 @@ For the example in Fig.~\ref{fig:lottery1} they are:
 \item[\<drawWinner()>:] $\<rounds>'=\<rounds>\wedge\<rounds[any].sales>'=\<rounds[any].sales>$
 \end{description}
 %
-For the example in Fig.~\ref{fig:lottery2} they are (\textbf{automatically inferring the subsequent constraints might not be obvious}):
+For the example in Fig.~\ref{fig:lottery2} they are:
 %
 \begin{description}
 \item[\<Lottery2()>:] $\<rounds>'=1\wedge\<rounds[any].sales>'=0$
 \item[\<buy()>:] $\<rounds>\le\<rounds>'\le\<rounds>+1\wedge\<rounds[any].sales>\le\<rounds[any].sales>'\le\max(5000,\<rounds[any].sales>)$
 \item[\<drawWinner()>:] $\<rounds>'=\<rounds>\wedge\<rounds[any].sales>'=\<rounds[any].sales>$
 \end{description}
-
-Such constraints are then used to build class invariant predicates,
-stating that there exists an upper bound to the size of the containers
-such that, if the containers are bounded before the call to the API,
-they are bounded also after the call to the API.
-
-For instance, for \<Ponzi1> the predicate is:
-%
-\[
-  \exists k.\left(\begin{array}{c}
-    (\mathit{true}\wedge\<investors>'=1)\Rightarrow\<investors>'\le k\\
-    \wedge\\
-    (\<investors>\le k\wedge\<investors'>=\<investors>+1)\Rightarrow\<investors>'\le k
-  \end{array}\right)
-\]
-%
-that a theorem prover should reject or fail to prove that it holds. Therefore,
-the analyzer would issue a boundedness warning.
-
-For \<Ponzi2>, the predicate is:
-%
-\[
-  \exists k.\left(\begin{array}{c}
-    (\mathit{true}\wedge\<investors>'=1)\Rightarrow\<investors>'\le k\\
-    \wedge\\
-    (\<investors>\le k\wedge\<investors>'=\<investors>+1)\Rightarrow\<investors>'\le k\\
-    \wedge\\
-    (\<investors>\le k\wedge\<investors>'=\<investors>)\Rightarrow\<investors>'\le k\\
-  \end{array}\right)
-\]
-%
-that a theorem prover should reject or fail to prove that it holds. Therefore,
-the analyzer would issue a boundedness warning.
-
-For \<Ponzi3>, the predicate is:
-%
-\[
-  \exists k.\left(\begin{array}{c}
-    (\mathit{true}\wedge\<investors>'=1)\Rightarrow\<investors>'\le k\\
-    \wedge\\
-    (\<investors>\le k\wedge\<investors><100\wedge\<investors>'=\<investors>+1)\\
-    \Rightarrow\<investors>'\le k
-  \end{array}\right)
-\]
-%
-that a theorem prover should be able to prove true, for instance by taking
-$k=100$ (or $k=200$\ldots). Therefore, the boundedness analyzer would not issue
-any warning.
-
-For \<Lottery1>, there is a predicate for \<rounds> and another for
-\<rounds[any].sales>. The former is irrelevant, since \<rounds> is not
-iterated. The latter is (by writing \<ras> for \<rounds[any].sales>):
-%
-\[
-  \exists k.\left(\begin{array}{c}
-    (\mathit{true}\wedge\<ras>'=0)\Rightarrow\<ras>'\le k\\
-    \wedge\\
-    (\<ras>\le k\wedge\<ras>\le\<ras>'\le\<ras>+1)\Rightarrow\<ras>'\le k\\
-    \wedge\\
-    (\<ras>\le k\wedge\<ras>'=\<ras>)\Rightarrow\<ras>'\le k
-  \end{array}\right)
-\]
-%
-that a theorem prover should reject or fail to prove that it holds. Therefore,
-the analyzer would issue a boundedness warning.
-
-For \<Lottery2>, the predicate for \<rounds[any].sales> is:
-%
-\[
-  \exists k.\left(\begin{array}{c}
-    (\mathit{true}\wedge\<ras>'=0)\Rightarrow\<ras>'\le k\\
-    \wedge\\
-    (\<ras>\le k\wedge\<ras>\le\<ras>'\le\max(5000,\<ras>))\Rightarrow\<ras>'\le k\\
-    \wedge\\
-    (\<ras>\le k\wedge\<ras>'=\<ras>)\Rightarrow\<ras>'\le k
-  \end{array}\right)
-\]
-%
-that a theorem prover should be able to prove true, for instance by taking
-$k=5000$ (or $k=8000$\ldots). Therefore, the boundedness analyzer would not
-issue any warning.
-
-\textbf{Which theorem prover is able to deal with such constraints?}

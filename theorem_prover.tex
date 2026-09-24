@@ -1,0 +1,84 @@
+\section{Constraint Generation for Theorem Proving}\label{sec:theorem_prover}
+
+Such constraints are then used to build class invariant predicates,
+stating that there exists an upper bound to the size of the containers
+such that, if the containers are bounded before the call to the API,
+they are bounded also after the call to the API.
+
+For instance, for \<Ponzi1> the predicate is:
+%
+\[
+  \exists k.\left(\begin{array}{c}
+    (\mathit{true}\wedge\<investors>'=1)\Rightarrow\<investors>'\le k\\
+    \wedge\\
+    (\<investors>\le k\wedge\<investors'>=\<investors>+1)\Rightarrow\<investors>'\le k
+  \end{array}\right)
+\]
+%
+that a theorem prover should reject or fail to prove that it holds. Therefore,
+the analyzer would issue a boundedness warning.
+
+For \<Ponzi2>, the predicate is:
+%
+\[
+  \exists k.\left(\begin{array}{c}
+    (\mathit{true}\wedge\<investors>'=1)\Rightarrow\<investors>'\le k\\
+    \wedge\\
+    (\<investors>\le k\wedge\<investors>'=\<investors>+1)\Rightarrow\<investors>'\le k\\
+    \wedge\\
+    (\<investors>\le k\wedge\<investors>'=\<investors>)\Rightarrow\<investors>'\le k\\
+  \end{array}\right)
+\]
+%
+that a theorem prover should reject or fail to prove that it holds. Therefore,
+the analyzer would issue a boundedness warning.
+
+For \<Ponzi3>, the predicate is:
+%
+\[
+  \exists k.\left(\begin{array}{c}
+    (\mathit{true}\wedge\<investors>'=1)\Rightarrow\<investors>'\le k\\
+    \wedge\\
+    (\<investors>\le k\wedge\<investors><100\wedge\<investors>'=\<investors>+1)\\
+    \Rightarrow\<investors>'\le k
+  \end{array}\right)
+\]
+%
+that a theorem prover should be able to prove true, for instance by taking
+$k=100$ (or $k=200$\ldots). Therefore, the boundedness analyzer would not issue
+any warning.
+
+For \<Lottery1>, there is a predicate for \<rounds> and another for
+\<rounds[any].sales>. The former is irrelevant, since \<rounds> is not
+iterated. The latter is (by writing \<ras> for \<rounds[any].sales>):
+%
+\[
+  \exists k.\left(\begin{array}{c}
+    (\mathit{true}\wedge\<ras>'=0)\Rightarrow\<ras>'\le k\\
+    \wedge\\
+    (\<ras>\le k\wedge\<ras>\le\<ras>'\le\<ras>+1)\Rightarrow\<ras>'\le k\\
+    \wedge\\
+    (\<ras>\le k\wedge\<ras>'=\<ras>)\Rightarrow\<ras>'\le k
+  \end{array}\right)
+\]
+%
+that a theorem prover should reject or fail to prove that it holds. Therefore,
+the analyzer would issue a boundedness warning.
+
+For \<Lottery2>, the predicate for \<rounds[any].sales> is:
+%
+\[
+  \exists k.\left(\begin{array}{c}
+    (\mathit{true}\wedge\<ras>'=0)\Rightarrow\<ras>'\le k\\
+    \wedge\\
+    (\<ras>\le k\wedge\<ras>\le\<ras>'\le\max(5000,\<ras>))\Rightarrow\<ras>'\le k\\
+    \wedge\\
+    (\<ras>\le k\wedge\<ras>'=\<ras>)\Rightarrow\<ras>'\le k
+  \end{array}\right)
+\]
+%
+that a theorem prover should be able to prove true, for instance by taking
+$k=5000$ (or $k=8000$\ldots). Therefore, the boundedness analyzer would not
+issue any warning.
+
+\textbf{Which theorem prover is able to deal with such constraints?}

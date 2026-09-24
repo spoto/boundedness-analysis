@@ -88,8 +88,15 @@ The contributions of this paper are:
 The rest of the paper is organized as follows.
 Sec.~\ref{sec:examples} presents examples of bounded and unbounded containers
 in actual smart contracts, and the potential attacks in case of unboundedness.
-Sec.~\ref{sec:analysis} defines the abstract intepretation and the use of
-the theorem prover. Sec.~\ref{sec:implementation} reports preliminary results
-with our prototype implementation for a minimalistic smart contract language.
+Sec.~\ref{sec:syntax} presents the syntax of a minimalistic language for
+smart contracts.
+Sec.~\ref{sec:side_effect} and \ref{sec:aliasing} define the supporting
+side-effect ans aliasing analysis, respectively.
+Sec.~\ref{sec:boundedness} defines the actual boundedness
+analysis that builds on those two supporting analyses.
+Sec.~\ref{sec:theorem_prover} shows how the results of the boundedness
+analysis is used to generate constraints that are fed into a theorem
+prover. Sec.~\ref{sec:implementation} reports preliminary results
+with our prototype implementation.
 Sec.~\ref{sec:related} discusses related work. Sec.~\ref{sec:conclusion}
 concludes the paper.
