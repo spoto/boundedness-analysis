@@ -84,6 +84,48 @@ The contributions of this paper are:
 \item a prototype implementation for a minimalistic smart contract language.
 \end{enumerate}
 
+\begin{figure}[b]
+  \begin{tikzpicture}
+    \draw [thick] (0,0) rectangle +(3,1.2);
+    \draw (1.5,0.95) node{interprocedural};
+    \draw (1.5,0.6) node{possible side-effects};
+    \draw (1.5,0.25) node{analysis (Sec.~\ref{sec:side_effect})};
+
+    \draw[->,thick] (3,0.7) -- +(0.5,0);
+    \draw[->,thick] (1.5,0) arc (250:290:11);
+
+    \draw [thick] (3.5,0) rectangle +(3,1.2);
+    \draw (5,0.95) node{intraprocedural};
+    \draw (5,0.6) node{definite aliasing};
+    \draw (5,0.25) node{analysis (Sec.~\ref{sec:aliasing})};
+
+    \draw[->,thick] (6.5,0.7) -- +(0.4,0);
+
+    \draw [thick] (6.9,0) rectangle +(3.2,1.2);
+    \draw (8.5,0.95) node{intraprocedural};
+    \draw (8.5,0.6) node{definite boundedness};
+    \draw (8.5,0.25) node{analysis (Sec.~\ref{sec:boundedness})};
+
+    \draw[->,thick] (10.1,0.7) -- +(0.4,0);
+
+    \draw [thick] (10.5,0) rectangle +(1.4,1.2);
+    \draw (11.2,0.95) node{theorem};
+    \draw (11.2,0.6) node{proving};
+    \draw (11.2,0.25) node{(Sec.~\ref{sec:theorem_prover})};
+
+    %\draw [fill=VioletRed, thick] (0,3.5) rectangle (4,5.5);
+  \end{tikzpicture}
+  \caption{The components of our boundedness analysis and their dependencies.}
+  \label{fig:plan}
+\end{figure}
+
+Fig.~\ref{fig:plan} shows the dependencies of the various components of our
+boundedness analysis. A preliminary side-effect analysis identifies which lists
+might be modified by the execution of the commands. This information is used in
+a subsequent aliasing analysis. Both are then used for the actual boundedness analysis,
+whose results are sent to a theorem prover, that uses them to prove that there is
+no boundedness bug in the program.
+
 The rest of the paper is organized as follows.
 Sec.~\ref{sec:examples} presents examples of bounded and unbounded containers
 in actual smart contracts, and the potential attacks in case of unboundedness.
