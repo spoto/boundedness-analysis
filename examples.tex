@@ -1,12 +1,14 @@
 \section{Examples of Boundedness and Unboundedness}\label{sec:examples}
 
 This section exemplifies the meaning and relevance of boundedness for
-data collections in smart contracts. It provides concrete examples of smart
+containers in smart contracts. It provides concrete examples of smart
 contracts, written in a pseudocode inspired by Solidity and Takamaka~\cite{OlivieriST25}
 (the latter provides a clearer type system, inherited from Java). We prefer
 to use pseudocode in order to concentrate on the semantics of the code rather than
-on the idiosyncrasies of a specific programming language. Pseudocode allows us to
-keep the syntax to a minimum.
+on the idiosyncrasies of a specific programming language. Note that the
+language under analysis will be a further simplification of that pseudocode
+(Sec.~\ref{sec:syntax}), not used here since it would
+make the examples extremely long and wordy.
 
 \begin{figure}[t]
   \begin{lstlisting}[language=pseudo]
@@ -30,31 +32,31 @@ public class Ponzi1 extends Contract {
   }
 }
   \end{lstlisting}
-  \caption{A smart contract that implements a Ponzi scheme. Investors get their money
-    back, but only as long as new investors keep arriving after them. The list \<investors>
+  \caption{A smart contract implementing a Ponzi scheme. Investors get their money
+    back only if new investors keep arriving after them. The list \<investors>
     is unbounded and, consequently, the loop at line~\ref{ponzi1:iteration} is unbounded as well.}
   \label{fig:ponzi1}
 \end{figure}
 
 Fig.~\ref{fig:ponzi1} shows a smart contract that implements a Ponzi scheme, inspired
 by an example from~\cite{IyerD18}. It keeps a list of investors at
-line~\ref{ponzi1:investors} where, as in Takamaka, \<Contract> is a superclass of both
+line~\ref{ponzi1:investors} where, as in Takamaka, \<Contract> is the superclass of both
 contracts and externally-owned accounts, that are treated as a special case of contract.
-That list gets initially populated for free by the constructor with
-its caller (line~\ref{ponzi1:creator}, where \<caller> corresponds to
+The caller of the constructor populates that list initially, for free
+(line~\ref{ponzi1:creator}, where \<caller> corresponds to
 \<msg.sender> in Solidity). Subsequently, new contracts become investors
 by calling the \<invest()> method and paying a minimal fee (\<amount> corresponds to
 \<msg.value> in Solidity). This fee gets equally split among the existing investors
 (lines~\ref{ponzi1:iteration} and~\ref{ponzi1:receive}) before the \<caller> is
 added to the list of investors (line~\ref{ponzi1:expand}). There is no upper bound
-to the size of the list \<investors> and there is no way of removing investors.
-As long as users keep calling \<invest()>, the list
+to the size of \<investors> and there is no way of removing investors.
+As long as users keep calling \<invest()>,
 \<investors> can only grow arbitrarily long. Therefore, there is no upper bound
-on the gas needed to execute the loop at line~\ref{ponzi1:iteration}. Namely,
+to the gas needed to execute the loop at line~\ref{ponzi1:iteration}. Namely,
 once that gas cost
 exceeds the maximum allowed for a blockchain transaction, the smart contract is
 effectively blocked: method \<invest()> can only fail for gas exhaustion, reverting
-all transaction updates, and some investors will never be able to cover their investment.
+all transaction updates, and some investors will never be able to redeem their investment.
 We will say that list \<investment> and the loop at line~\ref{ponzi1:iteration}
 are \emph{unbounded} and we expect a sound boundedness analyzer to warn about an
 unbouded loop at line~\ref{ponzi1:iteration}.
@@ -89,7 +91,7 @@ public class Ponzi2 extends Contract {
   }
 }
   \end{lstlisting}
-  \caption{A smart contract that implements a Ponzi scheme, using the withdrawal pattern.
+  \caption{A smart contract implementing a Ponzi scheme, using the withdrawal pattern.
     The list \<investors>
     is still unbounded and, consequently, the loop at line~\ref{ponzi2:iteration} is unbounded as well.}
   \label{fig:ponzi2}
@@ -113,7 +115,7 @@ is the map value for \<investor> with $0$ as default if \<investor> does not bel
 Solidity implicitly uses a default value for maps, but we prefer to make it explicit in our
 pseudocode. When an investor wants to withdraw its balance, it calls method \<withdraw()>, taking
 responsibility for any potential redefinition of its own \<receive()> method (line~\ref{ponzi2:receive},
-where \<caller> is the same investor). The assignment
+where \<caller> is the investor itself). The assignment
 at line~\ref{ponzi2:noreentrancy} makes any potential re-entrancy harmless.
 We want to make clear that this paper is not
 about re-entrancy and that we are showing the contract in Fig.~\ref{fig:ponzi2} only to clarify
@@ -249,8 +251,8 @@ and the total number of tickets sold in the round (line~\ref{lottery1:total_tick
 Each round eventually
 gets a winner assigned (line~\ref{lottery1:winner}), which will be
 one of the buyers of its batch sales
-(line~\ref{lottery1:buyer}). The constructor assigns the duration of the rounds
-and initializes the list of rounds to a list of one round, that expires after
+(line~\ref{lottery1:buyer}). The constructor
+initializes the list of rounds to a list of one round, that expires after
 \<duration> milliseconds from now (line~\ref{lottery1:first_round}).
 Method \<buy()> is called by who wants to buy a batch of tickets.
 It requires to pay an
@@ -258,7 +260,7 @@ It requires to pay an
 positive number of tickets (line~\ref{lottery1:amount}).
 These tickets are bought for the last, most recent lottery round,
 ensuring that a fresh new last round is added to the list of \<rounds> if its last
-round was already expired (lines~\ref{lottery1:last_start}--\ref{lottery1:last_end}).
+round is already expired (lines~\ref{lottery1:last_start}--\ref{lottery1:last_end}).
 Method \<drawWinner()> draws the winner of a round, if this has not been drawn yet
 (line~\ref{lottery1:no_winner_yet}), if the round has already expired
 (line~\ref{lottery1:expired}) and if at least one ticket has been sold for that round
@@ -325,7 +327,7 @@ public class Lottery2 extends Contract {
 \end{figure}
 
 A solution to the unboundedness bug in Fig.~\ref{fig:lottery1} is to
-limit the maximal number of the sales in each round, as exemplified in
+limit the maximal number of sales in each round, as exemplified in
 Fig.~\ref{fig:lottery2}. Note that the list \<rounds> remains unbounded in this new
-version, since that is irrelevant. We expect a static boundedness analyzer to issue no
+version, which is irrelevant. We expect a static boundedness analyzer to issue no
 boundedness warning in Fig.~\ref{fig:lottery2}, if it is precise enough.
