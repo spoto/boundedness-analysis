@@ -59,14 +59,26 @@ of lists used in each given program is finite.
 \begin{example}\label{ex:side_effect}
   Fig.~\ref{fig:side_effect_examples} reports $\intsideeffect$ for the smart contracts from
   Sec.~\ref{sec:examples}\ie the element types of the lists potentially modified during
-  the execution of each of their constructors or methods. Note that these approximations are correct
-  but sometimes imprecise. For instance, $\intsideeffect(\<Ponzi1.Ponzi1>)=\{\<Contract>\}$
-  is correct but could be improved to a more precise $\intsideeffect(\<Ponzi1.Ponzi1>)=\varnothing$,
-  since no existing list of \<Contract> is modified by the execution of that constructor:
-  the list modified at line~\ref{ponzi1:creator} of Fig.~\ref{fig:ponzi1}
-  is a fresh new list created at the previous line, not a list that existed before the
-  execution of the constructor. These imprecisions could be overcome with more complex analyses,
-  but the results in Fig.~\ref{fig:side_effect_examples} are good enough for our purposes.
+  the execution of each of their constructors or methods.
+  Consider Fig.~\ref{fig:side_effect_lottery1}, for instance.
+  Its computation starts from $I_0$ such that $I_0(M)=\varnothing$ for each method $M$.
+  Then we can compute
+  $I_1(\<TicketBatchSale.TicketBatchSale>)=\sideeffect{\com}=\varnothing$,
+  where $\com$ is the body of that constructor (Fig.~\ref{fig:lottery1}) and
+  by the rules for $\assign{v}{\exp}$ and for $\sequence{\com}{\com}$ in
+  Fig.~\ref{fig:side_effect}. Similarly,
+  $I_1(\<Round.Round>)=\sideeffect{\com}=\varnothing$, where $\com$ is the body of
+  that constructor, by the same rules as above
+  and since $\sideeffect{\<sales=new List()>}=I_0(\<List.List>)=\varnothing$
+  (we are abusing notation since Fig.~\ref{fig:lottery1} is not in the language
+  in Sec.~\ref{sec:syntax}: the result actually holds for its transformation
+  in that language).
+  Moreover, $I_1(\<Lottery1.Lottery1>)=\{\<Round>\}$, by the same rules as above
+  and since $\sideeffect{\<rounds.push(...)>}=\{\<Round>\}$ by the rule for \<push>
+  in Fig.~\ref{fig:side_effect}. In the same way, it is
+  $I_1(\<Lottery.buy>)=\{\<Round>,\<TicketBatchSale>\}$ and
+  $I_1(\<Lottery.drawWinner>)=\varnothing$. The computation of $I_2$ leads to
+  $I_2=I_1$, hence $I_1$ is the fixpoint, reported in Fig.~\ref{fig:side_effect_examples}.
   %
   \begin{figure}[t]
     \begin{center}
@@ -96,12 +108,23 @@ of lists used in each given program is finite.
         \intsideeffect(\<Lottery1.drawWinner>)&=\varnothing
       \end{align*}
       \caption{The side-effect analysis of the smart contract in Fig.~\ref{fig:lottery1}
-      (the analysis remains similar after the modification in Fig.~\ref{fig:lottery2}).}
+        (the analysis remains similar after the modification in Fig.~\ref{fig:lottery2}).}
+      \label{fig:side_effect_lottery1}
     \end{subfigure}
     \end{center}
     \caption{The side-effect analysis of the smart contracts from Sec.~\ref{sec:examples}.}
     \label{fig:side_effect_examples}
   \end{figure}
 \end{example}
-
-In the following, we just assume that $I_\mathsf{se}$ has been computed.
+%
+The approximations in Fig.~\ref{fig:side_effect_examples} are correct
+but sometimes imprecise. For instance, $\intsideeffect(\<Ponzi1.Ponzi1>)=\{\<Contract>\}$
+is correct but could be improved
+to a more precise $\intsideeffect(\<Ponzi1.Ponzi1>)=\varnothing$,
+since no existing list of \<Contract> is modified by the execution of that constructor:
+the list modified at line~\ref{ponzi1:creator} of Fig.~\ref{fig:ponzi1}
+is a fresh new list created at the previous line, not a list that existed before the
+execution of the constructor.
+These imprecisions could be overcome with more complex analyses,
+but the results in Fig.~\ref{fig:side_effect_examples} are good enough for our purposes.
+In the following, we just assume that $\intsideeffect{}$ has been computed.
