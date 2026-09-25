@@ -207,7 +207,7 @@ public class Lottery1 extends Contract {
     Round last = rounds.last();|\label{lottery1:last_start}|
     if (now > last.endTime) {
       last = new Round(now + duration);
-      rounds.push(last);
+      rounds.push(last);|\label{lottery1:expand}|
     }|\label{lottery1:last_end}|
 
     int quantity = amount / TICKET_PRICE;

@@ -1,19 +1,32 @@
 \section{Definite Aliasing Analysis}\label{sec:aliasing}
 
+This section defines an intraprocedural definite aliasing analysis that infers
+equalities between variables and some expressions, called \emph{paths}.
+For instance, the analysis will infer that the receiver of the \<push>
+at line~\ref{ponzi1:expand} in Fig.~\ref{fig:ponzi1}
+is a variable that is definitely an alias of the path \<this.investors>
+(remember that we are considering programs normalized into the language from
+Sec.~\ref{sec:syntax}, hence \<push> operates on a variable, previously assigned
+to \<this.investors>).
+The analysis will also infer that the receiver of the \<push> at line~\ref{lottery1:expand}
+is a variable that is definitely an alias of the path \<this.rounds[any].sales>
+(\ieinitial the \<sales> field of some element of the list \<this.rounds>).
+Note that \<[any]> means that \emph{there exists an element} here, while it will
+mean \emph{for all elements} in the different analysis in Sec.~\ref{sec:boundedness}.
+
 A \emph{path} is either an expression rooted at a local variable, that follows
 \<final> field dereferences or list accesses, or an integer constant.
-Paths have a type and a length. A constant $\kappa\in\nat$ limits the maximal
-length of a path. We assume that $\kappa$ is a global constant in this work,
+Paths have a type and a length, limited by a constant $\kappa\in\nat$.
+We assume that $\kappa$ is a global constant,
 so that we not need to clutter each definition with this parameter.
-This limit is essential to make our analysis finitely computable, as shown later.
-Larger $\kappa$ lead to a more precise analysis,
-in principle, but also potentially more expensive.
+This limit is essential to make the analysis finitely computable.
+A larger $\kappa$, in principle, leads to a more precise analysis,
+but also to a potentially more expensive one.
 Therefore, $\kappa$ acts as a lever that selects the desired precision for the
 analysis. For simplicity, in the examples that follow, we assume $\kappa=4$.
 
 A relevant path has type list. While paths will be used
-to define the definite aliasing analysis, relevant paths will be used in the
-subsequent boundness analysis.
+in this section, relevant paths will be used in Sec.~\ref{sec:boundedness}.
 %
 \begin{definition}[Paths]\label{def:path}
   Given a method $C.m$, the finite set $\paths{C.m}$ of the
