@@ -1,70 +1,145 @@
 \section{Boundedness Analysis}\label{sec:boundedness}
 
-\begin{definition}\label{def:bo}
-  Given a method $C.m$, the \emph{boundness constraints for $C.m$}
-  are the linear constraints over $\relevantpaths{C.m}$ (Def.~\ref{def:path}),
-  using two versions for each program variable: $v$ is a variable in the pre-state
-  and $v'$ is the same variable in the post-state.
-  Such constraints are enriched with the $\max$ operator.
-  The set of such constraints is written as $\bodenotations{C.m}$.
+The \emph{paths} are a subset of the expressions of the language
+(Def.~\ref{def:exp_com}) that starts from a variable and dereferences \<final> fields.
+The limitation to \<final> fields simplifies the analysis, since the value of a path
+cannot be affected by side-effect.
+%
+\begin{definition}[Paths]\label{def:path}
+  The set $\paths{}\subseteq\Exp$ of \emph{paths} is the minimal set such that
+  \begin{itemize}
+  \item if $v$ is a local variable,
+    then $v\in\paths{}$ is rooted at $v$ and its type is the declaration type of $v$
+    (all local variables are a path);
+  \item if $\pi\in\paths{}$ is rotted at $v$ and
+    has type $C$ and if $\mathtt{C.f}$ is a \<final> field
+    of type $t$ defined in class $C$,
+    then $\pi.f\in\paths{}$ is rooted at $v$ and its type is $t$
+    (paths can be expanded by \<final> field dereference).
+  \end{itemize}
 \end{definition}
 %
-Boundness constraits are an abstraction of denotations\ie they express how
-the execution of a command modifies the boundness of some lists. Therefore, we provide
-the boundness analysis as an abstract denotational semantics.
+\begin{example}
+  At line~\ref{ponzi1:require} in Fig.~\ref{fig:ponzi1},
+  \<this> is a path rooted at \<this> of type \<Ponzi1>,
+  \<amount> is a path rooted at \<amount> of type \<int> and
+  \<this.investors> is a path rooted at \<this> of type \<List<Contract\texttt{>}>.
+\end{example}
+
+The following definition specifies when a list bound to a path (if any)
+is not affected by the execution of some piece of code that might update some lists.
+We will use this is a moment in conjunction with the side-effects computed in
+Sec.~\ref{sec:side_effect}.
 %
-\begin{definition}[Definite Boundedness Analysis]\label{def:definite_boundness}
-  Given a method $C.m$, the \emph{definite boundedness analysis} for commands
-  is the map $\bo{C.m}{}:\Com\to\bodenotations{C.m}$ given
-  in Fig.~\ref{fig:bo_commands}, where $C.m$ is dropped when clear
-  from the context.
+\begin{definition}[Path Survival]\label{def:survival}
+  Given $\pi\in\paths{}$ and a set of types $U$, the path $\pi$ is said to
+  \emph{survive any update to a list of a type in $U$} (or just
+  \emph{$\pi$ survives $U$}) if
+  \begin{itemize}
+  \item $\pi$'s type is not a list, or
+  \item $\pi$'s type is \<List<$t'$\texttt{>}> and $t'$
+    has no shared subtype with any $t''\in S$.
+  \end{itemize}
+\end{definition}
+
+\begin{example}
+  In Fig.~\ref{fig:ponzi1}, the path \<this.investors> has type \<List<Contract\texttt{>}>
+  and hence it does not survive $\{\<Contract>\}$ (just take $t'=t''=\<Contract>$
+  in Def.~\ref{def:survival}).
+  The path \<amount> has type \<int>, hence it survives $\{\<Contract>\}$.
+  In Fig.~\ref{fig:lottery1}, at line~\ref{lottery1:expand}, the path
+  \<this.rounds> has type \<List<Round\texttt{>}> hence it survives
+  $\{\<TicketBatchSale>\}$, since \<Contract> and \<TicketBatchSale> have no
+  shared subtype. But it does not survive $\{\<Object>\}$ nor
+  $\{\<TicketBatchSale>,\<Object>\}$: just take $t'=\<Round>$ and $t''=\<Object>$
+  and observe that \<Contract> is subtype of \<Object>.
+\end{example}
+
+\begin{definition}[Boundedness States]\label{def:bo}
+  A \emph{boundedness state} $\|bo|$ is a set of constraints
+  \[
+  \|bo|=\left\{\left.\begin{array}{c}
+  \size{\pi_1}\le n_1\\
+  \ldots\\
+  \size{\pi_k}\le n_k
+  \end{array}\right|\pi_i\in\paths{}\text{ and }n_i\in\nat\text{ for every $i=1,\ldots,k$}\right\}.
+  \]
+  The set of all possible boundedness states is $\botwo$.
+\end{definition}
+%
+The intuition is that \|bo| represents the set of all concrete states
+where $\pi_i$ holds a list whose length is at most $n_i$, for every
+$i=1,\ldots,k$. In terms of abstract interpretation, \|bo| is an abstraction
+of sets of such concrete states and $\botwo$ is an abstract domain.
+
+Since boundedness is a property of computation states, boundedness analysis
+will be presented in operational form, as a derivation rule over the abstract states
+from Def.~\ref{def:bo}.
+%
+\begin{definition}[Boundedness Derivation Rules]\label{def:boundness_rules}
+  The boundedness derivation rule $\boderivation$ for expressions
+  and that for commands have the form
+  \[
+  \left(\Exp\times\botwo\right)\boderivation\botwo\quad\text{and}\quad
+  \left(\Com\times\botwo\right)\boderivation\botwo
+  \]
+  respectively. They derive the approximation of the post-states
+  from the approximation of the pre-states.
+  Fig.~\ref{fig:bo_derivations} reports their definition.
   %
   \begin{figure}[t]
-    \begin{align*}
-      \bo{}{\assign{v}{\new{\<List>}{}}}&=\{v'=0\}\cup U\\
-      \bo{}{\assign{v_1}{\size{v_2}}}&=\{v_1'=v_2\}\cup U\\
-      \underset{\text{(for any other $\exp$)}}{\bo{}{\assign{v}{\exp}}}&=\left\{v'=\pi\left|\begin{array}{l}
+    \begin{gather*}
+      \pair{c}{\|bo|}\boderivation\|bo|\qquad\pair{v}{\|bo|}\boderivation\|bo|\\[4pt]
+      \frac{\begin{array}{c}
+          \pair{\exp_1}{\|bo|}\boderivation\|bo|_1\quad\cdots\quad\pair{\exp_n}{\|bo|_{n-1}}\boderivation\|bo|_n\\
+          \|bo|'=\{\size{\pi}\le n\mid(\size{\pi}\le n)\in|bo|\text{ and }\pi\text{ survives }\intsideeffect(C.C)\}
+      \end{array}}{\pair{\new{C}{\exp_1,\ldots,\exp_n}}{\|bo|}\boderivation\|bo|'}\\[4pt]
+      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\field{\exp}{f}}{\|bo|}\boderivation\|bo|'}\qquad
+      \frac{\pair{\|bo|}{\exp_1}\boderivation\|bo|'\quad\pair{\|bo|'}{\exp_2}\boderivation\|bo|''}{\aop{\exp_1}{\exp_2}\boderivation\|bo|''}
+%      \bo{}{\assign{v}{\new{\<List>}{}}}&=\{v'=0\}\cup U\\
+%      \bo{}{\assign{v_1}{\size{v_2}}}&=\{v_1'=v_2\}\cup U\\
+%      \underset{\text{(for any other $\exp$)}}{\bo{}{\assign{v}{\exp}}}&=\left\{v'=\pi\left|\begin{array}{l}
       %v\text{ has type \<List<$t$\texttt{>}> }\\
-      \pair{\exp}{\dastates{}@\mathit{here}}\da{}\pair{\sigma'}{S}\\
-      \pi\in S\cap\relevantpaths{}
-      \end{array}\right.\right\}\cup U\\
-      \bo{}{\assign{\field{v_1}{f}}{v_2}}&=\left\{(\pi_1.f)'=\pi_2\left|\begin{array}{l}
-      \pi_1\in\dastates{}@\mathit{here}(v_1)\\
-      \pi_2\in\dastates{}@\mathit{here}(v_2)\cap\relevantpaths{}\\
-      \pi_1.f\in\relevantpaths{}
-      \end{array}\right.\right\}\cup U\\
-      \bo{}{\readmap{v}{v}{v}}&=U\\
-      \bo{}{\require{v_1}{v_2}}&=\{v_1\ \mathit{cop}\ v_2\}\cup U\\
-      \bo{}{\push{v_1}{v_2}}&=
-      \left\{\pi'=\pi+1\left|\begin{array}{l}
-      \pi\in\dastates{}@\mathit{here}(v_1)\\
-      \text{\<[any]> does not occur in $\pi$}
-      \end{array}\right.\right\}\\
-      &\qquad\cup\left\{\pi'=\max(\pi,v_1+1)
-      \left|\begin{array}{l}
-      \pi\in\dastates{}@\mathit{here}(v_1)\\
-      \text{\<[any]> occurs in $\pi$}\\
-      \pi\survives{\push{v_1}{v_2}}
-      \end{array}\right.\right\}\\
-      &\qquad\cup\left\{\pi'=\pi\in U\left|\begin{array}{l}
-      \tau(v_1)=\text{\<List<$t'$\texttt{>}>}\\
-      \text{the type of $\pi$ is \<List<$t''$\texttt{>}>}\\
-      \text{and $t'$ and $t''$ have no shared subtype}
-      \end{array}\right.\right\}\\
-      \bo{}{\receive{v}{v}}&=U\\
-      \bo{}{\call{v}{m}{v^*}}&=U\\
-      \bo{}{\ifetwo{v_1}{v_2}{\com_1}{\com_2}}&=\left(\{v_1\ \mathit{cop}\ v_2\}
-      \cup\bo{}{\com_1}\right)\oplus\bo{}{\com_2}\\
-      \bo{}{\for{v_1}{v_2}{\com}}&=\lfp.F\mapsto\mathit{Id}\oplus(\bo{}{\com}\otimes F)\\
-      \bo{}{\sequence{\com_1}{\com_2}}&=\bo{}{\com_1}\otimes\bo{}{\com_2}
-    \end{align*}
+%      \pair{\exp}{\dastates{}@\mathit{here}}\da{}\pair{\sigma'}{S}\\
+%      \pi\in S\cap\relevantpaths{}
+%      \end{array}\right.\right\}\cup U\\
+%      \bo{}{\assign{\field{v_1}{f}}{v_2}}&=\left\{(\pi_1.f)'=\pi_2\left|\begin{array}{l}
+%      \pi_1\in\dastates{}@\mathit{here}(v_1)\\
+%      \pi_2\in\dastates{}@\mathit{here}(v_2)\cap\relevantpaths{}\\
+%      \pi_1.f\in\relevantpaths{}
+%      \end{array}\right.\right\}\cup U\\
+%      \bo{}{\readmap{v}{v}{v}}&=U\\
+%      \bo{}{\require{v_1}{v_2}}&=\{v_1\ \mathit{cop}\ v_2\}\cup U\\
+%      \bo{}{\push{v_1}{v_2}}&=
+%      \left\{\pi'=\pi+1\left|\begin{array}{l}
+%      \pi\in\dastates{}@\mathit{here}(v_1)\\
+%      \text{\<[any]> does not occur in $\pi$}
+%      \end{array}\right.\right\}\\
+%      &\qquad\cup\left\{\pi'=\max(\pi,v_1+1)
+%      \left|\begin{array}{l}
+%      \pi\in\dastates{}@\mathit{here}(v_1)\\
+%      \text{\<[any]> occurs in $\pi$}\\
+%      \pi\survives{\push{v_1}{v_2}}
+%      \end{array}\right.\right\}\\
+%      &\qquad\cup\left\{\pi'=\pi\in U\left|\begin{array}{l}
+%      \tau(v_1)=\text{\<List<$t'$\texttt{>}>}\\
+%      \text{the type of $\pi$ is \<List<$t''$\texttt{>}>}\\
+%      \text{and $t'$ and $t''$ have no shared subtype}
+%      \end{array}\right.\right\}\\
+%      \bo{}{\receive{v}{v}}&=U\\
+%      \bo{}{\call{v}{m}{v^*}}&=U\\
+%      \bo{}{\ifetwo{v_1}{v_2}{\com_1}{\com_2}}&=\left(\{v_1\ \mathit{cop}\ v_2\}
+%      \cup\bo{}{\com_1}\right)\oplus\bo{}{\com_2}\\
+%      \bo{}{\for{v_1}{v_2}{\com}}&=\lfp.F\mapsto\mathit{Id}\oplus(\bo{}{\com}\otimes F)\\
+%      \bo{}{\sequence{\com_1}{\com_2}}&=\bo{}{\com_1}\otimes\bo{}{\com_2}
+    \end{gather*}
     \caption{The definite boundness analysis of the commands. It uses the definite
       aliasing analysis at the command on the left-hand side of each equation,
       written as $\dastates{}@\mathit{here}$. The \emph{frame condition} $U$ (for \emph{unchanged})
       states that no existing relevant paths is affected, unless it is modified by side-effect.
       For instance, for the first equation,
       it is $U=\{\pi'=\pi\mid\pi\in\relevantpaths{}\text{ and }\pi\survives{\assign{v}{\new{\<List>}{}}}\}$.}
-    \label{fig:bo_commands}
+    \label{fig:bo_derivations}
   \end{figure}
 \end{definition}
 

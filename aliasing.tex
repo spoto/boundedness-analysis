@@ -81,7 +81,7 @@ on side-effects on lists only.
   and for all $t''\in\sideeffect{\com}$, the types
   $t'$ and $t''$ have no common subtype.
   This survival test is pointwise extended to functions $\sigma$ into sets of paths as
-  $(\sigma\survives\com)(y)=\{\pi\in\sigma(y)\mid\pi\survives\com\}$, for every $y\in\dom(\sigma)$. 
+  $(\sigma\survives\com)(y)=\{\pi\in\sigma(y)\mid\pi=v\text{ or }\pi\survives\com\}$, for every $y\in\dom(\sigma)$. 
 \end{definition}
 %
 \begin{example}
@@ -191,7 +191,8 @@ The derivation rule in Fig.~\ref{fig:daa_commands} allows one to compute a defin
 aliasing state at the beginning of every command in the program, through an
 intraprocedural fixpoint that saturates all execution paths. Namely, one starts at
 the beginning of a method with the less precise approximation, that maps each variable
-to the empty set of paths. This approximation is propagated according to the rules
+$v$ already initialized to the set $\{v\}$ and all other variables to $\varnothing$.
+This approximation is propagated according to the rules
 in Fig.~\ref{fig:daa_commands}, recording the abstract state
 whevener a new program point is
 reached. If the propagation passes over an already visited program point, the
