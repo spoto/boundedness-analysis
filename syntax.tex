@@ -13,8 +13,8 @@ We assume to analyze programs written in a minimalistic language.
     &\mid\new{C}{\exp^*}\mid\size{\exp}\mid\last{\exp}\mid\random{\exp}\\
     \com::=&\ \assign{\mathit{v}}{\exp}\mid\assign{\field{\exp}{f}}{\exp}\mid\writemap{\exp}{\exp}{\exp}
     \mid\require{\exp}{\exp}\\
-    &\mid\push{\exp}{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\\
-    &\mid\ife{\exp}{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}{\com}\mid\sequence{\com}{\com}\mid\nop.
+    &\mid\push{\exp}{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\mid\nop\\
+    &\mid\ife{\exp}{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}{\com}\mid\sequence{\com}{\com}.
   \end{align*}
   %
   The set of all expressions is $\Exp$ and the set of all commands is $\Com$.

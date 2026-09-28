@@ -40,10 +40,10 @@ An example of computation is reported later.
       \{t\mid\exp_1\text{ has type }\<List<>t\<\text{>}>\}\\
       \sideeffect{\call{\exp_0}{m}{\exp_1,\ldots,\exp_n}}&=\bigcup_{j=1}^k I(C_j.m)\cup\bigcup_{i=0}^n\sideeffect{\exp_i}\\
       \noalign{\centering\text{where $C_1.m\cdots C_k.m$ are the methods possibly called here}}
+      \sideeffect{\nop}&=\varnothing\\
       \sideeffect{\ifetwo{\exp_1}{\exp_2}{\com_1}{\com_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup\sideeffect{\com_1}\cup\sideeffect{\com_2}\\
       \sideeffect{\for{v}{\exp}{\com}}&=\sideeffect{\exp}\cup\sideeffect{\com}\\
-      \sideeffect{\sequence{\com_1}{\com_2}}&=\sideeffect{\com_1}\cup\sideeffect{\com_2}\\
-      \sideeffect{\nop}&=\varnothing
+      \sideeffect{\sequence{\com_1}{\com_2}}&=\sideeffect{\com_1}\cup\sideeffect{\com_2}.
     \end{align*}
     \caption{The side-effect rules. They use an interpretation $I$ for the methods.}
     \label{fig:side_effect}
