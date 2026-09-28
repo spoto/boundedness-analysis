@@ -72,8 +72,22 @@ where $\pi_i$ holds a list whose length is at most $n_i$, for every
 $i=1,\ldots,k$. In terms of abstract interpretation, \|bo| is an abstraction
 of sets of such concrete states and $\botwo$ is an abstract domain.
 
+An assignment to a path invalidates somebounds, but only if it
+is a single variable, since we are assuming that paths only refer to \<final> fields.
+%
+\begin{definition}[Bounds Invalidation]\label{def:invalidation}
+  Given $\|bo|\in\botwo$ and $\pi\in\paths{}$, the \emph{invalidation of $\pi$ in $\|bo|$} is
+  \[
+  \|bo|^{-\pi}=\begin{cases}
+  \{(\size{\pi}\le n)\in\|bo|\mid\pi\text{ is not rooted at }v\} & \text{if $\pi$ is a variable $v$}\\
+  \|bo| & \text{otherwise.}
+  \end{cases}
+  \]
+\end{definition}
+
 A comparison operation between two expressions can improve a boundedness state,
 when it carries information about a bound on the size of a path.
+Similarly, an assignment can improve a boundedness state if it assigns a path.
 %
 \begin{definition}[Bounds Improvement]\label{def:improvement}
   Given $\|bo|\in\botwo$ and a comparison expression $\cop{\exp_1}{\exp_2}$, the
@@ -83,17 +97,15 @@ when it carries information about a bound on the size of a path.
     \|improve|(\|bo|,\copfull{\size{\pi}}{<}{n})&=\|bo|\cup\{\size{\pi}\le n-1\}\\
     \|improve|(\|bo|,\copfull{n}{\ge}{\size{\pi}})&=\|bo|\cup\{\size{\pi}\le n\}\\
     \|improve|(\|bo|,\copfull{n}{>}{\size{\pi}})&=\|bo|\cup\{\size{\pi}\le n-1\}\\
-    \|improve|(\|bo|,\cop{\exp_1}{\exp_2})&=\|bo|\text{ in all other cases.}\\
+    \|improve|(\|bo|,\cop{\exp_1}{\exp_2})&=\|bo|\text{ in all other cases}
   \end{align*}
-\end{definition}
-
-The assignment of a variable invalidates bounds rooted at that variable.
-%
-\begin{definition}[Bounds Invalidation]\label{def:invalidation}
-  Given $\|bo|\in\botwo$ and a variable $v$, the \emph{invalidation of $\|bo|$ \wrt $v$} is
-  \[
-  \|bo|^{-v}=\{(\size{\pi}\le n)\in\|bo|\mid\pi\text{ is not rooted at }v\}.
-  \]
+  The \emph{assignment to a path in \|bo|} is
+  \begin{align*}
+    \|assign|(\|bo|,\assign{\pi}{\new{\mathtt{List}}{}})&=\|bo|^{-\pi}\cup\{\size{\pi}\le 0\}\\
+    \|assign|(\|bo|,\assign{\pi}{\pi'})&=\|bo|^{-\pi}\cup\{\size{\pi}\le n\mid(\size{\pi'}\le n)\in\|bo|\}\\
+    \|assign|(\|bo|,\assign{\pi}{\exp})&=\|bo|^{-\pi}\text{ in all other cases}
+  \end{align*}
+  where $\pi,\pi'\in\paths{}$.
 \end{definition}
 
 Since boundedness is a property of computation states, boundedness analysis
@@ -130,9 +142,9 @@ from Def.~\ref{def:bo}.
   \begin{figure}[t]
     \begin{gather*}
       % variable assignment
-      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\assign{v}{\exp}}{\|bo|}\boderivation\|bo|'^{-v}}\qquad
-      % nop
-      \pair{\nop}{\|bo|}\boderivation\|bo|\\[5pt]
+      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\assign{v}{\exp}}{\|bo|}\boderivation\|assign|(\|bo|',\assign{v}{\exp})}\\[5pt]
+      % field assignment
+      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\assign{\field{\exp_1}{f}}{\exp_2}}{\|bo|}\boderivation\|assign|(\|bo|'',\assign{\field{\exp_1}{f}}{\exp_2})}\\[5pt]
       % push
       \frac{\begin{array}{c}
           \pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''\quad\exp_1\text{ has type \<List<$t$\texttt{>}>}\\
@@ -153,13 +165,31 @@ from Def.~\ref{def:bo}.
       % for each
       \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'\quad\pair{\com^{*,v}}{\|bo|'}\boderivation\|bo|''}{\pair{\for{v}{\exp}{\com}}{\|bo|}\boderivation\|bo|''}\\[5pt]
       \pair{\com^{*,v}}{\|bo|}\boderivation\|bo|\qquad\frac{\pair{\com}{\|bo|^{-v}}\boderivation\|bo|'\quad\pair{\com^{*,v}}{\|bo|'}\boderivation\|bo|''}{\pair{\com^{*,v}}{\|bo|}\boderivation\|bo|''}\\[5pt]
+      % nop
+      \pair{\nop}{\|bo|}\boderivation\|bo|\\[5pt]
       %
       \text{the rules for the other commands work by recursive descent, as for instance below:}\\
-      % field assignment
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\assign{\field{\exp_1}{f}}{\exp_2}}{\|bo|}\boderivation\|bo|''}
+      % sequence
+      \frac{\pair{\com_1}{\|bo|}\boderivation\|bo|'\qquad\pair{\com_2}{\|bo|'}\boderivation\|bo|''}{\pair{\sequence{\com_1}{\com_2}}{\|bo|}\boderivation\|bo|''}
     \end{gather*}
     \caption{The boundedness derivation rules for commands. They use
     a previously computed side-effect analysis $\intsideeffect$.}
     \label{fig:bo_derivations_commands}
   \end{figure}
 \end{definition}
+
+The derivation rule in Fig.~\ref{fig:bo_derivations_commands} allows one to compute a
+boundedness state at the beginning of every command in the program, through an
+intraprocedural fixpoint that saturates all execution paths. Namely, at the beginning
+of each method with body $\com$, the analysis computes a $\|bo|$ such that
+$\pair{\com}{\varnothing}\boderivation\|bo|$, by recurring on the rules
+in Fig.~\ref{fig:bo_derivation_commands}.
+This approximation is propagated according to the rules
+in Fig.~\ref{fig:bo_derivations_commands}, recording the abstract state
+whevener a new program point is
+reached. If the propagation passes over an already visited program point, the
+recorded approximation is the (per variable) intersection of the previously recorded
+approximation and of the new approximation. This process must terminate
+since $\paths{}$ is finite
+and intersection can only reduce the number of paths approximating each given variable.
+
