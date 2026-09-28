@@ -69,16 +69,26 @@ Sec.~\ref{sec:side_effect}.
 %
 The intuition is that \|bo| represents the set of all concrete states
 where $\pi_i$ holds a list whose length is at most $n_i$, for every
-$i=1,\ldots,k$. In terms of abstract interpretation, \|bo| is an abstraction
-of such concrete states and $\botwo$ is an abstract domain
-whose top (\ieinitial least precise) element is $\varnothing$ and
-whose least upper bound operator is
-\[
-\|bo|_1\sqcap\|bo|_2=\left\{\size{\pi}\le\max(n_1,n_2)\left|\begin{array}{l}
-(\size{\pi}\le n_1)\in\|bo|_1\\
-(\size{\pi}\le n_2)\in\|bo|_2
-\end{array}\right.\right\}.
-\]
+$i=1,\ldots,k$.
+%
+\begin{proposition}[Abstract Domain]\label{prop:abstract_domain}
+  In terms of abstract interpretation, any $\|bo|\in\botwo$ is an abstraction
+  of concrete states and $\botwo$ is an abstract domain whose elements
+  are ordered as $\|bo|_1\sqsubseteq\|bo|_2$
+  if and only if for every $(\size{\pi}\le n)\in\|bo|_2$ there exists
+  $(\size{\pi}\le n')\in\|bo|_1$ with $n'\le n$.
+  Therefore, $\varnothing$ is the top (least precise) element of $\botwo$.
+  Its least upper bound operator is
+  \[
+  \|bo|_1\sqcup\|bo|_2=\left\{\size{\pi}\le\max(n_1,n_2)\left|\begin{array}{l}
+  (\size{\pi}\le n_1)\in\|bo|_1\\
+  (\size{\pi}\le n_2)\in\|bo|_2
+  \end{array}\right.\right\}.
+  \]
+\end{proposition}
+\begin{proof}
+  \textbf{This requires to define the concretization map.}
+\end{proof}
 
 An assignment to a path invalidates some bounds, but only if the path
 is a single variable, since we are assuming that paths only refer to \<final> fields,
@@ -206,9 +216,57 @@ of each method, the analysis starts from the configuration
 $\pair{\com}{\varnothing}$, where $\com$ is the body of the method,
 and computes all possible derivations from there.
 Whenever a configuration $\pair{\com'\,\xi}{\|bo|}$ is reached, the analysis records
-$\|bo|$ as current approximation at the program point of $\com'$. If the propagation reaches
-a program point twice, it
-records the least upper bound of the state previously recorded
-there and of the new reached state, and the derivation continues from that
-least upper bound.
+$\|bo|$ as state at the program point of $\com'$, if it did not exist yet.
+Otherwise, if a previous state $\|bo|_{\|old|}$ existed,
+it records $\|bo|_{\|new|}=\|bo|_{\|old|}\sqcap\|bo|$ as state at the program point.
+If $\|bo|_{\|new|}\not=\|bo|_{\|old|}$, the derivation continues from $\|bo|_{\|new|}$.
+Otherwise, the derivation stops.
 
+Since $\botwo$ has infinite ascending chains, the termination of the computation
+of the abstract semantics requires a widening operator that forces
+termination after a fixed number of iterations $\kappa$~\cite{CousotC77}.
+%
+\begin{definition}[Widening Operator]\label{def:widening}
+  The \emph{widening operator on $\botwo$} is
+  \[
+  \nabla(\|bo|_1,\|bo|_2)=\|bo|_1\cap\|bo|_2.
+  \]
+\end{definition}
+%
+By using a widening, when reaching a program point with an approximation $\|bo|$,
+the new approximation at that program point is computed from the old one as
+\[
+\|bo|_{\|new|}=\begin{cases}
+\|bo|_{\|old|}\sqcup\|bo| & \text{for the first $\kappa$ iterations}\\
+(\|bo|_{\|old|}\sqcup\|bo|)\nabla\|bo|_{\|old|} & \text{from the $(\kappa+1)$th iteration.}\\
+\end{cases}
+\]
+%
+\begin{proposition}[Termination]\label{prop:termination}
+  The operator $\nabla$ is a widening operator on finite elements of $\botwo$.
+  Therefore, the computation
+  of a boundedness state at each program point must terminate in
+  a finite number of iterations.
+\end{proposition}
+\begin{proof}
+  By~\cite{CousotC77}, one must prove that $\nabla$ is an upper bound operator and that
+  its application to any ascending chain stabilizes. The upper bound property holds since
+  for every $(\size{\pi}\le n)\in\nabla(\|bo|_1,\|bo|_2)$ it is
+  $(\size{\pi}\le n)\in\|bo|_1$ and $(\size{\pi}\le n)\in\|bo|_2$.
+  Therefore, $\|bo|_1\sqsubseteq\nabla(\|bo|_1,\|bo|_2)$ and
+  $\|bo|_2\sqsubseteq\nabla(\|bo|_1,\|bo|_2)$.
+  Consider an ascending chain $\|bo|_0\sqsubseteq\|bo|_1\sqsubseteq\cdots\sqsubseteq
+  \|bo|_k\sqsubseteq\cdots$ now. The application of the widening yields the sequence
+  $\|bo|'_0=\|bo|_0$, $\|bo|'_{k+1}=(\|bo|'_k\sqcup\|bo|_{k+1})\nabla\|bo|'_k$ for $k\ge 0$.
+  By Def.~\ref{def:widening}, it is
+  $\|bo|'_0\supseteq\cdots\supseteq\|bo|'_{k}\supseteq\|bo|'_{k+1}\supseteq\cdots$.
+  If, by contradiction, that sequence were not converging, then one can extract an
+  infinite strictly non-converging subsequence
+  $\|bo|''_0\supset\cdots\supset\|bo|''_{k}\supset\|bo|''_{k+1}\supset\cdots$, which is
+  impossible since $\|bo|_0$ and $\|bo|_0'$ are assumed to be finite and
+  consequently also $\|bo|_0''\subseteq\|bo|_0$ is finite.
+  Note that the fact that $\nabla$ is a widening operator on \emph{finite} elements
+  of $\botwo$ is sufficient for termination, since the rules in
+  Fig.~\ref{fig:bo_derivations_expressions} and~\ref{fig:bo_derivations_commands}
+  lead to finite states if started from $\varnothing$, as it can be easily proved by induction.
+\end{proof}
