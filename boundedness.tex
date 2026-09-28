@@ -11,7 +11,7 @@ cannot be affected by side-effect.
   \item if $v$ is a local variable,
     then $v\in\paths{}$ is rooted at $v$ and its type is the declaration type of $v$
     (all local variables are a path);
-  \item if $\pi\in\paths{}$ is rotted at $v$ and
+  \item if $\pi\in\paths{}$ is rooted at $v$ and
     has type $C$ and if $\mathtt{C.f}$ is a \<final> field
     of type $t$ defined in class $C$,
     then $\pi.f\in\paths{}$ is rooted at $v$ and its type is $t$
@@ -72,6 +72,30 @@ where $\pi_i$ holds a list whose length is at most $n_i$, for every
 $i=1,\ldots,k$. In terms of abstract interpretation, \|bo| is an abstraction
 of sets of such concrete states and $\botwo$ is an abstract domain.
 
+A comparison operation between two expressions can improve a boundedness state,
+when it carries information about a bound on the size of a path.
+%
+\begin{definition}[Bounds Improvement]\label{def:improvement}
+  Given $\|bo|\in\botwo$ and a comparison expression $\cop{\exp_1}{\exp_2}$, the
+  \emph{improvement of \|bo| \wrt $\cop{\exp_1}{\exp_2}$} is
+  \begin{align*}
+    \|improve|(\|bo|,\copfull{\size{\pi}}{\le}{n})&=\|bo|\cup\{\size{\pi}\le n\}\\
+    \|improve|(\|bo|,\copfull{\size{\pi}}{<}{n})&=\|bo|\cup\{\size{\pi}\le n-1\}\\
+    \|improve|(\|bo|,\copfull{n}{\ge}{\size{\pi}})&=\|bo|\cup\{\size{\pi}\le n\}\\
+    \|improve|(\|bo|,\copfull{n}{>}{\size{\pi}})&=\|bo|\cup\{\size{\pi}\le n-1\}\\
+    \|improve|(\|bo|,\cop{\exp_1}{\exp_2})&=\|bo|\text{ in all other cases.}\\
+  \end{align*}
+\end{definition}
+
+The assignment of a variable invalidates bounds rooted at that variable.
+%
+\begin{definition}[Bounds Invalidation]\label{def:invalidation}
+  Given $\|bo|\in\botwo$ and a variable $v$, the \emph{invalidation of $\|bo|$ \wrt $v$} is
+  \[
+  \|bo|^{-v}=\{(\size{\pi}\le n)\in\|bo|\mid\pi\text{ is not rooted at }v\}.
+  \]
+\end{definition}
+
 Since boundedness is a property of computation states, boundedness analysis
 will be presented in operational form, as a derivation rule over the abstract states
 from Def.~\ref{def:bo}.
@@ -85,107 +109,57 @@ from Def.~\ref{def:bo}.
   \]
   respectively. They derive the approximation of the post-states
   from the approximation of the pre-states.
-  Fig.~\ref{fig:bo_derivations} reports their definition.
+  Fig.~\ref{fig:bo_derivations_expressions} and Fig.~\ref{fig:bo_derivations_commands}
+  report their definition.
   %
   \begin{figure}[t]
     \begin{gather*}
-      \pair{c}{\|bo|}\boderivation\|bo|\qquad\pair{v}{\|bo|}\boderivation\|bo|\\[4pt]
+      \pair{c}{\|bo|}\boderivation\|bo|\qquad\pair{v}{\|bo|}\boderivation\|bo|\\[5pt]
       \frac{\begin{array}{c}
-          \pair{\exp_1}{\|bo|}\boderivation\|bo|_1\quad\cdots\quad\pair{\exp_n}{\|bo|_{n-1}}\boderivation\|bo|_n\\
-          \|bo|'=\{\size{\pi}\le n\mid(\size{\pi}\le n)\in|bo|\text{ and }\pi\text{ survives }\intsideeffect(C.C)\}
-      \end{array}}{\pair{\new{C}{\exp_1,\ldots,\exp_n}}{\|bo|}\boderivation\|bo|'}\\[4pt]
-      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\field{\exp}{f}}{\|bo|}\boderivation\|bo|'}\qquad
-      \frac{\pair{\|bo|}{\exp_1}\boderivation\|bo|'\quad\pair{\|bo|'}{\exp_2}\boderivation\|bo|''}{\aop{\exp_1}{\exp_2}\boderivation\|bo|''}
-%      \bo{}{\assign{v}{\new{\<List>}{}}}&=\{v'=0\}\cup U\\
-%      \bo{}{\assign{v_1}{\size{v_2}}}&=\{v_1'=v_2\}\cup U\\
-%      \underset{\text{(for any other $\exp$)}}{\bo{}{\assign{v}{\exp}}}&=\left\{v'=\pi\left|\begin{array}{l}
-      %v\text{ has type \<List<$t$\texttt{>}> }\\
-%      \pair{\exp}{\dastates{}@\mathit{here}}\da{}\pair{\sigma'}{S}\\
-%      \pi\in S\cap\relevantpaths{}
-%      \end{array}\right.\right\}\cup U\\
-%      \bo{}{\assign{\field{v_1}{f}}{v_2}}&=\left\{(\pi_1.f)'=\pi_2\left|\begin{array}{l}
-%      \pi_1\in\dastates{}@\mathit{here}(v_1)\\
-%      \pi_2\in\dastates{}@\mathit{here}(v_2)\cap\relevantpaths{}\\
-%      \pi_1.f\in\relevantpaths{}
-%      \end{array}\right.\right\}\cup U\\
-%      \bo{}{\readmap{v}{v}{v}}&=U\\
-%      \bo{}{\require{v_1}{v_2}}&=\{v_1\ \mathit{cop}\ v_2\}\cup U\\
-%      \bo{}{\push{v_1}{v_2}}&=
-%      \left\{\pi'=\pi+1\left|\begin{array}{l}
-%      \pi\in\dastates{}@\mathit{here}(v_1)\\
-%      \text{\<[any]> does not occur in $\pi$}
-%      \end{array}\right.\right\}\\
-%      &\qquad\cup\left\{\pi'=\max(\pi,v_1+1)
-%      \left|\begin{array}{l}
-%      \pi\in\dastates{}@\mathit{here}(v_1)\\
-%      \text{\<[any]> occurs in $\pi$}\\
-%      \pi\survives{\push{v_1}{v_2}}
-%      \end{array}\right.\right\}\\
-%      &\qquad\cup\left\{\pi'=\pi\in U\left|\begin{array}{l}
-%      \tau(v_1)=\text{\<List<$t'$\texttt{>}>}\\
-%      \text{the type of $\pi$ is \<List<$t''$\texttt{>}>}\\
-%      \text{and $t'$ and $t''$ have no shared subtype}
-%      \end{array}\right.\right\}\\
-%      \bo{}{\receive{v}{v}}&=U\\
-%      \bo{}{\call{v}{m}{v^*}}&=U\\
-%      \bo{}{\ifetwo{v_1}{v_2}{\com_1}{\com_2}}&=\left(\{v_1\ \mathit{cop}\ v_2\}
-%      \cup\bo{}{\com_1}\right)\oplus\bo{}{\com_2}\\
-%      \bo{}{\for{v_1}{v_2}{\com}}&=\lfp.F\mapsto\mathit{Id}\oplus(\bo{}{\com}\otimes F)\\
-%      \bo{}{\sequence{\com_1}{\com_2}}&=\bo{}{\com_1}\otimes\bo{}{\com_2}
+          \pair{\exp_1}{\|bo|}\boderivation\|bo|_1\quad\cdots\quad\pair{\exp_p}{\|bo|_{p-1}}\boderivation\|bo|_p\\
+          \|bo|'=\{(\size{\pi}\le n)\in\|bo|_p\mid\pi\text{ survives }\intsideeffect(C.C)\}
+      \end{array}}{\pair{\new{C}{\exp_1,\ldots,\exp_p}}{\|bo|}\boderivation\|bo|'}\\[5pt]
+      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\assign{v}{\exp}}{\|bo|}\boderivation\{(\size{\pi}\le n)\in\|bo|'\mid\pi\text{ is not rooted at }v\}}\\[5pt]
+      \text{the rules for the other expressions work by recursive descent, as for instance below:}\\
+      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\field{\exp}{f}}{\|bo|}\boderivation\|bo|'}
     \end{gather*}
-    \caption{The definite boundness analysis of the commands. It uses the definite
-      aliasing analysis at the command on the left-hand side of each equation,
-      written as $\dastates{}@\mathit{here}$. The \emph{frame condition} $U$ (for \emph{unchanged})
-      states that no existing relevant paths is affected, unless it is modified by side-effect.
-      For instance, for the first equation,
-      it is $U=\{\pi'=\pi\mid\pi\in\relevantpaths{}\text{ and }\pi\survives{\assign{v}{\new{\<List>}{}}}\}$.}
-    \label{fig:bo_derivations}
+    \caption{The boundedness derivation rules for expressions. They use a previously computed side-effect analysis $\intsideeffect$.}
+    \label{fig:bo_derivations_expressions}
+  \end{figure}
+
+  \begin{figure}[t]
+    \begin{gather*}
+      % variable assignment
+      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\assign{v}{\exp}}{\|bo|}\boderivation\|bo|'^{-v}}\qquad
+      % nop
+      \pair{\nop}{\|bo|}\boderivation\|bo|\\[5pt]
+      % push
+      \frac{\begin{array}{c}
+          \pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''\quad\exp_1\text{ has type \<List<$t$\texttt{>}>}\\
+          \|bo|_{\text{survives}}=\{(\size{\pi}\le n)\in\|bo|''\mid\pi\text{ survives }\{t\}\}\\
+          \|bo|_{\text{not survives}}=\{\size{\pi}\le n+1\mid(\size{\pi}\le n)\in\|bo|''\text{ and }\pi\text{ does not survive }\{t\}\}
+      \end{array}}{\pair{\push{\exp_1}{\exp_2}}{\|bo|}\boderivation\|bo|_{\text{survives}}\cup\|bo|_{\text{not survives}}}\\[5pt]
+      % method call
+      \frac{\begin{array}{c}
+          \pair{\exp_0}{\|bo|}\boderivation\|bo|_0\quad\cdots\quad\pair{\exp_p}{\|bo|_{p-1}}\boderivation\|bo|_p\\
+          \text{$C_1.m\cdots C_k.m$ are the methods possibly called here}\\
+          \|bo|'=\{(\size{\pi}\le n)\in\|bo|_p\mid\pi\text{ survives }\cup_{i=1}^k\intsideeffect(C_j.m)\}
+      \end{array}}{\pair{\call{\exp_0}{m}{\exp_1,\ldots,\exp_p}}{\|bo|}\boderivation\|bo|'}\\[5pt]
+      % require
+      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\require{\exp_1}{\exp_2}}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}\\[5pt]
+      % if/then/else
+      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''\quad\pair{\com_1}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}\boderivation\|bo|'''}{\pair{\ife{\exp_1}{\exp_2}{\com_1}{\com_2}}{\|bo|}\boderivation\|bo|'''}\\[5pt]
+      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''\quad\pair{\com_2}{\|improve|(\|bo|'',\copfull{\exp_1}{\neg\|cop|}{\exp_2})}\boderivation\|bo|'''}{\pair{\ife{\exp_1}{\exp_2}{\com_1}{\com_2}}{\|bo|}\boderivation\|bo|'''}\\[5pt]
+      % for each
+      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'\quad\pair{\com^{*,v}}{\|bo|'}\boderivation\|bo|''}{\pair{\for{v}{\exp}{\com}}{\|bo|}\boderivation\|bo|''}\\[5pt]
+      \pair{\com^{*,v}}{\|bo|}\boderivation\|bo|\qquad\frac{\pair{\com}{\|bo|^{-v}}\boderivation\|bo|'\quad\pair{\com^{*,v}}{\|bo|'}\boderivation\|bo|''}{\pair{\com^{*,v}}{\|bo|}\boderivation\|bo|''}\\[5pt]
+      %
+      \text{the rules for the other commands work by recursive descent, as for instance below:}\\
+      % field assignment
+      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\assign{\field{\exp_1}{f}}{\exp_2}}{\|bo|}\boderivation\|bo|''}
+    \end{gather*}
+    \caption{The boundedness derivation rules for commands. They use
+    a previously computed side-effect analysis $\intsideeffect$.}
+    \label{fig:bo_derivations_commands}
   \end{figure}
 \end{definition}
-
-\textbf{This is a sort of simplified path-length. The simplifying
-  assumptions must be clarified. The idea is that one does not need
-  the supporting analyses such as non-cyclicity or sharing, since the
-  domain of analysis is very specific and lists are very well encapsulated.}
-
-The static analysis infers size change constraints about the containers
-reachable from the state of the smart contracts, for each public API
-method or constructor of the smart contract.
-
-For the example in Fig.~\ref{fig:ponzi1}, the inferred approximations are:
-%
-\begin{description}
-\item[\<Ponzi1()>:] $\<investors>'=1$
-\item[\<invest()>:] $\<investors>'=\<investors>+1$
-\end{description}
-%
-For the esample in Fig.~\ref{fig:ponzi2} they are:
-%
-\begin{description}
-\item[\<Ponzi2()>:] $\<investors>'=1$
-\item[\<invest()>:] $\<investors>'=\<investors>+1$
-\item[\<withdraw()>:] $\<investors>'=\<investors>$
-\end{description}
-%
-For the example in Fig.~\ref{fig:ponzi3} they are:
-%
-\begin{description}
-\item[\<Ponzi3()>:] $\<investors>'=1$
-\item[\<invest()>:] $\<investors><100\wedge\<investors>'=\<investors>+1$
-\end{description}
-%
-For the example in Fig.~\ref{fig:lottery1} they are:
-%
-\begin{description}
-\item[\<Lottery1()>:] $\<rounds>'=1\wedge\<rounds[any].sales>'=0$
-\item[\<buy()>:] $\<rounds>\le\<rounds>'\le\<rounds>+1\wedge\<rounds[any].sales>\le\<rounds[any].sales>'\le\<rounds[any].sales+1>$
-\item[\<drawWinner()>:] $\<rounds>'=\<rounds>\wedge\<rounds[any].sales>'=\<rounds[any].sales>$
-\end{description}
-%
-For the example in Fig.~\ref{fig:lottery2} they are:
-%
-\begin{description}
-\item[\<Lottery2()>:] $\<rounds>'=1\wedge\<rounds[any].sales>'=0$
-\item[\<buy()>:] $\<rounds>\le\<rounds>'\le\<rounds>+1\wedge\<rounds[any].sales>\le\<rounds[any].sales>'\le\max(5000,\<rounds[any].sales>)$
-\item[\<drawWinner()>:] $\<rounds>'=\<rounds>\wedge\<rounds[any].sales>'=\<rounds[any].sales>$
-\end{description}

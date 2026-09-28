@@ -30,6 +30,8 @@
 \renewcommand{\exp}{\mathit{exp}}
 \newcommand{\com}{\mathit{com}}
 \newcommand{\aop}[2]{{#1}\ \mathit{aop}\ {#2}}
+\newcommand{\cop}[2]{{#1}\ \mathit{cop}\ {#2}}
+\newcommand{\copfull}[3]{{#1}\ \mathit{#2}\ {#3}}
 \newcommand{\field}[2]{{#1}\mathtt{.}{\mathit{#2}}}
 \newcommand{\size}[1]{{#1}\mathtt{.size()}}
 \newcommand{\random}[1]{\mathtt{random(}{#1}\mathtt{)}}
@@ -40,10 +42,12 @@
 \newcommand{\writemap}[3]{{#1}\mathtt{[}{#2}\mathtt{]:=}{#3}}
 \newcommand{\push}[2]{{#1}\mathtt{.push(}{#2}\mathtt{)}}
 \newcommand{\receive}[2]{{#1}\mathtt{.receive(}{#2}\mathtt{)}}
-\newcommand{\require}[2]{\mathtt{require(}{#1}\ \mathit{cop}\ {#2}\mathtt{)}}
+\newcommand{\requirefull}[3]{\mathtt{require(}{#1}\ \mathit{{#2}}\ {#3}\mathtt{)}}
+\newcommand{\require}[2]{\mathtt{require(}\cop{#1}{#2}\mathtt{)}}
 \newcommand{\assign}[2]{{#1}\mathtt{:=}{#2}}
 \newcommand{\nop}{\mathtt{nop}}
-\newcommand{\ife}[4]{\mathtt{if\ (}{#1}\ \mathit{cop}\ {#2}\mathtt{)\ then\ }{#3}\mathtt{\ else\ }{#4}}
+\newcommand{\ifefull}[5]{\mathtt{if\ (}{#1}\ \mathit{#2}\ {#3}\mathtt{)\ then\ }{#4}\mathtt{\ else\ }{#5}}
+\newcommand{\ife}[4]{\ifefull{#1}{cop}{#2}{#3}{#4}}
 \newcommand{\ifetwo}[4]{\begin{array}{l}
     \mathtt{if\ (}{#1}\ \mathit{cop}\ {#2}\mathtt{)}\\
     \mathtt{\ then\ }{#3}\mathtt{\ else\ }{#4}
@@ -144,7 +148,6 @@ protected, public, static, payable, return, super, switch, this, throw, throws, 
 \input{syntax}
 \input{side_effect}
 \input{boundedness}
-\input{theorem_prover}
 \input{implementation}
 \input{related}
 \input{conclusion}
