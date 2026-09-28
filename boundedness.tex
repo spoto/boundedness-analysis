@@ -70,16 +70,25 @@ Sec.~\ref{sec:side_effect}.
 The intuition is that \|bo| represents the set of all concrete states
 where $\pi_i$ holds a list whose length is at most $n_i$, for every
 $i=1,\ldots,k$. In terms of abstract interpretation, \|bo| is an abstraction
-of sets of such concrete states and $\botwo$ is an abstract domain.
+of such concrete states and $\botwo$ is an abstract domain
+whose top (\ieinitial least precise) element is $\varnothing$ and
+whose least upper bound operator is
+\[
+\|bo|_1\sqcap\|bo|_2=\left\{\size{\pi}\le\max(n_1,n_2)\left|\begin{array}{l}
+(\size{\pi}\le n_1)\in\|bo|_1\\
+(\size{\pi}\le n_2)\in\|bo|_2
+\end{array}\right.\right\}.
+\]
 
-An assignment to a path invalidates somebounds, but only if it
-is a single variable, since we are assuming that paths only refer to \<final> fields.
+An assignment to a path invalidates some bounds, but only if the path
+is a single variable, since we are assuming that paths only refer to \<final> fields,
+whose value cannot be changed.
 %
 \begin{definition}[Bounds Invalidation]\label{def:invalidation}
   Given $\|bo|\in\botwo$ and $\pi\in\paths{}$, the \emph{invalidation of $\pi$ in $\|bo|$} is
   \[
   \|bo|^{-\pi}=\begin{cases}
-  \{(\size{\pi}\le n)\in\|bo|\mid\pi\text{ is not rooted at }v\} & \text{if $\pi$ is a variable $v$}\\
+  \{(\size{\pi'}\le n)\in\|bo|\mid\pi'\text{ is not rooted at }v\} & \text{if $\pi$ is a variable $v$}\\
   \|bo| & \text{otherwise.}
   \end{cases}
   \]
@@ -87,7 +96,7 @@ is a single variable, since we are assuming that paths only refer to \<final> fi
 
 A comparison operation between two expressions can improve a boundedness state,
 when it carries information about a bound on the size of a path.
-Similarly, an assignment can improve a boundedness state if it assigns a path.
+Similarly, an assignment can sometimes improve a boundedness state.
 %
 \begin{definition}[Bounds Improvement]\label{def:improvement}
   Given $\|bo|\in\botwo$ and a comparison expression $\cop{\exp_1}{\exp_2}$, the
@@ -108,8 +117,8 @@ Similarly, an assignment can improve a boundedness state if it assigns a path.
   where $\pi,\pi'\in\paths{}$.
 \end{definition}
 
-Since boundedness is a property of computation states, boundedness analysis
-will be presented in operational form, as a derivation rule over the abstract states
+Boundedness is a property of computation states hence we present
+boundedness analysis in operational form, as a derivation rule over the abstract states
 from Def.~\ref{def:bo}.
 %
 \begin{definition}[Boundedness Derivation Rules]\label{def:boundness_rules}
@@ -184,7 +193,7 @@ from Def.~\ref{def:bo}.
 \end{definition}
 %
 For instance, $\pair{\com_1}{\|bo|}\boderivation\pair{\com_2}{\|bo|'}$ means that
-the execution of $\com_1$ in a boundedness state \|bo| performs a single
+the execution of $\com_1$ from a boundedness state \|bo| performs a single
 step and then continues with the execution of $\com_2$ from a boundedness state $\|bo|'$.
 A configuration $\pair{\varepsilon}{\|bo|}$ is a final configuration, reached when
 the execution stops.
@@ -193,8 +202,9 @@ The derivation rule in Fig.~\ref{fig:bo_derivations_commands} has been given
 as a small step semantics in order to allow the computation of a
 boundedness state at the beginning of every command in the program, through an
 intraprocedural fixpoint that saturates all execution paths. Namely, at the beginning
-of each method with body $\com$, the analysis starts from the configuration
-$\pair{\com}{\varnothing}$ and computes all possible derivations from there.
+of each method, the analysis starts from the configuration
+$\pair{\com}{\varnothing}$, where $\com$ is the body of the method,
+and computes all possible derivations from there.
 Whenever a configuration $\pair{\com'\,\xi}{\|bo|}$ is reached, the analysis records
 $\|bo|$ as current approximation at the program point of $\com'$. If the propagation reaches
 a program point twice, it
