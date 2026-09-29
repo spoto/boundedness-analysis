@@ -132,19 +132,6 @@ boundedness analysis in operational form, as a derivation rule over the abstract
 from Def.~\ref{def:bo}.
 %
 \begin{definition}[Boundedness Derivation Rules]\label{def:boundness_rules}
-  The boundedness derivation rule $\boderivation$ for expressions
-  in Fig.~\ref{fig:bo_derivations_expressions} is a big step semantics of the form
-  \[
-  \left(\Exp\times\botwo\right)\boderivation\botwo
-  \]
-  that derives the approximation of the post-states
-  from the approximation of the pre-states.
-  The boundedness derivation rule $\boderivation$ for commands
-  in Fig.~\ref{fig:bo_derivations_commands} is a small step semantics of the form
-  \[
-  \left(\Com\times\botwo\right)\boderivation(\Com\cup\{\varepsilon\}\times\botwo).
-  \]
-  %
   \begin{figure}[t]
     \begin{gather*}
       \pair{c}{\|bo|}\boderivation\|bo|\qquad\pair{v}{\|bo|}\boderivation\|bo|\\[5pt]
@@ -159,46 +146,67 @@ from Def.~\ref{def:bo}.
     \caption{The boundedness derivation rules for expressions. They use a previously computed side-effect analysis $\intsideeffect$.}
     \label{fig:bo_derivations_expressions}
   \end{figure}
-%
+  %
+  The boundedness derivation rule $\boderivation$ for expressions
+  in Fig.~\ref{fig:bo_derivations_expressions} is a big step semantics of the form
+  \[
+  \left(\Exp\times\botwo\right)\boderivation\botwo
+  \]
+  that derives the approximation of the post-states
+  from the approximation of the pre-states.
+  The boundedness derivation rule $\boderivation$ for commands
+  in Fig.~\ref{fig:bo_derivations_commands1} and~\ref{fig:bo_derivations_commands2}
+  is a small step semantics of the form
+  \[
+  \left(\Com\times\botwo\right)\boderivation(\Com\cup\{\varepsilon\}\times\botwo).
+  \]
+  %
   \begin{figure}[t]
     \begin{gather*}
       % variable assignment
-      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\assign{v}{\exp}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|assign|(\|bo|',\assign{v}{\exp})}}\\[5pt]
+      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\assign{v}{\exp}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|assign|(\|bo|',\assign{v}{\exp})}}\\[1pt]
       % field assignment
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\assign{\field{\exp_1}{f}}{\exp_2}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|assign|(\|bo|'',\assign{\field{\exp_1}{f}}{\exp_2})}}\\[5pt]
+      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\assign{\field{\exp_1}{f}}{\exp_2}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|assign|(\|bo|'',\assign{\field{\exp_1}{f}}{\exp_2})}}\\[1pt]
       % map assignment
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''\quad\pair{\exp_3}{\|bo|''}\boderivation\|bo|'''}{\pair{\readmap{\exp_1}{\exp_2}{\exp_3}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|'''}}\\[5pt]
+      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''\quad\pair{\exp_3}{\|bo|''}\boderivation\|bo|'''}{\pair{\readmap{\exp_1}{\exp_2}{\exp_3}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|'''}}\\[1pt]
       % push
       \frac{\begin{array}{c}
           \pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''\quad\exp_1\text{ has type \<List<$t$\texttt{>}>}\\
           \|bo|_{\text{survives}}=\{(\size{\pi}\le n)\in\|bo|''\mid\pi\text{ survives }\{t\}\}\\
-          \|bo|_{\text{not survives}}=\{\size{\pi}\le n+1\mid(\size{\pi}\le n)\in\|bo|''\text{ and }\pi\text{ does not survive }\{t\}\}
-      \end{array}}{\pair{\push{\exp_1}{\exp_2}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|_{\text{survives}}\cup\|bo|_{\text{not survives}}}}\\[5pt]
+          \|bo|_{\neg\text{survives}}=\{\size{\pi}\le n+1\mid(\size{\pi}\le n)\in\|bo|''\text{ and }\pi\text{ does not survive }\{t\}\}
+      \end{array}}{\pair{\push{\exp_1}{\exp_2}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|_{\text{survives}}\cup\|bo|_{\neg\text{survives}}}}\\[1pt]
       % receive
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\receive{\exp_1}{\exp_2}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|''}}\\[5pt]
+      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\receive{\exp_1}{\exp_2}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|''}}\\[1pt]
       % method call
       \frac{\begin{array}{c}
           \pair{\exp_0}{\|bo|}\boderivation\|bo|_0\quad\cdots\quad\pair{\exp_p}{\|bo|_{p-1}}\boderivation\|bo|_p\\
           \text{$C_1.m\cdots C_k.m$ are the methods possibly called here}\\
           \|bo|'=\{(\size{\pi}\le n)\in\|bo|_p\mid\pi\text{ survives }\cup_{i=1}^k\intsideeffect(C_j.m)\}
-      \end{array}}{\pair{\call{\exp_0}{m}{\exp_1,\ldots,\exp_p}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|'}}\\[5pt]
+      \end{array}}{\pair{\call{\exp_0}{m}{\exp_1,\ldots,\exp_p}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|'}}\\[1pt]
       % require
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\require{\exp_1}{\exp_2}\,\xi}{\|bo|}\boderivation{\pair{\xi}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}}\\[5pt]
+      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\require{\exp_1}{\exp_2}\,\xi}{\|bo|}\boderivation{\pair{\xi}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}}
+    \end{gather*}
+    \caption{The boundedness derivation rules for commands, part~1. They use
+      a previously computed side-effect analysis $\intsideeffect$. $\xi$ is the continuation
+      that must be executed after the leftmost command terminates. It can be $\xi=\varepsilon$.}
+    \label{fig:bo_derivations_commands1}
+  \end{figure}
+
+    \begin{figure}[th]
+    \begin{gather*}
       % if/then/else
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\ife{\exp_1}{\exp_2}{\com_1}{\com_2}\,\xi}{\|bo|}\boderivation\pair{\com_1\,\xi}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}\\[5pt]
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\ife{\exp_1}{\exp_2}{\com_1}{\com_2}\,\xi}{\|bo|}\boderivation\pair{\com_2\,\xi}{\|improve|(\|bo|'',\copfull{\exp_1}{\neg\|cop|}{\exp_2})}}\\[5pt]
+      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\ifetwo{\exp_1}{\exp_2}{\com_1}{\com_2}\,\xi}{\|bo|}\boderivation\pair{\com_1\,\xi}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}\\[1pt]
+      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\ifetwo{\exp_1}{\exp_2}{\com_1}{\com_2}\,\xi}{\|bo|}\boderivation\pair{\com_2\,\xi}{\|improve|(\|bo|'',\copfull{\exp_1}{\neg\|cop|}{\exp_2})}}\\[1pt]
       % for each
-      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\for{v}{\exp}{\com}\,\xi}{\|bo|}\boderivation\pair{\com^{*,v}\,\xi}{\|bo|'}}\\[5pt]
-      \pair{\com^{*,v}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|}\qquad\pair{\com^{*,v}\,\xi}{\|bo|}\boderivation\pair{\com\,\com^{*,v}\,\xi}{\|bo|^{-v}}\\[5pt]
+      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\for{v}{\exp}{\com}\,\xi}{\|bo|}\boderivation\pair{\com^{*,v}\,\xi}{\|bo|'}}\\[1pt]
+      \pair{\com^{*,v}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|}\qquad\pair{\com^{*,v}\,\xi}{\|bo|}\boderivation\pair{\com\,\com^{*,v}\,\xi}{\|bo|^{-v}}\\[1pt]
       % sequence
       \pair{\sequence{\com_1}{\com_2}\,\xi}{\|bo|}\boderivation\pair{\com_1\,\com_2\,\xi}{\|bo|}\qquad
       % nop
       \pair{\nop\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|}
     \end{gather*}
-    \caption{The boundedness derivation rules for commands. They use
-      a previously computed side-effect analysis $\intsideeffect$. $\xi$ is the continuation
-      that must be executed after the leftmost command terminates. It can be $\xi=\varepsilon$.}
-    \label{fig:bo_derivations_commands}
+    \caption{The boundedness derivation rules for commands, part~2.}
+    \label{fig:bo_derivations_commands2}
   \end{figure}
 \end{definition}
 %
@@ -208,7 +216,8 @@ step and then continues with the execution of $\com_2$ from a boundedness state 
 A configuration $\pair{\varepsilon}{\|bo|}$ is a final configuration, reached when
 the execution stops.
 
-The derivation rule in Fig.~\ref{fig:bo_derivations_commands} has been given
+The derivation rule in Fig.~\ref{fig:bo_derivations_commands1} and
+in~\ref{fig:bo_derivations_commands2} has been given
 as a small step semantics in order to allow the computation of a
 boundedness state at the beginning of every command in the program, through an
 intraprocedural fixpoint that saturates all execution paths. Namely, at the beginning
@@ -222,9 +231,142 @@ it records $\|bo|_{\|new|}=\|bo|_{\|old|}\sqcap\|bo|$ as state at the program po
 If $\|bo|_{\|new|}\not=\|bo|_{\|old|}$, the derivation continues from $\|bo|_{\|new|}$.
 Otherwise, the derivation stops.
 
-Since $\botwo$ has infinite ascending chains, the termination of the computation
-of the abstract semantics requires a widening operator that forces
-termination after a fixed number of iterations $\kappa$~\cite{CousotC77}.
+\begin{example}\label{ex:boundedness_computation}
+  The boundedness states computed at each program point of the smart
+  contract in Fig.~\ref{fig:ponzi1} are reported in Fig.~\ref{fig:boundedness_ponzi1}.
+  They are always the least precise approximation $\varnothing$, except after the assignment
+  of an empty list to \<this.investors>. Note how the rule for \<push> modifies the
+  bound upon propagation. The boundedness states computed for the smart contract
+  in Fig.~\ref{fig:ponzi2} are similar. Those computed for the smart contract in Fig.~\ref{fig:ponzi3}
+  are reported in Fig.~\ref{fig:boundedness_ponzi3}. This time, the second \<require>
+  improves the approximation of the bound of the \<investors> list.
+  The boundedness states computed for the smart contract in Fig.~\ref{fig:lottery1}
+  are reported in Fig.~\ref{fig:boundedness_lottery1}. Finally, those for the
+  smart contract in Fig.~\ref{fig:lottery2} are reported in Fig.~\ref{fig:boundedness_lottery2}.
+
+  \begin{figure}[t]
+    \begin{lstlisting}[language=pseudo,numbers=none]
+  public Ponzi1() {
+    |\invariant{$\varnothing$}|
+    investors = new List();
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 0\}$}|
+    investors.push(caller);
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 1\}$}|
+  }
+
+  public payable void invest() {
+    |\invariant{$\varnothing$}|
+    require(amount >= MINIMUM_INVESTMENT, "you invested too little");
+    |\invariant{$\varnothing$}|
+    int eachInvestorGets = amount / investors.size();
+    |\invariant{$\varnothing$}|
+    for investor in investors
+      |\invariant{$\varnothing$}|
+      investor.receive(eachInvestorGets);
+    |\invariant{$\varnothing$}|
+    investors.push(caller);
+    |\invariant{$\varnothing$}|
+  }
+    \end{lstlisting}
+    \caption{The boundedness states computed in the smart contract's code in Fig.~\ref{fig:ponzi1}.}
+    \label{fig:boundedness_ponzi1}
+  \end{figure}
+
+  \begin{figure}
+    \begin{lstlisting}[language=pseudo,numbers=none]
+  public Ponzi3() {
+    |\invariant{$\varnothing$}|
+    investors = new List();
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 0\}$}|
+    investors.push(caller);
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 1\}$}|
+  }
+
+  public payable void invest() {
+    |\invariant{$\varnothing$}|
+    require(amount >= MINIMUM_INVESTMENT, "you invested too little");
+    |\invariant{$\varnothing$}|
+    require(investors.size() < 100, "no more investors are allowed");
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 99\}$}|
+    int eachInvestorGets = amount / investors.size();
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 99\}$}|
+    for investor in investors
+      |\invariant{$\{\size{\mathtt{this.investors}}\le 99\}$}|
+      investor.receive(eachInvestorGets);
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 99\}$}|
+    investors.push(caller);
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
+  }
+    \end{lstlisting}
+    \caption{The boundedness states computed in the smart contract's code in Fig.~\ref{fig:ponzi3}.}
+    \label{fig:boundedness_ponzi3}
+  \end{figure}
+
+  \begin{figure}
+    \begin{lstlisting}[language=pseudo,numbers=none]
+  private Round(long endTime) {
+    |\invariant{$\varnothing$}|
+    this.endTime = endTime;
+    |\invariant{$\varnothing$}|
+    sales = new List();
+    |\invariant{$\{\size{\mathtt{this.sales}}\le 0\}$}|
+  }
+
+  public Lottery1(long duration) {
+    |\invariant{$\varnothing$}|
+    this.duration = duration;
+    |\invariant{$\varnothing$}|
+    rounds = new List();
+    |\invariant{$\{\size{\mathtt{this.rounds}}\le 0\}$}|
+    rounds.push(new Round(now + duration));
+    |\invariant{$\{\size{\mathtt{this.rounds}}\le 1\}$}|
+  }
+    \end{lstlisting}
+    \caption{The boundedness states computed in the smart contract's code in Fig.~\ref{fig:lottery1}.
+    They are everywhere $\varnothing$, except in the snippets shown above.}
+    \label{fig:boundedness_lottery1}
+  \end{figure}
+
+  \begin{figure}
+    \begin{lstlisting}[language=pseudo,numbers=none]
+  public payable void buy() {
+    |\invariant{$\varnothing$}|
+    require(amount > 0 && amount % TICKET_PRICE == 0);
+    |\invariant{$\varnothing$}|
+    Round last = rounds.last();
+    |\invariant{$\varnothing$}|
+    if (now > last.endTime) {
+      |\invariant{$\varnothing$}|
+      last = new Round(now + duration);
+      |\invariant{$\varnothing$}|
+      rounds.push(last);
+      |\invariant{$\varnothing$}|
+    }
+    |\invariant{$\varnothing$}|
+    if (last.sales.size() < MAX_SALES) {
+      |\invariant{$\{\size{\mathtt{last.sales}}\le 4999\}$}|
+      int quantity = amount / TICKET_PRICE;
+      |\invariant{$\{\size{\mathtt{last.sales}}\le 4999\}$}|
+      last.sales.push(new TicketBatchSale(caller, quantity));
+      |\invariant{$\{\size{\mathtt{last.sales}}\le 5000\}$}|
+      last.totalTickets += quantity;
+      |\invariant{$\{\size{\mathtt{last.sales}}\le 5000\}$}|
+    }
+  }
+    \end{lstlisting}
+    \caption{The boundedness states computed in the smart contract's code in Fig.~\ref{fig:lottery2}.
+      They are the same as in Fig.~\ref{fig:boundedness_lottery1}, except for method \<buy()>, shown above.}
+    \label{fig:boundedness_lottery2}
+  \end{figure}
+
+\end{example}
+
+In Ex.~\ref{ex:boundedness_computation}, the computation of the boundedness states
+converges. This is expected for simple code such as smart contracts. However,
+$\botwo$ has infinite ascending chains hence the computation
+of the boundedness states is not guarantee to terminate, in general,
+and a widening operator is required, to force
+termination after a given number of iterations $\kappa$~\cite{CousotC77}.
 %
 \begin{definition}[Widening Operator]\label{def:widening}
   The \emph{widening operator on $\botwo$} is
@@ -261,12 +403,31 @@ the new approximation at that program point is computed from the old one as
   By Def.~\ref{def:widening}, it is
   $\|bo|'_0\supseteq\cdots\supseteq\|bo|'_{k}\supseteq\|bo|'_{k+1}\supseteq\cdots$.
   If, by contradiction, that sequence were not converging, then one can extract an
-  infinite strictly non-converging subsequence
+  infinite strictly decreasing subsequence
   $\|bo|''_0\supset\cdots\supset\|bo|''_{k}\supset\|bo|''_{k+1}\supset\cdots$, which is
   impossible since $\|bo|_0$ and $\|bo|_0'$ are assumed to be finite and
   consequently also $\|bo|_0''\subseteq\|bo|_0$ is finite.
   Note that the fact that $\nabla$ is a widening operator on \emph{finite} elements
   of $\botwo$ is sufficient for termination, since the rules in
-  Fig.~\ref{fig:bo_derivations_expressions} and~\ref{fig:bo_derivations_commands}
-  lead to finite states if started from $\varnothing$, as it can be easily proved by induction.
+  Fig.~\ref{fig:bo_derivations_expressions}, \ref{fig:bo_derivations_commands1}
+  and~\ref{fig:bo_derivations_commands2}
+  lead to finite states if started from $\varnothing$, as one can be easily prove by induction.
 \end{proof}
+
+In the following, we assume that a boundedness state has been computed at each program point.
+This information is enough to warn about boundedness bugs.
+%
+\begin{definition}[Bounded Lists]\label{def:bounded_lists}
+  All lists of type $t$ are \emph{bounded} in the program
+  if for every $\push{\exp_1}{\exp_2}$ in the program such that
+  $\<List<$t'$\texttt{>}>$ is the type of $\exp_1$, 
+  $t$ and $t'$ share a subtype and $\|bo|$ is the boundedness state computed at the push command,
+  it is $\exp_1=\pi\in\paths{}$ and $(\size{\pi}\le n)\in\|bo|$ for some $n\in\nat$.
+\end{definition}
+
+\begin{definition}[Warning Generation]\label{def:warnings}
+  Our boundedness analyzer generates a warning at a
+  $\for{v}{\exp}{\com}$ command in the program where
+  $\exp$ has type $\<List<$t$\texttt{>}>$, if and only if it is not true that
+  all lists of type $t$ are bounded (Def.~\ref{def:bounded_lists}).
+\end{definition}
