@@ -1,1 +1,17 @@
 \section{Conclusion}\label{sec:conclusion}
+%
+Iteration on unbounded containers is an example of a software bug
+specific to smart contracts. This paper describes the issue and provides
+a solution as a sound static analysis based on abstract interpretation,
+that manages to identify unbounded iterations
+in actual examples of smart contracts.
+
+We strived to make this paper self-contained. Therefore, our boundedness
+analysis builds solely on a simple but relatively weak side-effect analysis
+(Sec.~\ref{sec:side_effect}) that identifies lists by the
+static type of their elements. This is also a limitation: two lists with
+elements of the same type cannot be distinguished by our analysis, that
+would mark them both as unbounded even when only one of them were so.
+This could lead to imprecise results, that could be overcome by identifying
+lists in a more precise way, for instance, through a creation point analysis,
+a concretization of class analysis~\cite{TipP00}.
