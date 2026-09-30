@@ -272,13 +272,13 @@ Otherwise, the derivation stops.
     \label{fig:boundedness_ponzi1}
   \end{figure}
 
-  \begin{figure}
-    \begin{lstlisting}[language=pseudo,numbers=none]
+  \begin{figure}[t]
+    \begin{lstlisting}[language=pseudo]
   public Ponzi3() {
     |\invariant{$\varnothing$}|
     investors = new List();
     |\invariant{$\{\size{\mathtt{this.investors}}\le 0\}$}|
-    investors.push(caller);
+    investors.push(caller);|\label{line:boundedness_ponzi3_push1}|
     |\invariant{$\{\size{\mathtt{this.investors}}\le 1\}$}|
   }
 
@@ -294,7 +294,7 @@ Otherwise, the derivation stops.
       |\invariant{$\{\size{\mathtt{this.investors}}\le 99\}$}|
       investor.receive(eachInvestorGets);
     |\invariant{$\{\size{\mathtt{this.investors}}\le 99\}$}|
-    investors.push(caller);
+    investors.push(caller);|\label{line:boundedness_ponzi3_push2}|
     |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
   }
     \end{lstlisting}
@@ -302,7 +302,7 @@ Otherwise, the derivation stops.
     \label{fig:boundedness_ponzi3}
   \end{figure}
 
-  \begin{figure}
+  \begin{figure}[t]
     \begin{lstlisting}[language=pseudo,numbers=none]
   private Round(long endTime) {
     |\invariant{$\varnothing$}|
@@ -323,7 +323,7 @@ Otherwise, the derivation stops.
   }
     \end{lstlisting}
     \caption{The boundedness states computed in the smart contract's code in Fig.~\ref{fig:lottery1}.
-    They are everywhere $\varnothing$, except in the snippets shown above.}
+    They are $\varnothing$ everywhere, except in the snippets shown above.}
     \label{fig:boundedness_lottery1}
   \end{figure}
 
@@ -415,19 +415,71 @@ the new approximation at that program point is computed from the old one as
 \end{proof}
 
 In the following, we assume that a boundedness state has been computed at each program point.
-This information is enough to warn about boundedness bugs.
+This information is used to warn about boundedness bugs.
 %
 \begin{definition}[Bounded Lists]\label{def:bounded_lists}
   All lists of type $t$ are \emph{bounded} in the program
   if for every $\push{\exp_1}{\exp_2}$ in the program such that
   $\<List<$t'$\texttt{>}>$ is the type of $\exp_1$, 
-  $t$ and $t'$ share a subtype and $\|bo|$ is the boundedness state computed at the push command,
+  $t$ and $t'$ share a subtype and $\|bo|$ is the boundedness state computed
+  at the \<push> command,
   it is $\exp_1=\pi\in\paths{}$ and $(\size{\pi}\le n)\in\|bo|$ for some $n\in\nat$.
 \end{definition}
-
+%
+\begin{example}\label{ex:bounded_lists}
+  In \<Ponzi1> (Fig.~\ref{fig:ponzi1}), not all lists of type $t=\<Contract>$
+  are bounded, since for instance the \<push>
+  at line~\ref{ponzi1:expand} operates on $\<this.investors>$, of type
+  $\<List<$t'$\texttt{>}>$ with $t'=\<Contract>$, $t$ and $t'$ share a subtype
+  (\ieinitial \<Contract> itself), $\<this.investors>\in\paths{}$
+  but the boundedness state computed at that \<push> is
+  $\varnothing$ (Fig.~\ref{fig:boundedness_ponzi1}) and no
+  $(\size{\mathtt{this.investors}}\le n)\in\varnothing$, for any $n\in\nat$.
+  The same is true for \<Ponzi2> in Fig.~\ref{fig:ponzi2}.
+  Instead, in \<Ponzi3> (Fig.~\ref{fig:ponzi3}) all lists of type $\<Contract>$
+  are bounded since, this time, the state computed at the \<push>
+  at line~\ref{ponzi3:creator} occurs in the boundedness state
+  $\{\size{\mathtt{this.investors}}\le 0\}$ (Fig.~\ref{fig:boundedness_ponzi3})
+  and the \<push>
+  at line~\ref{ponzi3:expand} occurs in the boundedness state
+  $\{\size{\mathtt{this.investors}}\le 99\}$ (Fig.~\ref{fig:boundedness_ponzi3}).
+  In the same way, one concludes that, in \<Lottery1> (Fig.~\ref{fig:lottery1}),
+  not all lists of \<Round> and not all lists of \<TickeBatchSale> are bounded,
+  since the boundedness state computed at the
+  \<push> commands inside \<buy()> (Fig.~\ref{fig:lottery1}),
+  that operate on such lists, is $\varnothing$ (Fig.~\ref{fig:boundedness_lottery1}).
+  For the same reason, in \<Lottery2> (Fig.~\ref{fig:lotteyr2}),
+  not all lists of \<Round> are bounded.
+  But all lists of \<TicketBatchSale>
+  are bounded in \<Lottery2>, since the only \<push> that operates on them
+  is inside \<buy()>, it works on $\<last.sale>\in\paths{}$ and
+  the boundedness state there is $\{\size{\mathtt{last.state}}\le 4999\}$
+  (Fig.~\ref{fig:boundedness_lottery2}). 
+\end{example}
+%
 \begin{definition}[Warning Generation]\label{def:warnings}
-  Our boundedness analyzer generates a warning at a
-  $\for{v}{\exp}{\com}$ command in the program where
+  Our boundedness analyzer issues a warning at each
+  $\for{v}{\exp}{\com}$ command in the program, where
   $\exp$ has type $\<List<$t$\texttt{>}>$, if and only if it is not true that
   all lists of type $t$ are bounded (Def.~\ref{def:bounded_lists}).
 \end{definition}
+%
+\begin{example}\label{ex:warnings}
+  In \<Ponzi1> (Fig.~\ref{fig:ponzi1}), our analyzer will issue a warning
+  at line~\ref{ponzi1:iteration}, since that \<for> command operates on
+  \<this.investors> of type \<List<Contract\texttt{>}> but not all lists of
+  \<Contract> are bounded in that program (Ex.~\ref{ex:bounded_lists}).
+  Similarly, it will issue a warning at line~\ref{ponzi2:iteration} of \<Ponzi2>
+  (Fig.~\ref{fig:ponzi2}). But it will not issue any warning
+  in \<Ponzi3> (Fig.~\ref{fig:ponzi3}), since all lists of \<Contract> are bounded there
+  (Ex.~\ref{ex:bounded_lists}). It will instead issue a warning
+  at line~\ref{lottery1:iteration} of \<Lottery1> (Fig.~\ref{fig:lottery1}),
+  since the \<for> command there operates on \<this.round.sales> of type
+  \<List<TicketBatchSale\texttt{>}> but not all lists of
+  \<TicketBatchSale> are bounded in that program (Ex.~\ref{ex:bounded_lists}).
+  But no warning is issued at that same \<for> command in \<Lottery2>
+  (Fig.~\ref{fig:lottery2}), since
+  all lists of \<TicketBatchSale> are bounded there
+  (Ex.~\ref{ex:bounded_lists}). Note that these results are exactly
+  those expected in Sec.~\ref{sec:examples}.
+\end{example}
