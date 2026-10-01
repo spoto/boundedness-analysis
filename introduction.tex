@@ -1,75 +1,59 @@
 \section{Introduction}\label{sec:introduction}
 
-Smart contracts are computer programs that get executed
-inside the nodes of a blockchain network. They express some form of
-agreement among parties, that gets enforced by the properties of the
-underlying
+Smart contracts are computer programs that run
+in the nodes of a blockchain network. They code
+an agreement among parties, that gets enforced by the properties of the underlying
 blockchain. Namely, the blockchain's data immutability and its consensus
-algorithm make it hard
-to violate the rules of the protocol, replace data
-or censure specific transactions.
-While this is desirable for protocols that must hold
-and resist in the wild, it also means that code bugs, if present,
-are also enforced and cannot be patched.
-Therefore, it is highly relevant to deploy smart contracts
-only if they do not contain software bugs.
-There is large literature about bugs that led to
-protocol breaches and stolen money (just for the case of Ethereum,
+algorithm make it hard to violate the agreement, replace data or censure transactions.
+This is desirable for protocols that must survive
+in the wild, but it also means that software bugs, if present,
+get enforced and cannot be patched.
+Therefore, it is highly relevant to deploy correct smart contracts.
+There is large literature on bugs that led to
+protocol breaches and stolen money (for Ethereum,
 see for instance~\cite{AntonopoulosW25}).
-The always cited example of reentrancy shows that attacks to
+The well-known reentrancy issue shows that attacks to
 smart contracts can actually be rather involved and exploit
 misunderstood features of the programming language.
-In general, the use of Turing-complete programming languages
-for writing smart contracts is welcome, but increases the risk
-of writing buggy code and lose money. The use of
+In general, Turing-complete programming languages
+for smart contracts are useful but increase the risk
+of bugs and losing money. The use of
 new programming languages, sometimes with vague or misleading semantics,
-further complicates the programming task.
+complicates programming further.
 
-A source of bugs in smart contracts comes from the completely different
-way of interaction \wrt traditional software for desktop computers. Namely,
-smart contracts operate in the wild. After deployment, their API can
-be called in any order and with any argument. There is no such a thing
-as a \emph{correct} or \emph{expected} use of a function: users (and attackers)
-may call public functions in any order and with any allowed argument.
-In this sense, smart contracts are more similar to old-fashioned
-servlets and to general-purpose libraries than to traditional software
-for desktop computers. Their development requires a careful analysis of their
-API and an extensive use of defensive programming, that should foresee all
+A source of bugs in smart contracts is the completely different
+style of interaction \wrt traditional software for desktop computers. Namely,
+smart contracts run in the wild: after deployment, users (and attackers)
+can call their API in any order and with any parameter.
+In this sense, smart contracts look more like old-fashioned
+servlets and general-purpose libraries than like software
+for desktop computers. Their development requires careful analysis of their
+API and extensive use of defensive programming, to foresee all
 possible illegal uses. Not surprisingly, many developers,
-often unexperienced juniors who jumped on the promising business
-of smart contract development,
+often unexperienced juniors,
 got overwhelmed by this complexity. Bugs thrived. Money got lost.
 
-This paper focuses on a specific, frequent bug of smart contracts.
+This paper focuses on a specific, frequent bug in smart contracts.
 Namely, smart contracts often store data in containers, such as lists,
-that can be \emph{arbitrarily large}.
-This is fine as long as such containers do not get
-iterated. Otherwise, the iteration loop might have an arbitrarily large
-gas cost, even larger than the maximal gas cost
-allowed for a single smart contract transaction.
-If that happens, the iteration always fail for gas exhaustion, which might block
-some smart contract functionality and, in some case,
-even lock money in the contract, forever. This paper defines
-a static program analysis that guarantees, automatically,
-that there exists a maximal size for iterated containers,
-for all possible ways of calling the API of a smart contract.
+that can become arbitrarily large. This is fine as long as they do not get
+iterated. Otherwise, the gas cost of the iteration might be arbitrarily large,
+even larger than the maximum allowed for a single smart contract transaction.
+If that happens, the iteration fails for gas exhaustion, which might block
+some contract functionality and, in some case,
+even lock money in the contract. This paper defines
+a sound static analysis that infers, automatically,
+a maximal size for iterated containers,
+valid for all possible ways of calling the smart contract API.
 We call such containers \emph{bounded} and the proposed verification technique
-is consequently a \emph{boundedness analysis}. Note that
-a boundedness analysis
-does not need to compute the exact gas cost for each API function.
-If ever possible, that would be a much more concrete analysis,
-in terms of abstract interpretation,
-with higher cost, more difficulties
-and challenges. Boundedness analysis just guarantees the existence
-of a bound for the iterated containers.
+is consequently a \emph{boundedness analysis}.
+Note that boundedness analysis does not compute the exact gas cost of each API function:
+it just infers a bound for iterated containers.
 
-The specific boundedness analysis defined in this paper
-is a sound analysis based on
-an abstract interpretation of the public API
-of the smart contract into boundedness constraints. Such constraints
-subsequently allow to infer if specific containers are definitely bounded and,
-therefore, their iteration is bounded as well. All other iterations generate a warning.
-As always, abstract interpretation comes with a soundness guarantee: if no warning is generated,
+Our boundedness analysis is an abstract interpretation of the
+smart contract code into boundedness constraints that
+allow one to infer if specific containers are definitely bounded and,
+consequently, if their iteration is bounded. Otherwise, a warning is issued.
+Abstract interpretation comes with a soundness guarantee: if no warning is generated,
 then the code has no boundedness bug.
 
 The contributions of this paper are:
@@ -97,31 +81,26 @@ The contributions of this paper are:
 
     \draw[->,thick] (7.2,0.7) -- +(1,0);
 
-    \draw [thick] (8.2,0) rectangle +(1.6,1.2);
-    \draw (9,0.95) node{warning};
-    \draw (9,0.6) node{generation};
-    \draw (9,0.25) node{(Sec.~\ref{sec:boundedness})};
-
-    %\draw [fill=VioletRed, thick] (0,3.5) rectangle (4,5.5);
+    \draw [thick] (8.2,0) rectangle +(1.8,1.2);
+    \draw (9.1,0.95) node{warning};
+    \draw (9.1,0.6) node{generation};
+    \draw (9.1,0.25) node{(Sec.~\ref{sec:boundedness})};
   \end{tikzpicture}
   \end{center}
   \caption{The components of our boundedness analysis and their dependencies.}
   \label{fig:plan}
 \end{figure}
 
-Fig.~\ref{fig:plan} shows the dependencies of the various components of our
+Fig.~\ref{fig:plan} shows the various components of our
 boundedness analysis. A preliminary side-effect analysis identifies which containers
 might be modified by the execution of the commands. This information is used in
 the subsequent actual boundedness analysis, whose results are used for generating warnings.
-
-The rest of the paper is organized as follows.
-Sec.~\ref{sec:examples} presents examples of bounded and unbounded containers
-in actual smart contracts, and the potential attacks in case of unboundedness.
-Sec.~\ref{sec:syntax} presents the syntax of a minimalistic language for
-smart contracts.
-Sec.~\ref{sec:side_effect} defines the supporting side-effect analysis.
-Sec.~\ref{sec:boundedness} defines the actual boundedness
-analysis that builds on the side-effect analysis.
+The paper is consequently organized as follows.
+Sec.~\ref{sec:examples} describes boundedness on
+concrete examples of smart contracts, and the potential attacks allowed by unboundedness.
+Sec.~\ref{sec:syntax} presents the syntax of a minimalistic language for smart contracts.
+Sec.~\ref{sec:side_effect} defines the supporting side-effect analysis onthat language.
+Sec.~\ref{sec:boundedness} defines the actual boundedness analysis.
 Sec.~\ref{sec:implementation} reports preliminary results
 with our prototype implementation.
-Sec.~\ref{sec:related} discusses related work. Sec.~\ref{sec:conclusion} concludes.
+Sec.~\ref{sec:discussion} discusses related work and concludes.

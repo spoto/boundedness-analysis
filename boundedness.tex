@@ -426,7 +426,7 @@ This information is used to warn about boundedness bugs.
 \end{definition}
 %
 \begin{example}\label{ex:bounded_lists}
-  In \<Ponzi1> (Fig.~\ref{fig:ponzi1}), not all lists of type $t=\<Contract>$
+  In \<Ponzi1> (Fig.~\ref{fig:ponzi1}), not all lists of $t=\<Contract>$
   are bounded, since for instance the \<push>
   at line~\ref{ponzi1:expand} operates on $\<this.investors>$, of type
   $\<List<$t'$\texttt{>}>$ with $t'=\<Contract>$, $t$ and $t'$ share a subtype
@@ -447,7 +447,7 @@ This information is used to warn about boundedness bugs.
   since the boundedness state computed at the
   \<push> commands inside \<buy()> (Fig.~\ref{fig:lottery1}),
   that operate on such lists, is $\varnothing$ (Fig.~\ref{fig:boundedness_lottery1}).
-  For the same reason, in \<Lottery2> (Fig.~\ref{fig:lotteyr2}),
+  For the same reason, in \<Lottery2> (Fig.~\ref{fig:lottery2}),
   not all lists of \<Round> are bounded.
   But all lists of \<TicketBatchSale>
   are bounded in \<Lottery2>, since the only \<push> that operates on them

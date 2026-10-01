@@ -139,14 +139,14 @@ protected, public, static, payable, return, super, switch, this, throw, throws, 
 
   \begin{abstract}
     The interaction between smart contracts and their users exposes
-    the former to specific risks, such as the arbitrary increase
-    of the size of some data container, that are consequently \emph{unbounded}.
-    This, in turn, might translate into
-    a security issue, that blocks the functionality of the smart contract or
-    locks some money inside it. This paper describes the problem and
-    proposes a sound static analysis based on abstract interpretation,
-    that proves containers bounded and issues a warning otherwise.
-    We apply the analysis on some examples smart contracts and provide
+    the former to specific risks, such as the arbitrary size increase
+    of some data containers, that are consequently unbounded.
+    This might become
+    a security issue that blocks the smart contract functionality or
+    locks some money inside it. This paper describes this problem and
+    defines a sound static analysis based on abstract interpretation,
+    to prove containers bounded and issue a warning otherwise.
+    We show the analysis of some example smart contracts and provide
     a prototype implementation.
   \end{abstract}
 
@@ -160,8 +160,7 @@ protected, public, static, payable, return, super, switch, this, throw, throws, 
 \input{side_effect}
 \input{boundedness}
 \input{implementation}
-\input{related}
-\input{conclusion}
+\input{discussion}
 
 \bibliographystyle{plain}
 \bibliography{biblio}
