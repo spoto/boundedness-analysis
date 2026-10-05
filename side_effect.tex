@@ -1,97 +1,80 @@
 \section{Side-Effect Analysis}\label{sec:side_effect}
 
 Given a command, it is useful to know
-which already existing lists might be affected during the execution of the command.
-Previous work has defined precise and complex static analyses for that
-(see for instance the aliasing and side-effect analyses in~\cite{SpotoMP10}).
-Here, for simplicity and lack of space,
-we present a simpler and cheaper side-effect analysis that, nevertheless,
-is often precise enough on simple programs such as smart contracts.
-
+which already existing lists might be affected during its execution.
+Previous work provides precise and complex static analyses for that
+(see for instance aliasing and side-effect analysis in~\cite{SpotoMP10}).
+Here, for simplicity, we present a simpler cheap side-effect analysis that,
+nevertheless, is often precise enough on simple programs such as smart contracts.
 Possible side-effects are an abstract interpretation of execution traces.
-Therefore, the side-effect analysis is presented as a bottom-up interprocedural
+Therefore, our analysis is a bottom-up interprocedural
 denotational semantics that uses an interpretation\ie inductive information about
-the side-effect of the method calls triggered by the execution of a command.
+the side-effects of the methods.
 We do not discuss this further here, since it is standard technology
 in semantics~\cite{Winskel93} and abstract interpretation~\cite{CousotC77}.
 An example of computation is reported later.
 %
 \begin{definition}[Side-Effects Analysis]\label{def:side_effect}
-  The set of element types of the already existing lists possibly modified during the
-  execution of a command $\com$ is overapproximated by $\sideeffect{\com}$,
-  defined in Fig.~\ref{fig:side_effect} by using an \emph{interpretation} $I$ that
-  provides the possible side-effects of the methods.
-  %
   \begin{figure}[t]
     \begin{align*}
-      \sideeffect{c}&=\sideeffect{v}=\varnothing\\
-      \sideeffect{\field{\exp}{f}}&=\sideeffect{\exp}\\
-      \sideeffect{\aop{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
-      \sideeffect{\readmap{\exp_1}{\exp_2}{\exp_3}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup\sideeffect{\exp_3}\\
+      \sideeffect{c}&=\sideeffect{v}=\sideeffect{\nop}=\varnothing\\
       \sideeffect{\new{C}{\exp_1,\ldots,\exp_n}}&=I(C.C)\cup\bigcup_{i=1}^n\sideeffect{\exp_i}\\
-      \sideeffect{\size{\exp}}=\sideeffect{\last{\exp}}&=\sideeffect{\random{\exp}}=\sideeffect{\exp}
-    \end{align*}
-    \begin{align*}
-      \sideeffect{\assign{v}{\exp}}&=\sideeffect{\exp}\\
-      \sideeffect{\assign{\field{\exp_1}{f}}{\exp_2}}&=\sideeffect{\exp_2}\cup\sideeffect{\exp_2}\\
-      \sideeffect{\writemap{\exp_1}{\exp_2}{\exp_3}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup\sideeffect{\exp_3}\\
-      \sideeffect{\require{\exp_1}{\exp_2}}&=\sideeffect{\receive{\exp_1}{\exp_2}}=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
       \sideeffect{\push{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup
       \{t\mid\exp_1\text{ has type }\<List<>t\<\text{>}>\}\\
       \sideeffect{\call{\exp_0}{m}{\exp_1,\ldots,\exp_n}}&=\bigcup_{j=1}^k I(C_j.m)\cup\bigcup_{i=0}^n\sideeffect{\exp_i}\\
       \noalign{\centering\text{where $C_1.m\cdots C_k.m$ are the methods possibly called here}}
-      \sideeffect{\nop}&=\varnothing\\
-      \sideeffect{\ifetwo{\exp_1}{\exp_2}{\com_1}{\com_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup\sideeffect{\com_1}\cup\sideeffect{\com_2}\\
-      \sideeffect{\for{v}{\exp}{\com}}&=\sideeffect{\exp}\cup\sideeffect{\com}\\
-      \sideeffect{\sequence{\com_1}{\com_2}}&=\sideeffect{\com_1}\cup\sideeffect{\com_2}.
+      \sideeffect{\ifetwo{\exp_1}{\exp_2}{\com_1}{\com_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup\sideeffect{\com_1}\cup\sideeffect{\com_2}.
     \end{align*}
-    \caption{The side-effect rules. They use an interpretation $I$ for the methods.}
+    \caption{The side-effect rules. They use an interpretation $I$ for the methods. The cases of expressions and commands
+    not shown here are just a recursive descent on their syntax, as shown for the conditional command.}
     \label{fig:side_effect}
   \end{figure}
+  %
+  The set of element types of the already existing lists possibly modified during the
+  execution of a command $\com$ is overapproximated by $\sideeffect{\com}$,
+  defined in Fig.~\ref{fig:side_effect} by using an \emph{interpretation} $I$ that
+  provides the possible side-effects of the methods.
 \end{definition}
 %
-The rules in Fig.~\ref{fig:side_effect} are just a recursive descent on the syntax of
-expressions and commands. The origin of the side-effect are the \<push> commands,
-that might side-effect all lists whose element type $t$ is that of the receiver of
-the \<push>. Method (and hence constructors) use the interpetation $I$ as an oracle
-about the side-effects of the callee(s).
-We recall that a method call in object-oriented languages may actually call a subset
+The origin of the side-effects are the \<push> commands (Fig.~\ref{fig:side_effect}),
+that might side-effect all lists whose element type $t$ is that of their receiver.
+Methods (and hence constructors) use the interpetation $I$ as an oracle
+about the side-effects of their callee(s).
+A method call, in object-oriented languages, may actually call a subset
 $\{C_1.m\cdots C_k.m\}$ of the redefinitions of its static target method.
 A sound overapproximation of $\{C_1.m\cdots C_k.m\}$
-can always be easily inferred statically, as the set of \emph{all} possible
-redefinitions. More precise analyses exist~\cite{TipP00} as well,
-but they are probably overkill for minimalistic code such as smart contracts,
-that very rarely redefine methods.
+can always be easily inferred statically as the set of \emph{all} possible
+redefinitions. More precise analyses exist~\cite{TipP00},
+but they are probably overkill for smart contracts, that very rarely redefine methods.
 
-The computation of the side-effect analysis
-starts from the empty interpretation $I_0$, that provides $\varnothing$ as
-side-effects of every method. The bodies of the methods
-(hence also of the constructors) of the program are then analyzed with the rules
+The computation of the analysis
+starts from an interpretation $I_0$ that yields $\varnothing$ as
+side-effects of every method. The methods' bodies are then analyzed with the rules
 in Fig.~\ref{fig:side_effect}, using $I=I_0$, to get an improved interpretation $I_1$.
-This process is repeated to yield $I_2$ and so on, until a fixpoint $\intsideeffect$
-is reached. This is guaranteed to happen after a finite number of iterations
+This process is repeated to yield $I_2$ and so on, until a fixpoint $\intsideeffect$.
+This will be reached after a finite number of iterations
 since the rules in Fig.~\ref{fig:side_effect} are monotonic and the set of element types
-of lists used in each given program is finite.
+of lists used in a program is finite.
 
 \begin{example}\label{ex:side_effect}
   Fig.~\ref{fig:side_effect_examples} reports $\intsideeffect$ for the smart contracts from
-  Sec.~\ref{sec:examples}\ie the element types of the lists potentially modified during
-  the execution of each of their methods.
+  Sec.~\ref{sec:examples}\ie the element types of lists potentially modified during
+  the execution of their methods.
   Consider Fig.~\ref{fig:side_effect_lottery1}, for instance.
-  Its computation starts from $I_0$ such that $I_0(M)=\varnothing$ for each method $M$.
+  Its computation starts from an $I_0$ such that $I_0(M)=\varnothing$ for each $M$.
   Then $I_1(\<TicketBatchSale.TicketBatchSale>)=\sideeffect{\com}=\varnothing$,
-  where $\com$ is the body of that constructor (Fig.~\ref{fig:lottery1}) and
-  by the rules for $\assign{\field{\exp}{f}}{\exp}$ and for $\sequence{\com}{\com}$ in
-  Fig.~\ref{fig:side_effect}. Similarly,
-  $I_1(\<Round.Round>)=\sideeffect{\com}=\varnothing$, where $\com$ is the body of
-  that constructor, by the same rules as above
-  and since $\sideeffect{\<this.sales=new List()>}=I_0(\<List.List>)=\varnothing$.
-  Moreover, $I_1(\<Lottery1.Lottery1>)=\{\<Round>\}$, by the same rules as above
+  where $\com$ is that constructor's body
+  (line~\ref{lottery1:constructor_tbs} in Fig.~\ref{fig:lottery1}) and
+  by the rules in Fig.~\ref{fig:side_effect} (recursive descent, there is no \<push> inside
+  $\com$). Similarly, $I_1(\<Round.Round>)=\varnothing$ as above and
+  since $\sideeffect{\<new List()>}=I_0(\<List.List>)=\varnothing$ (rule for
+  constructors in Fig.~\ref{fig:side_effect}).
+  $I_1(\<Lottery1.Lottery1>)=\{\<Round>\}$ as above
   and since $\sideeffect{\<rounds.push(...)>}=\{\<Round>\}$ by the rule for \<push>
-  in Fig.~\ref{fig:side_effect}. In the same way, it is
+  in Fig.~\ref{fig:side_effect}. Similarly,
   $I_1(\<Lottery.buy>)=\{\<Round>,\<TicketBatchSale>\}$ and
   $I_1(\<Lottery.drawWinner>)=\varnothing$. The computation of $I_2$ leads to
-  $I_2=I_1$, hence $I_1$ is the fixpoint, reported in Fig.~\ref{fig:side_effect_examples}.
+  $I_2=I_1$, hence $I_1$ is the fixpoint in Fig.~\ref{fig:side_effect_examples}.
   %
   \begin{figure}[t]
     \begin{center}
@@ -101,7 +84,7 @@ of lists used in each given program is finite.
         \intsideeffect(\<Ponzi1.invest>)&=\{\<Contract>\}
       \end{align*}
       \caption{The side-effect analysis of the smart contract in Fig.~\ref{fig:ponzi1}
-      (similar analysis also for that in Fig.~\ref{fig:ponzi3}).}
+      (same analysis also for that in Fig.~\ref{fig:ponzi3}).}
     \end{subfigure}
     \qquad
     \begin{subfigure}{0.42\textwidth}
@@ -121,7 +104,7 @@ of lists used in each given program is finite.
         \intsideeffect(\<Lottery1.drawWinner>)&=\varnothing
       \end{align*}
       \caption{The side-effect analysis of the smart contract in Fig.~\ref{fig:lottery1}
-        (the analysis remains similar after the modification in Fig.~\ref{fig:lottery2}).}
+        (the analysis is the same for the modification in Fig.~\ref{fig:lottery2}).}
       \label{fig:side_effect_lottery1}
     \end{subfigure}
     \end{center}
@@ -132,12 +115,10 @@ of lists used in each given program is finite.
 %
 The approximations in Fig.~\ref{fig:side_effect_examples} are correct
 but sometimes imprecise. For instance, $\intsideeffect(\<Ponzi1.Ponzi1>)=\{\<Contract>\}$
-is correct but could be improved
-to a more precise $\intsideeffect(\<Ponzi1.Ponzi1>)=\varnothing$,
-since no existing list of \<Contract> is modified by the execution of that constructor:
-the list modified at line~\ref{ponzi1:creator} of Fig.~\ref{fig:ponzi1}
-is a fresh new list created at the previous line, not a list that existed before the
-execution of the constructor.
-These imprecisions could be overcome with more complex analyses,
-but the results in Fig.~\ref{fig:side_effect_examples} are good enough for our purposes.
-In the following, we just assume that $\intsideeffect{}$ has been computed.
+is correct but could be improved as $\intsideeffect(\<Ponzi1.Ponzi1>)=\varnothing$,
+since no existing list of \<Contract> is modified by that constructor:
+the one at line~\ref{ponzi1:creator} of Fig.~\ref{fig:ponzi1}
+is a fresh new list created at the previous line, not existing before the
+execution of the constructor. More complex analyses can ovecome these imprecisions,
+but the results in Fig.~\ref{fig:side_effect_examples} are good enough here.
+%In the following, we just assume that $\intsideeffect{}$ has been computed.

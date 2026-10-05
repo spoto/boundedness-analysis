@@ -21,7 +21,7 @@ We assume to analyze programs written in a minimalistic language.
 
 \begin{definition}[Program]\label{def:program}
   A \emph{program} is a collection of \emph{classes}.
-  Each class $C$ has a superclass, some \emph{field signatures} $C.f$
+  Each class $C$ has a \emph{superclass}, some \emph{field signatures} $C.f$
   and some \emph{methods} $C.m$, declared as
   \[
   C.m(p_1:t_1,\ldots,p_n:t_n)\ \<let>\ l_1:t_1',\ldots,l_q:t_q'\ \<in>\ \com,
@@ -30,28 +30,14 @@ We assume to analyze programs written in a minimalistic language.
   formal parameters, of type $t_1\cdots t_n$, and $l_1\cdots l_q$ are its
   local variables, of type $t_1'\cdots t_q'$. Local variables include the
   implicit variables \<this> (the \emph{receiver} of $C.m$),
-  \<caller> (the contract that called $C.m$) and \<now> (the current time).
-  If $C.m$ is \<payable>, local variables include also
-  \<amount> (the cryptocurrency paid for calling $C.m$).
-  A class that extends \<Contract>
-  (possibly indirectly) is called a \emph{smart contract}.
+  \<caller> (the calling contract of $C.m$) and \<now> (the current time).
+  If $C.m$ is \<payable>, they also include \<amount>
+  (the cryptocurrency paid for calling $C.m$).
+  A class that extends \<Contract> is called a \emph{smart contract}.
   A \emph{constructor} is a method $C.C$ named like the class $C$ that declares it.
   A type is either \emph{primitive} (such as \<int>)
   or a class name $C$. Generic class types (such as lists) are written as
   \<List<t\texttt{>}>, where \<t> is the type of the elements of the list.
-  %The variables in scope inside a method
-  %form its \emph{typing}\ie a map from each variable in scope to
-  %its declared type. Namely, the typing $\tau_{C.m}$ of the method $C.m$ above is the map
-  %$\tau_{C.m}=\{p_1\mapsto t_1,\ldots,p_n\mapsto t_n,l_1\mapsto t_1',\ldots,l_q\mapsto t_q'\}$.
   Fields $C.f$ can be \<final>, if they are assigned exactly once in each
-  constructor of $C$.
-  We assume that programs are type-checked.
+  constructor of $C$. We assume programs type-checked.
 \end{definition}
-%
-%Fields and methods can have modifiers such as \<public>, \<private>,
-%\<final> and \<payable>, that we do not introduce formally and have the
-%usual meaning as, for instance, in Java or Solidity. For simplicity, we
-%assume that methods do not return any value.
-%We write $\tau_{C.m}(\exp)$ for the static type of an expression $\exp$ occurring inside
-%method $C.m$. Its definition is not formalized here, since it is the usual recursive
-%definition used by any strongly-typed language.

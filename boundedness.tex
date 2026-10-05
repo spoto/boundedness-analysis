@@ -389,29 +389,6 @@ the new approximation at that program point is computed from the old one as
   of a boundedness state at each program point must terminate in
   a finite number of iterations.
 \end{proposition}
-\begin{proof}
-  By~\cite{CousotC77}, one must prove that $\nabla$ is an upper bound operator and that
-  its application to any ascending chain stabilizes. The upper bound property holds since
-  for every $(\size{\pi}\le n)\in\nabla(\|bo|_1,\|bo|_2)$ it is
-  $(\size{\pi}\le n)\in\|bo|_1$ and $(\size{\pi}\le n)\in\|bo|_2$.
-  Therefore, $\|bo|_1\sqsubseteq\nabla(\|bo|_1,\|bo|_2)$ and
-  $\|bo|_2\sqsubseteq\nabla(\|bo|_1,\|bo|_2)$.
-  Consider an ascending chain $\|bo|_0\sqsubseteq\|bo|_1\sqsubseteq\cdots\sqsubseteq
-  \|bo|_k\sqsubseteq\cdots$ now. The application of the widening yields the sequence
-  $\|bo|'_0=\|bo|_0$, $\|bo|'_{k+1}=(\|bo|'_k\sqcup\|bo|_{k+1})\nabla\|bo|'_k$ for $k\ge 0$.
-  By Def.~\ref{def:widening}, it is
-  $\|bo|'_0\supseteq\cdots\supseteq\|bo|'_{k}\supseteq\|bo|'_{k+1}\supseteq\cdots$.
-  If, by contradiction, that sequence were not converging, then one can extract an
-  infinite strictly decreasing subsequence
-  $\|bo|''_0\supset\cdots\supset\|bo|''_{k}\supset\|bo|''_{k+1}\supset\cdots$, which is
-  impossible since $\|bo|_0$ and $\|bo|_0'$ are assumed to be finite and
-  consequently also $\|bo|_0''\subseteq\|bo|_0$ is finite.
-  Note that the fact that $\nabla$ is a widening operator on \emph{finite} elements
-  of $\botwo$ is sufficient for termination, since the rules in
-  Fig.~\ref{fig:bo_derivations_expressions}, \ref{fig:bo_derivations_commands1}
-  and~\ref{fig:bo_derivations_commands2}
-  lead to finite states if started from $\varnothing$, as one can be easily prove by induction.
-\end{proof}
 
 In the following, we assume that a boundedness state has been computed at each program point.
 This information is used to warn about boundedness bugs.
