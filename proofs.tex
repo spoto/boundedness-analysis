@@ -5,7 +5,7 @@
 
 \noindent
 \textbf{Full definition of the rules of Def.~\ref{def:side_effect} at page~\pageref{def:side_effect}.}
-The complete definition f the rules for the side-effect of expressions and
+The complete definition of the rules for the side-effect of expressions and
 commands is given in Fig.~\ref{fig:side_effect_full}.
 %
 \begin{figure}[b]
@@ -13,14 +13,12 @@ commands is given in Fig.~\ref{fig:side_effect_full}.
     \sideeffect{c}&=\sideeffect{v}=\varnothing\\
     \sideeffect{\field{\exp}{f}}&=\sideeffect{\exp}\\
     \sideeffect{\aop{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
-    \sideeffect{\readmap{\exp_1}{\exp_2}{\exp_3}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup\sideeffect{\exp_3}\\
     \sideeffect{\new{C}{\exp_1,\ldots,\exp_n}}&=I(C.C)\cup\bigcup_{i=1}^n\sideeffect{\exp_i}\\
     \sideeffect{\size{\exp}}=\sideeffect{\last{\exp}}&=\sideeffect{\random{\exp}}=\sideeffect{\exp}
   \end{align*}
   \begin{align*}
     \sideeffect{\assign{v}{\exp}}&=\sideeffect{\exp}\\
     \sideeffect{\assign{\field{\exp_1}{f}}{\exp_2}}&=\sideeffect{\exp_2}\cup\sideeffect{\exp_2}\\
-    \sideeffect{\writemap{\exp_1}{\exp_2}{\exp_3}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup\sideeffect{\exp_3}\\
     \sideeffect{\require{\exp_1}{\exp_2}}&=\sideeffect{\receive{\exp_1}{\exp_2}}=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
     \sideeffect{\push{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup
     \{t\mid\exp_1\text{ has type }\<List<>t\<\text{>}>\}\\
@@ -55,7 +53,7 @@ commands is given in Fig.~\ref{fig:side_effect_full}.
   impossible since $\|bo|_0$ and $\|bo|_0'$ are assumed to be finite and
   consequently also $\|bo|_0''\subseteq\|bo|_0$ is finite.
   Note that the fact that $\nabla$ is a widening operator on \emph{finite} elements
-  of $\botwo$ is sufficient for termination, since the rules in
+  of $\bo$ is sufficient for termination, since the rules in
   Fig.~\ref{fig:bo_derivations_expressions}, \ref{fig:bo_derivations_commands1}
   and~\ref{fig:bo_derivations_commands2}
   lead to finite states if started from $\varnothing$, as one can be easily prove by induction.

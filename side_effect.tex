@@ -78,22 +78,13 @@ of lists used in a program is finite.
   %
   \begin{figure}[t]
     \begin{center}
-    \begin{subfigure}{0.42\textwidth}
+    \begin{subfigure}{\textwidth}
       \begin{align*}
         \intsideeffect(\<Ponzi1.Ponzi1>)&=\{\<Contract>\}\\
         \intsideeffect(\<Ponzi1.invest>)&=\{\<Contract>\}
       \end{align*}
-      \caption{The side-effect analysis of the smart contract in Fig.~\ref{fig:ponzi1}
-      (same analysis also for that in Fig.~\ref{fig:ponzi3}).}
-    \end{subfigure}
-    \qquad
-    \begin{subfigure}{0.42\textwidth}
-      \begin{align*}
-        \intsideeffect(\<Ponzi2.Ponzi2>)&=\{\<Contract>\}\\
-        \intsideeffect(\<Ponzi2.invest>)&=\{\<Contract>\}\\
-        \intsideeffect(\<Ponzi2.withdraw>)&=\varnothing
-      \end{align*}
-      \caption{The side-effect analysis of the smart contract in Fig.~\ref{fig:ponzi2}.}
+      \caption{The side-effect analysis of \<Ponzi1> in Fig.~\ref{fig:ponzi1}
+      (that of \<Ponzi2> in Fig.~\ref{fig:ponzi2} is similar).}
     \end{subfigure}\\
     \begin{subfigure}{\textwidth}
       \begin{align*}
@@ -103,8 +94,8 @@ of lists used in a program is finite.
         \intsideeffect(\<Lottery1.buy>)&=\{\<Round,TicketBatchSale>\}\\
         \intsideeffect(\<Lottery1.drawWinner>)&=\varnothing
       \end{align*}
-      \caption{The side-effect analysis of the smart contract in Fig.~\ref{fig:lottery1}
-        (the analysis is the same for the modification in Fig.~\ref{fig:lottery2}).}
+      \caption{The side-effect analysis of \<Lottery1> in Fig.~\ref{fig:lottery1}
+        (that of \<Lottery2> in Fig.~\ref{fig:lottery2} is similar).}
       \label{fig:side_effect_lottery1}
     \end{subfigure}
     \end{center}
@@ -121,4 +112,3 @@ the one at line~\ref{ponzi1:creator} of Fig.~\ref{fig:ponzi1}
 is a fresh new list created at the previous line, not existing before the
 execution of the constructor. More complex analyses can ovecome these imprecisions,
 but the results in Fig.~\ref{fig:side_effect_examples} are good enough here.
-%In the following, we just assume that $\intsideeffect{}$ has been computed.

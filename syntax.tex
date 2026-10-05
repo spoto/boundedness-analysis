@@ -1,6 +1,11 @@
 \section{Syntax of a Minimalistic Smart Contract Language}\label{sec:syntax}
 
 We assume to analyze programs written in a minimalistic language.
+It is just the kernel of an imperative object-oriented language for
+smart contracts, with lists as containers. It is possible to add maps
+as containers as well, but we only allow lists to keep
+the presentation simple. Moreover, maps are seldom iterated in smart
+contracts. In Solidity, they \emph{cannot} be iterated, by language design.
 %
 \begin{definition}[Expressions and Commands]\label{def:exp_com}
   The set of \emph{xpressions} $\Exp$ and the set of
@@ -10,9 +15,9 @@ We assume to analyze programs written in a minimalistic language.
   operator ($+$, $-$, $*$\ldots) and $\mathit{cop}$ is a comparison operator
   ($<,\le,=,\not=$\ldots):
   \begin{align*}
-    \exp::=&\ \mathit{c}\mid\mathit{v}\mid\field{\exp}{f}\mid\aop{\exp}{\exp}\mid\readmap{\exp}{\exp}{\exp}\\
+    \exp::=&\ \mathit{c}\mid\mathit{v}\mid\field{\exp}{f}\mid\aop{\exp}{\exp}\\
     &\mid\new{C}{\exp^*}\mid\size{\exp}\mid\last{\exp}\mid\random{\exp}\\
-    \com::=&\ \assign{\mathit{v}}{\exp}\mid\assign{\field{\exp}{f}}{\exp}\mid\writemap{\exp}{\exp}{\exp}
+    \com::=&\ \assign{\mathit{v}}{\exp}\mid\assign{\field{\exp}{f}}{\exp}
     \mid\require{\exp}{\exp}\\
     &\mid\push{\exp}{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\mid\nop\\
     &\mid\ife{\exp}{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}{\com}\mid\sequence{\com}{\com}.

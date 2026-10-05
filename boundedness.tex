@@ -5,7 +5,7 @@ the results of a preliminary side-effect analysis (Sec.~\ref{sec:side_effect}).
 
 \emph{Paths} are expressions of the language
 (Def.~\ref{def:exp_com}) that start from a variable and dereferences \<final> fields,
-hence their value cannot be affected by side-effect.
+so that their value cannot be affected by side-effect.
 %
 \begin{definition}[Paths]\label{def:path}
   The set $\paths\subseteq\Exp$ of \emph{paths} is the minimal set such that
@@ -60,20 +60,20 @@ Otherwise, $\pi$ is said to \emph{survive}.
   \size{\pi_k}\le n_k
   \end{array}\right|\pi_i\in\paths\text{ and }n_i\in\nat\text{ for every $i=1,\ldots,k$}\right\}.
   \]
-  The set of all possible boundedness states is $\botwo$.
+  The set of all possible boundedness states is $\bo$.
 \end{definition}
 %
 The intuition is that \|bo| represents the set of all concrete states
 where $\pi_i$ holds a list whose length is at most $n_i$, for every $i=1,\ldots,k$.
 %
 \begin{proposition}[Abstract Domain]\label{prop:abstract_domain}
-  In terms of abstract interpretation, any $\|bo|\in\botwo$ is an abstraction
-  of concrete states and $\botwo$ is an abstract domain whose elements
+  In terms of abstract interpretation, any $\|bo|\in\bo$ is an abstraction
+  of concrete states and $\bo$ is an abstract domain whose elements
   are ordered as $\|bo|_1\sqsubseteq\|bo|_2$
   if and only if for every $(\size{\pi}\le n)\in\|bo|_2$ there exists
   $(\size{\pi}\le n')\in\|bo|_1$ with $n'\le n$.
-  Therefore, $\varnothing$ is the top (least precise) element of $\botwo$.
-  The least upper bound operator on $\botwo$ is
+  Therefore, $\varnothing$ is the top (least precise) element of $\bo$.
+  The least upper bound operator on $\bo$ is
   \[
   \|bo|_1\sqcup\|bo|_2=\left\{\size{\pi}\le\max(n_1,n_2)\left|\begin{array}{l}
   (\size{\pi}\le n_1)\in\|bo|_1\\
@@ -87,7 +87,7 @@ is a single variable, since paths only refer to \<final> fields,
 whose value cannot be changed.
 %
 \begin{definition}[Bounds Invalidation]\label{def:invalidation}
-  Given $\|bo|\in\botwo$ and $\pi\in\paths$, the \emph{invalidation of $\pi$ in $\|bo|$} is
+  Given $\|bo|\in\bo$ and $\pi\in\paths$, the \emph{invalidation of $\pi$ in $\|bo|$} is
   \[
   \|bo|^{-\pi}=\begin{cases}
   \{(\size{\pi'}\le n)\in\|bo|\mid\pi'\text{ is not rooted at }v\} & \text{if $\pi$ is a variable $v$}\\
@@ -101,8 +101,8 @@ when it carries information about the size of a path.
 Similarly, an assignment can sometimes improve a boundedness state.
 %
 \begin{definition}[Bounds Improvement and Assignment]\label{def:improvement}
-  Given $\|bo|\in\botwo$ and a comparison expression $\cop{\exp_1}{\exp_2}$, the
-  \emph{improvement of \|bo| \wrt $\cop{\exp_1}{\exp_2}$} is
+  Given $\|bo|\in\bo$, the
+  \emph{improvement of \|bo| \wrt a comparison expression $\cop{\exp_1}{\exp_2}$} is
   \begin{align*}
     \|improve|(\|bo|,\copfull{\size{\pi}}{\le}{n})&=\|bo|\cup\{\size{\pi}\le n\}\\
     \|improve|(\|bo|,\copfull{\size{\pi}}{<}{n})&=\|bo|\cup\{\size{\pi}\le n-1\}\\
@@ -110,7 +110,7 @@ Similarly, an assignment can sometimes improve a boundedness state.
     \|improve|(\|bo|,\copfull{n}{>}{\size{\pi}})&=\|bo|\cup\{\size{\pi}\le n-1\}\\
     \|improve|(\|bo|,\cop{\exp_1}{\exp_2})&=\|bo|\text{ in all other cases.}
   \end{align*}
-  The \emph{assignment in \|bo|} is ($\pi,\pi'\in\paths$):
+  The \emph{assignment in \|bo|} is (here, $\pi,\pi'\in\paths$):
   \begin{align*}
     \|assign|(\|bo|,\assign{\pi}{\new{\mathtt{List}}{}})&=\|bo|^{-\pi}\cup\{\size{\pi}\le 0\}\\
     \|assign|(\|bo|,\assign{\pi}{\pi'})&=\|bo|^{-\pi}\cup\{\size{\pi}\le n\mid(\size{\pi'}\le n)\in\|bo|\}\\
@@ -139,13 +139,13 @@ of Def.~\ref{def:bo}.
   %
   The boundedness derivation rule $\boderivation$ for expressions
   in Fig.~\ref{fig:bo_derivations_expressions} is a big step semantics
-  $\left(\Exp\times\botwo\right)\boderivation\botwo$
+  $\left(\Exp\times\bo\right)\boderivation\bo$
   that derives the approximation of the post-states
   from the approximation of the pre-states.
   The boundedness derivation rule $\boderivation$ for commands
   in Fig.~\ref{fig:bo_derivations_commands1} and~\ref{fig:bo_derivations_commands2}
   is a small step semantics
-  $\left(\Com\times\botwo\right)\boderivation(\Com\cup\{\varepsilon\}\times\botwo)$.
+  $\left(\Com\times\bo\right)\boderivation(\Com\cup\{\varepsilon\}\times\bo)$.
   A derivation $\pair{\com_1}{\|bo|}\boderivation\pair{\com_2}{\|bo|'}$ means that
   the execution of $\com_1$ from a boundedness state \|bo| performs a single
   step and then continues with the execution of $\com_2$ from a boundedness state $\|bo|'$.
@@ -158,8 +158,6 @@ of Def.~\ref{def:bo}.
       \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\assign{v}{\exp}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|assign|(\|bo|',\assign{v}{\exp})}}\\[1pt]
       % field assignment
       \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\assign{\field{\exp_1}{f}}{\exp_2}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|assign|(\|bo|'',\assign{\field{\exp_1}{f}}{\exp_2})}}\\[1pt]
-      % map assignment
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''\quad\pair{\exp_3}{\|bo|''}\boderivation\|bo|'''}{\pair{\readmap{\exp_1}{\exp_2}{\exp_3}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|'''}}\\[1pt]
       % push
       \frac{\begin{array}{c}
           \pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''\quad\exp_1\text{ has type \<List<$t$\texttt{>}>}\\
@@ -250,9 +248,8 @@ Otherwise, the derivation stops.
   of \<Ponzi1> (Fig.~\ref{fig:ponzi1}) are in Fig.~\ref{fig:boundedness_ponzi1}.
   They are always $\varnothing$, except after the assignment
   of an empty list to \<this.investors>. Note how a \<push> modifies the
-  bound upon propagation. The boundedness states for
-  \<Ponzi2> (Fig.~\ref{fig:ponzi2}) are similar. Those for \<Ponzi3> (Fig.~\ref{fig:ponzi3})
-  are in Fig.~\ref{fig:boundedness_ponzi3}. This time, the second \<require>
+  bound upon propagation. The boundedness states for \<Ponzi2> (Fig.~\ref{fig:ponzi2})
+  are in Fig.~\ref{fig:boundedness_ponzi2}. This time, the second \<require>
   improves the approximation of the bound on \<investors>.
   The boundedness states for \<Lottery1> (Fig.~\ref{fig:lottery1})
   and \<Lottery2> (Fig.~\ref{fig:lottery2})
@@ -289,11 +286,11 @@ Otherwise, the derivation stops.
 
   \begin{figure}[t]
     \begin{lstlisting}[language=pseudo]
-  public Ponzi3() {
+  public Ponzi2() {
     |\invariant{$\varnothing$}|
     investors = new List();
     |\invariant{$\{\size{\mathtt{this.investors}}\le 0\}$}|
-    investors.push(caller);|\label{line:boundedness_ponzi3_push1}|
+    investors.push(caller);|\label{line:boundedness_ponzi2_push1}|
     |\invariant{$\{\size{\mathtt{this.investors}}\le 1\}$}|
   }
 
@@ -309,12 +306,12 @@ Otherwise, the derivation stops.
       |\invariant{$\{\size{\mathtt{this.investors}}\le 99\}$}|
       investor.receive(eachInvestorGets);
     |\invariant{$\{\size{\mathtt{this.investors}}\le 99\}$}|
-    investors.push(caller);|\label{line:boundedness_ponzi3_push2}|
+    investors.push(caller);|\label{line:boundedness_ponzi2_push2}|
     |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
   }
     \end{lstlisting}
-    \caption{The boundedness states computed for \<Ponzi3> (Fig.~\ref{fig:ponzi3}).}
-    \label{fig:boundedness_ponzi3}
+    \caption{The boundedness states computed for \<Ponzi2> (Fig.~\ref{fig:ponzi2}).}
+    \label{fig:boundedness_ponzi2}
   \end{figure}
 
   \begin{figure}[t]
@@ -377,12 +374,12 @@ Otherwise, the derivation stops.
 
 In Ex.~\ref{ex:boundedness_computation}, the computation of the boundedness states
 converges. This is expected for simple code such as smart contracts. However,
-$\botwo$ has infinite ascending chains hence that computation
+$\bo$ has infinite ascending chains hence that computation
 might diverge, in general, and a widening operator is needed, to force
 termination after a given number $\kappa$ of iterations~\cite{CousotC77}.
 %
 \begin{definition}[Widening Operator]\label{def:widening}
-  The \emph{widening operator on $\botwo$} is set intersection:
+  The \emph{widening operator on $\bo$} is set intersection:
   $\nabla(\|bo|_1,\|bo|_2)=\|bo|_1\cap\|bo|_2$.
 \end{definition}
 %
@@ -396,7 +393,7 @@ the new approximation at that program point is computed from the old one as
 \]
 %
 \begin{proposition}[Termination]\label{prop:termination}
-  The operator $\nabla$ is a widening operator on finite elements of $\botwo$.
+  The operator $\nabla$ is a widening operator on finite elements of $\bo$.
   Therefore, the computation
   of a boundedness state at each program point must terminate in
   a finite number of iterations.
@@ -423,13 +420,12 @@ This information is used to warn about boundedness bugs.
   but the boundedness state computed at that \<push> is
   $\varnothing$ (Fig.~\ref{fig:boundedness_ponzi1}) and no
   $(\size{\mathtt{this.investors}}\le n)\in\varnothing$, for any $n\in\nat$.
-  The same holds for \<Ponzi2> (Fig.~\ref{fig:ponzi2}).
-  Instead, in \<Ponzi3> (Fig.~\ref{fig:ponzi3}), all lists of type $\<Contract>$
+  Instead, in \<Ponzi2> (Fig.~\ref{fig:ponzi2}), all lists of type $\<Contract>$
   are bounded since the boundedness state computed at the \<push>
-  at line~\ref{ponzi3:creator} is $\{\size{\mathtt{this.investors}}\le 0\}$
-  (Fig.~\ref{fig:boundedness_ponzi3})
-  and that computed at the \<push> at line~\ref{ponzi3:expand} is
-  $\{\size{\mathtt{this.investors}}\le 99\}$ (Fig.~\ref{fig:boundedness_ponzi3}).
+  at line~\ref{ponzi2:creator} is $\{\size{\mathtt{this.investors}}\le 0\}$
+  (Fig.~\ref{fig:boundedness_ponzi2})
+  and that computed at the \<push> at line~\ref{ponzi2:expand} is
+  $\{\size{\mathtt{this.investors}}\le 99\}$ (Fig.~\ref{fig:boundedness_ponzi2}).
   Similarly, in \<Lottery1> (Fig.~\ref{fig:lottery1}),
   not all lists of \<Round> and not all lists of \<TicketBatchSale> are bounded,
   since the boundedness state computed at the
@@ -455,9 +451,8 @@ This information is used to warn about boundedness bugs.
   \<Ponzi1> (Fig.~\ref{fig:ponzi1}), where a \<for> operates on
   \<this.investors> of type \<List<Contract\texttt{>}> but not all lists of
   \<Contract> are bounded in \<Ponzi1> (Ex.~\ref{ex:bounded_lists}).
-  Similarly, it warns at line~\ref{ponzi2:iteration} of \<Ponzi2>
-  (Fig.~\ref{fig:ponzi2}). But it does not warn
-  in \<Ponzi3> (Fig.~\ref{fig:ponzi3}), since all lists of \<Contract> are bounded there
+  But it does not warn
+  in \<Ponzi2> (Fig.~\ref{fig:ponzi2}), since all lists of \<Contract> are bounded there
   (Ex.~\ref{ex:bounded_lists}). It warns instead
   at line~\ref{lottery1:iteration} of \<Lottery1> (Fig.~\ref{fig:lottery1}),
   since the \<for> command there operates on \<this.round.sales> of type

@@ -38,27 +38,20 @@
 \newcommand{\last}[1]{{#1}\mathtt{.last()}}
 \newcommand{\new}[2]{\mathtt{new}\ \mathit{#1}\mathtt{(}{#2}\mathtt{)}}
 \newcommand{\call}[3]{{#1}\mathtt{.}{#2}\mathtt{(}{#3}\mathtt{)}}
-\newcommand{\readmap}[3]{{#1}\mathtt{[}{#2}\mathtt{]\ else\ }{#3}}
-\newcommand{\writemap}[3]{{#1}\mathtt{[}{#2}\mathtt{]:=}{#3}}
 \newcommand{\push}[2]{{#1}\mathtt{.push(}{#2}\mathtt{)}}
 \newcommand{\receive}[2]{{#1}\mathtt{.receive(}{#2}\mathtt{)}}
-\newcommand{\requirefull}[3]{\mathtt{require(}{#1}\ \mathit{{#2}}\ {#3}\mathtt{)}}
 \newcommand{\require}[2]{\mathtt{require(}\cop{#1}{#2}\mathtt{)}}
 \newcommand{\assign}[2]{{#1}\mathtt{:=}{#2}}
 \newcommand{\nop}{\mathtt{nop}}
-\newcommand{\ifefull}[5]{\mathtt{if\ (}{#1}\ \mathit{#2}\ {#3}\mathtt{)\ then\ }{#4}\mathtt{\ else\ }{#5}}
-\newcommand{\ife}[4]{\ifefull{#1}{cop}{#2}{#3}{#4}}
+\newcommand{\ife}[4]{\mathtt{if\ (}{#1}\ \mathit{cop}\ {#2}\mathtt{)\ then\ }{#3}\mathtt{\ else\ }{#4}}
 \newcommand{\ifetwo}[4]{\begin{array}{l}
     \mathtt{if\ (}{#1}\ \mathit{cop}\ {#2}\mathtt{)}\\
     \mathtt{\ then\ }{#3}\mathtt{\ else\ }{#4}
 \end{array}}
 \newcommand{\for}[3]{\mathtt{for\ }{#1}\mathtt{\ in\ }{#2}\ {#3}}
 \newcommand{\sequence}[2]{{#1}\mathtt{;}{#2}}
-\newcommand{\da}[1]{\vdash_{\mathbb{DA}_{{#1}}}}
-\newcommand{\botwo}{{\mathbb{BO}}}
-\newcommand{\boderivation}{\vdash_\botwo}
-\newcommand{\bodenotations}[1]{\mathsf{BO}_{{#1}}}
-\newcommand{\bo}[2]{\mathbb{BO}_{{#1}}\left\llbracket{{#2}}\right\rrbracket}
+\newcommand{\bo}{{\mathbb{BO}}}
+\newcommand{\boderivation}{\vdash_\bo}
 \newcommand{\Exp}{\mathsf{Exp}}
 \newcommand{\Com}{\mathsf{Com}}
 \newcommand{\Var}{\mathsf{Var}}
