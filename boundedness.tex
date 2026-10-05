@@ -100,7 +100,7 @@ A comparison operation between two expressions can improve a boundedness state,
 when it carries information about the size of a path.
 Similarly, an assignment can sometimes improve a boundedness state.
 %
-\begin{definition}[Bounds Improvement]\label{def:improvement}
+\begin{definition}[Bounds Improvement and Assignment]\label{def:improvement}
   Given $\|bo|\in\botwo$ and a comparison expression $\cop{\exp_1}{\exp_2}$, the
   \emph{improvement of \|bo| \wrt $\cop{\exp_1}{\exp_2}$} is
   \begin{align*}
@@ -146,6 +146,11 @@ of Def.~\ref{def:bo}.
   in Fig.~\ref{fig:bo_derivations_commands1} and~\ref{fig:bo_derivations_commands2}
   is a small step semantics
   $\left(\Com\times\botwo\right)\boderivation(\Com\cup\{\varepsilon\}\times\botwo)$.
+  A derivation $\pair{\com_1}{\|bo|}\boderivation\pair{\com_2}{\|bo|'}$ means that
+  the execution of $\com_1$ from a boundedness state \|bo| performs a single
+  step and then continues with the execution of $\com_2$ from a boundedness state $\|bo|'$.
+  A configuration $\pair{\varepsilon}{\|bo|}$ is a final configuration, reached when
+  the execution stops.
   %
   \begin{figure}[t]
     \begin{gather*}
@@ -196,11 +201,33 @@ of Def.~\ref{def:bo}.
   \end{figure}
 \end{definition}
 %
-For instance, $\pair{\com_1}{\|bo|}\boderivation\pair{\com_2}{\|bo|'}$ means that
-the execution of $\com_1$ from a boundedness state \|bo| performs a single
-step and then continues with the execution of $\com_2$ from a boundedness state $\|bo|'$.
-A configuration $\pair{\varepsilon}{\|bo|}$ is a final configuration, reached when
-the execution stops.
+In Fig.~\ref{fig:bo_derivations_expressions}, the
+rule for constructor call first evaluates
+the actual parameters, recursively, then projects the result on the bounds
+that are not affected by the side-effects of the constructor. This
+rule is intraprocedural, since it does not enter the body of the constructor
+but simply embeds its side-effects in the result.
+In Fig.~\ref{fig:bo_derivations_commands1}, the rule for method call
+works similarly, but considers the
+union of the side-effects of all targets of the call. The rules for assignment
+update the boundness aproximation with the effects of the assignment
+(Def.~\ref{def:improvement}). The rule for \<push> is the most interesting.
+It evaluates receiver and parameter of \<push> and then splits the
+resulting bounds into those about lists whose static type guarantees that
+they are unaffected by the \<push> ($\|bo|_{\mathit{survives}}$) and those for lists
+that, instead,
+might be affected ($\|bo|_{\neg\mathit{survives}}$). The approximation of the size
+of the former remains valid, while that of the latter is conservatively
+weakened by a unit (one element might be added to those lists).
+The rule for \<require> tries to improve (Def.~\ref{def:improvement}) the boundedness state
+with information entailed by the required condition, that must hold or
+otherwise the computation stops. In Fig.~\ref{fig:bo_derivations_commands2},
+the same occurs for the conditional, that non-deterministically proceeds
+to the \emph{then} branch if the condition holds and to the \emph{else} branch
+if its opposite holds. Finally, the rule for $\for{v}{\exp}{\com}$ evaluates
+$\exp$ and then executes a command $\com^{*,v}$ whose semantics
+is to execute $\com$ zero or more times, non-deterministically,
+every time reassigning $v$ before each iteration.
 
 The derivation rule in Fig.~\ref{fig:bo_derivations_commands1} and
 in~\ref{fig:bo_derivations_commands2} has been given
@@ -208,10 +235,12 @@ as a small step semantics in order to allow the computation of a
 boundedness state at the beginning of every command in the program, through an
 intraprocedural fixpoint that saturates all execution paths. Namely, at the beginning
 of each method with body $\com$, the analysis starts from the configuration
-$\pair{\com\,\xi}{\varnothing}$ and computes all possible derivations from there.
+$\pair{\com}{\varnothing}$ ($\varnothing$ is a worst-case assumption at the beginning
+of the method: nothing is known there about the size of the lists)
+and computes all possible derivations from there.
 Whenever a configuration $\pair{\com'\,\xi}{\|bo|}$ is reached, the analysis records
-$\|bo|$ as the state at the program point of $\com'$, if it did not exist yet.
-If, instead, a previous state $\|bo|_{\|old|}$ existed there,
+$\|bo|$ as the state at the program point of $\com'$, if no recording exists there yet.
+If, instead, a previous recorded state $\|bo|_{\|old|}$ exists there,
 the analysis records $\|bo|_{\|new|}=\|bo|_{\|old|}\sqcup\|bo|$ as the state at that program point.
 If $\|bo|_{\|new|}\not=\|bo|_{\|old|}$, the derivation continues from $\|bo|_{\|new|}$.
 Otherwise, the derivation stops.
@@ -387,7 +416,7 @@ This information is used to warn about boundedness bugs.
 %
 \begin{example}\label{ex:bounded_lists}
   Not all lists of $t=\<Contract>$ are bounded
-  in \<Ponzi1> (Fig.~\ref{fig:ponzi1}), since for instance the \<push>
+  in \<Ponzi1> (Fig.~\ref{fig:ponzi1}), since the \<push>
   at line~\ref{ponzi1:expand} operates on $\<this.investors>$, of type
   $\<List<$t'$\texttt{>}>$ with $t'=\<Contract>$, $t$ and $t'$ share a subtype
   (\ieinitial \<Contract> itself), $\<this.investors>\in\paths$
@@ -402,13 +431,13 @@ This information is used to warn about boundedness bugs.
   and that computed at the \<push> at line~\ref{ponzi3:expand} is
   $\{\size{\mathtt{this.investors}}\le 99\}$ (Fig.~\ref{fig:boundedness_ponzi3}).
   Similarly, in \<Lottery1> (Fig.~\ref{fig:lottery1}),
-  not all lists of \<Round> and not all lists of \<TickeBatchSale> are bounded,
+  not all lists of \<Round> and not all lists of \<TicketBatchSale> are bounded,
   since the boundedness state computed at the
   \<push> commands inside \<buy()> (Fig.~\ref{fig:lottery1}),
   that operate on such lists, is $\varnothing$ (Fig.~\ref{fig:boundedness_lottery1}).
   For the same reason, in \<Lottery2> (Fig.~\ref{fig:lottery2}),
   not all lists of \<Round> are bounded but all lists of \<TicketBatchSale>
-  are bounded, since the only \<push> that operates on them
+  are bounded, since the only \<push> that operates on the latter
   is in \<buy()>, it works on $\<last.sale>\in\paths$ and
   the boundedness state there is $\{\size{\mathtt{last.sale}}\le 4999\}$
   (Fig.~\ref{fig:boundedness_lottery2}). 
