@@ -1,4 +1,4 @@
-% LLNCS DOCUMENT CLASS -- version 2.14 (17-Aug-2004)
+% LLNCS DOCUMENT CLASS -- version 2.26 (25-Feb-2025)
 % Springer Verlag LaTeX2e support for Lecture Notes in Computer Science
 %
 %%
@@ -19,7 +19,7 @@
 %%   Right brace   \}     Tilde         \~}
 %%
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
-\ProvidesClass{llncs}[2004/08/17 v2.14
+\ProvidesClass{llncs}[2025/02/25 v2.26
 ^^J LaTeX document class for Lecture Notes in Computer Science]
 % Options
 \let\if@envcntreset\iffalse
@@ -35,6 +35,7 @@
 \let\if@runhead\iffalse
 \DeclareOption{runningheads}{\let\if@runhead\iftrue}
 
+\let\if@openright\iftrue
 \let\if@openbib\iffalse
 \DeclareOption{openbib}{\let\if@openbib\iftrue}
 
@@ -49,6 +50,7 @@
 
 \LoadClass[twoside]{article}
 \RequirePackage{multicol} % needed for the list of participants, index
+\RequirePackage{aliascnt}
 
 \setlength{\textwidth}{12.2cm}
 \setlength{\textheight}{19.3cm}
@@ -75,120 +77,123 @@
   \fi}
 %
 \def\switcht@albion{%
-\def\abstractname{Abstract.}
-\def\ackname{Acknowledgement.}
-\def\andname{and}
-\def\lastandname{\unskip, and}
-\def\appendixname{Appendix}
-\def\chaptername{Chapter}
-\def\claimname{Claim}
-\def\conjecturename{Conjecture}
-\def\contentsname{Table of Contents}
-\def\corollaryname{Corollary}
-\def\definitionname{Definition}
-\def\examplename{Example}
-\def\exercisename{Exercise}
-\def\figurename{Fig.}
-\def\keywordname{{\bf Key words:}}
-\def\indexname{Index}
-\def\lemmaname{Lemma}
-\def\contriblistname{List of Contributors}
-\def\listfigurename{List of Figures}
-\def\listtablename{List of Tables}
-\def\mailname{{\it Correspondence to\/}:}
-\def\noteaddname{Note added in proof}
-\def\notename{Note}
-\def\partname{Part}
-\def\problemname{Problem}
-\def\proofname{Proof}
-\def\propertyname{Property}
-\def\propositionname{Proposition}
-\def\questionname{Question}
-\def\remarkname{Remark}
-\def\seename{see}
-\def\solutionname{Solution}
-\def\subclassname{{\it Subject Classifications\/}:}
-\def\tablename{Table}
-\def\theoremname{Theorem}}
+\def\abstractname{Abstract.}%
+\def\ackname{Acknowledgments.}%
+\def\andname{and}%
+\def\lastandname{\unskip, and}%
+\def\appendixname{Appendix}%
+\def\chaptername{Chapter}%
+\def\claimname{Claim}%
+\def\conjecturename{Conjecture}%
+\def\contentsname{Table of Contents}%
+\def\corollaryname{Corollary}%
+\def\definitionname{Definition}%
+\def\discintname{Disclosure of Interests.}%
+\def\examplename{Example}%
+\def\exercisename{Exercise}%
+\def\figurename{Fig.}%
+\def\keywordname{{\bf Keywords:}}%
+\def\indexname{Index}%
+\def\lemmaname{Lemma}%
+\def\contriblistname{List of Contributors}%
+\def\listfigurename{List of Figures}%
+\def\listtablename{List of Tables}%
+\def\mailname{{\it Correspondence to\/}:}%
+\def\noteaddname{Note added in proof}%
+\def\notename{Note}%
+\def\partname{Part}%
+\def\problemname{Problem}%
+\def\proofname{Proof}%
+\def\propertyname{Property}%
+\def\propositionname{Proposition}%
+\def\questionname{Question}%
+\def\remarkname{Remark}%
+\def\seename{see}%
+\def\solutionname{Solution}%
+\def\subclassname{{\it Subject Classifications\/}:}%
+\def\tablename{Table}%
+\def\theoremname{Theorem}}%
 \switcht@albion
 % Names of theorem like environments are already defined
 % but must be translated if another language is chosen
 %
 % French section
 \def\switcht@francais{%\typeout{On parle francais.}%
- \def\abstractname{R\'esum\'e.}%
- \def\ackname{Remerciements.}%
- \def\andname{et}%
- \def\lastandname{ et}%
- \def\appendixname{Appendice}
- \def\chaptername{Chapitre}%
- \def\claimname{Pr\'etention}%
- \def\conjecturename{Hypoth\`ese}%
- \def\contentsname{Table des mati\`eres}%
- \def\corollaryname{Corollaire}%
- \def\definitionname{D\'efinition}%
- \def\examplename{Exemple}%
- \def\exercisename{Exercice}%
- \def\figurename{Fig.}%
- \def\keywordname{{\bf Mots-cl\'e:}}
- \def\indexname{Index}
- \def\lemmaname{Lemme}%
- \def\contriblistname{Liste des contributeurs}
- \def\listfigurename{Liste des figures}%
- \def\listtablename{Liste des tables}%
- \def\mailname{{\it Correspondence to\/}:}
- \def\noteaddname{Note ajout\'ee \`a l'\'epreuve}%
- \def\notename{Remarque}%
- \def\partname{Partie}%
- \def\problemname{Probl\`eme}%
- \def\proofname{Preuve}%
- \def\propertyname{Caract\'eristique}%
+\def\abstractname{R\'esum\'e.}%
+\def\ackname{Remerciements.}%
+\def\andname{et}%
+\def\lastandname{ et}%
+\def\appendixname{Appendice}%
+\def\chaptername{Chapitre}%
+\def\claimname{Pr\'etention}%
+\def\conjecturename{Hypoth\`ese}%
+\def\contentsname{Table des mati\`eres}%
+\def\corollaryname{Corollaire}%
+\def\definitionname{D\'efinition}%
+\def\discintname{Mention des Int\'{e}r\^{e}ts.}%
+\def\examplename{Exemple}%
+\def\exercisename{Exercice}%
+\def\figurename{Fig.}%
+\def\keywordname{{\bf Mots-cl\'e:}}%
+\def\indexname{Index}%
+\def\lemmaname{Lemme}%
+\def\contriblistname{Liste des contributeurs}%
+\def\listfigurename{Liste des figures}%
+\def\listtablename{Liste des tables}%
+\def\mailname{{\it Correspondence to\/}:}%
+\def\noteaddname{Note ajout\'ee \`a l'\'epreuve}%
+\def\notename{Remarque}%
+\def\partname{Partie}%
+\def\problemname{Probl\`eme}%
+\def\proofname{Preuve}%
+\def\propertyname{Caract\'eristique}%
 %\def\propositionname{Proposition}%
- \def\questionname{Question}%
- \def\remarkname{Remarque}%
- \def\seename{voir}
- \def\solutionname{Solution}%
- \def\subclassname{{\it Subject Classifications\/}:}
- \def\tablename{Tableau}%
- \def\theoremname{Th\'eor\`eme}%
+\def\questionname{Question}%
+\def\remarkname{Remarque}%
+\def\seename{voir}%
+\def\solutionname{Solution}%
+\def\subclassname{{\it Subject Classifications\/}:}%
+\def\tablename{Tableau}%
+\def\theoremname{Th\'eor\`eme}%
 }
 %
 % German section
 \def\switcht@deutsch{%\typeout{Man spricht deutsch.}%
- \def\abstractname{Zusammenfassung.}%
- \def\ackname{Danksagung.}%
- \def\andname{und}%
- \def\lastandname{ und}%
- \def\appendixname{Anhang}%
- \def\chaptername{Kapitel}%
- \def\claimname{Behauptung}%
- \def\conjecturename{Hypothese}%
- \def\contentsname{Inhaltsverzeichnis}%
- \def\corollaryname{Korollar}%
+\def\abstractname{Zusammenfassung.}%
+\def\ackname{Danksagung.}%
+\def\andname{und}%
+\def\lastandname{ und}%
+\def\appendixname{Anhang}%
+\def\chaptername{Kapitel}%
+\def\claimname{Behauptung}%
+\def\conjecturename{Hypothese}%
+\def\contentsname{Inhaltsverzeichnis}%
+\def\corollaryname{Korollar}%
 %\def\definitionname{Definition}%
- \def\examplename{Beispiel}%
- \def\exercisename{\"Ubung}%
- \def\figurename{Abb.}%
- \def\keywordname{{\bf Schl\"usselw\"orter:}}
- \def\indexname{Index}
+\def\discintname{Offenlegung von Interessen.}%
+\def\examplename{Beispiel}%
+\def\exercisename{\"Ubung}%
+\def\figurename{Abb.}%
+\def\keywordname{{\bf Schl\"usselw\"orter:}}%
+\def\indexname{Index}%
 %\def\lemmaname{Lemma}%
- \def\contriblistname{Mitarbeiter}
- \def\listfigurename{Abbildungsverzeichnis}%
- \def\listtablename{Tabellenverzeichnis}%
- \def\mailname{{\it Correspondence to\/}:}
- \def\noteaddname{Nachtrag}%
- \def\notename{Anmerkung}%
- \def\partname{Teil}%
+\def\contriblistname{Mitarbeiter}%
+\def\listfigurename{Abbildungsverzeichnis}%
+\def\listtablename{Tabellenverzeichnis}%
+\def\mailname{{\it Correspondence to\/}:}%
+\def\noteaddname{Nachtrag}%
+\def\notename{Anmerkung}%
+\def\partname{Teil}%
 %\def\problemname{Problem}%
- \def\proofname{Beweis}%
- \def\propertyname{Eigenschaft}%
+\def\proofname{Beweis}%
+\def\propertyname{Eigenschaft}%
 %\def\propositionname{Proposition}%
- \def\questionname{Frage}%
- \def\remarkname{Anmerkung}%
- \def\seename{siehe}
- \def\solutionname{L\"osung}%
- \def\subclassname{{\it Subject Classifications\/}:}
- \def\tablename{Tabelle}%
+\def\questionname{Frage}%
+\def\remarkname{Anmerkung}%
+\def\seename{siehe}%
+\def\solutionname{L\"osung}%
+\def\subclassname{{\it Subject Classifications\/}:}%
+\def\tablename{Tabelle}%
 %\def\theoremname{Theorem}%
 }
 
@@ -207,6 +212,20 @@
                \itemsep0\p@}%
    \belowdisplayskip \abovedisplayskip
 }
+
+% Switch to small font size for the credits at the end of the paper
+% (i.e. Acknowlegments and Disclosure of Interests)
+\newenvironment{credits}{%
+\begingroup\small%
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+        {-12\p@ \@plus -4\p@ \@minus -4\p@}%
+        {-0.5em \@plus -0.22em \@minus -0.1em}%
+        {\normalfont\small\bfseries\boldmath}}
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+        {-8\p@ \@plus -4\p@ \@minus -4\p@}%
+        {-0.5em \@plus -0.22em \@minus -0.1em}%
+        {\normalfont\small\itshape}}%
+}{\endgroup}
 
 \frenchspacing
 \widowpenalty=10000
@@ -372,7 +391,7 @@ You should not use \verb|\subparagraph| with this class.\vskip0.5cm}
 \let\footnotesize\small
 
 \if@custvec
-\def\vec#1{\mathchoice{\mbox{\boldmath$\displaystyle#1$}}
+\DeclareRobustCommand\vec[1]{\mathchoice{\mbox{\boldmath$\displaystyle#1$}}
 {\mbox{\boldmath$\textstyle#1$}}
 {\mbox{\boldmath$\scriptstyle#1$}}
 {\mbox{\boldmath$\scriptscriptstyle#1$}}}
@@ -539,23 +558,29 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
 
 \def\@dotsep{2}
 
+\let\phantomsection=\relax
+
 \def\hyperhrefextend{\ifx\hyper@anchor\@undefined\else
-{chapter.\thechapter}\fi}
+{}\fi}
 
 \def\addnumcontentsmark#1#2#3{%
 \addtocontents{#1}{\protect\contentsline{#2}{\protect\numberline
-                     {\thechapter}#3}{\thepage}\hyperhrefextend}}
+                     {\thechapter}#3}{\thepage}\hyperhrefextend}}%
 \def\addcontentsmark#1#2#3{%
-\addtocontents{#1}{\protect\contentsline{#2}{#3}{\thepage}\hyperhrefextend}}
+\addtocontents{#1}{\protect\contentsline{#2}{#3}{\thepage}\hyperhrefextend}}%
 \def\addcontentsmarkwop#1#2#3{%
-\addtocontents{#1}{\protect\contentsline{#2}{#3}{0}\hyperhrefextend}}
+\addtocontents{#1}{\protect\contentsline{#2}{#3}{0}\hyperhrefextend}}%
 
 \def\@adcmk[#1]{\ifcase #1 \or
 \def\@gtempa{\addnumcontentsmark}%
   \or    \def\@gtempa{\addcontentsmark}%
   \or    \def\@gtempa{\addcontentsmarkwop}%
-  \fi\@gtempa{toc}{chapter}}
-\def\addtocmark{\@ifnextchar[{\@adcmk}{\@adcmk[3]}}
+  \fi\@gtempa{toc}{chapter}%
+}
+\def\addtocmark{%
+\phantomsection
+\@ifnextchar[{\@adcmk}{\@adcmk[3]}%
+}
 
 \def\l@chapter#1#2{\addpenalty{-\@highpenalty}
  \vskip 1.0em plus 1pt \@tempdima 1.5em \begingroup
@@ -779,6 +804,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
     \llap{\hb@xt@1em{\hss\@makefnmark\ }}\ignorespaces#1}
 
 \long\def\@makecaption#1#2{%
+  \small
   \vskip\abovecaptionskip
   \sbox\@tempboxa{{\bfseries #1.} #2}%
   \ifdim \wd\@tempboxa >\hsize
@@ -866,21 +892,36 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
    \or \ddagger\ddagger \else\@ctrerr\fi}}
 
 \def\inst#1{\unskip$^{#1}$}
+\def\orcidID#1{\unskip$^{\mbox{[#1]}}$} % added MR 2018-03-10, modified MR 2025-02-25
 \def\fnmsep{\unskip$^,$}
 \def\email#1{{\tt#1}}
+
 \AtBeginDocument{\@ifundefined{url}{\def\url#1{#1}}{}%
 \@ifpackageloaded{babel}{%
 \@ifundefined{extrasenglish}{}{\addto\extrasenglish{\switcht@albion}}%
 \@ifundefined{extrasfrenchb}{}{\addto\extrasfrenchb{\switcht@francais}}%
 \@ifundefined{extrasgerman}{}{\addto\extrasgerman{\switcht@deutsch}}%
+\@ifundefined{extrasngerman}{}{\addto\extrasngerman{\switcht@deutsch}}%
 }{\switcht@@therlang}%
+\providecommand{\keywords}[1]{\def\and{{\textperiodcentered} }%
+\par\addvspace\baselineskip
+\noindent\keywordname\enspace\ignorespaces#1}%
+\@ifpackageloaded{hyperref}{%
+\def\doi#1{\href{https://doi.org/\detokenize{#1}}{\url{https://doi.org/#1}}}}{
+\def\doi#1{https://doi.org/\detokenize{#1}}}
 }
 \def\homedir{\~{ }}
 
 \def\subtitle#1{\gdef\@subtitle{#1}}
 \clearheadinfo
 %
+%%% to avoid hyperref warnings
+\providecommand*{\toclevel@author}{999}
+%%% to make title-entry parent of section-entries
+\providecommand*{\toclevel@title}{0}
+%
 \renewcommand\maketitle{\newpage
+\phantomsection
   \refstepcounter{chapter}%
   \stepcounter{section}%
   \setcounter{section}{0}%
@@ -928,6 +969,8 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
 %
     \if!\the\tocauthor!\relax
       {\def\and{\noexpand\protect\noexpand\and}%
+       \def\inst##1{}%    added MR 2017-09-20 to remove inst numbers from the TOC
+       \def\orcidID##1{}% added MR 2017-09-20 to remove ORCID ids from the TOC
       \protected@xdef\toc@uthor{\@author}}%
     \else
       \def\\{\noexpand\protect\noexpand\newline}%
@@ -943,7 +986,9 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
        \else
          \edef\@author{\the\authorrunning}%
        \fi
-       \global\setbox\authrun=\hbox{\small\unboldmath\@author\unskip}%
+       \global\setbox\authrun=\hbox{\def\inst##1{}%    added MR 2017-09-20 to remove inst numbers from the runninghead
+                                    \def\orcidID##1{}% added MR 2017-09-20 to remove ORCID ids from the runninghead
+                                    \small\unboldmath\@author\unskip}%
        \ifdim\wd\authrun>\instindent
           \typeout{Names of authors too long for running head. Please supply}%
           \typeout{a shorter form with \string\authorrunning\space prior to
@@ -1010,17 +1055,25 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\def\@thmcountersep{}
-\def\@thmcounterend{.}
+\edef\@thmcountersep{}
+\edef\@thmcounterend{.}
 
 \def\spnewtheorem{\@ifstar{\@sthm}{\@Sthm}}
 
 % definition of \spnewtheorem with number
 
-\def\@spnthm#1#2{%
-  \@ifnextchar[{\@spxnthm{#1}{#2}}{\@spynthm{#1}{#2}}}
+\def\@spnthm#1#2{\@ifnextchar[{\@spxnthm{#1}{#2}}{\@spynthm{#1}{#2}}}
 \def\@Sthm#1{\@ifnextchar[{\@spothm{#1}}{\@spnthm{#1}}}
 
+% theorem-like environment with standard counter
+\def\@spynthm#1#2#3#4{\expandafter\@ifdefinable\csname #1\endcsname
+   {\@definecounter{#1}%
+   \expandafter\xdef\csname the#1\endcsname{\@thmcounter{#1}}%
+   \expandafter\xdef\csname #1name\endcsname{#2}%
+   \global\@namedef{#1}{\@spthm{#1}{\csname #1name\endcsname}{#3}{#4}}%
+                               \global\@namedef{end#1}{\@endtheorem}}}
+
+% theorem-like environment with section-wise counter (envcountsect)
 \def\@spxnthm#1#2[#3]#4#5{\expandafter\@ifdefinable\csname #1\endcsname
    {\@definecounter{#1}\@addtoreset{#1}{#3}%
    \expandafter\xdef\csname the#1\endcsname{\expandafter\noexpand
@@ -1029,20 +1082,21 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
    \global\@namedef{#1}{\@spthm{#1}{\csname #1name\endcsname}{#4}{#5}}%
                               \global\@namedef{end#1}{\@endtheorem}}}
 
-\def\@spynthm#1#2#3#4{\expandafter\@ifdefinable\csname #1\endcsname
-   {\@definecounter{#1}%
-   \expandafter\xdef\csname the#1\endcsname{\@thmcounter{#1}}%
-   \expandafter\xdef\csname #1name\endcsname{#2}%
-   \global\@namedef{#1}{\@spthm{#1}{\csname #1name\endcsname}{#3}{#4}}%
-                               \global\@namedef{end#1}{\@endtheorem}}}
-
+% theorem-like environment with shared counter (envcountsame)
 \def\@spothm#1[#2]#3#4#5{%
   \@ifundefined{c@#2}{\@latexerr{No theorem environment `#2' defined}\@eha}%
   {\expandafter\@ifdefinable\csname #1\endcsname
-  {\global\@namedef{the#1}{\@nameuse{the#2}}%
+  {\newaliascnt{#1}{#2}%
   \expandafter\xdef\csname #1name\endcsname{#3}%
-  \global\@namedef{#1}{\@spthm{#2}{\csname #1name\endcsname}{#4}{#5}}%
+  \if@envcntsect
+    % the following line, introduced in v2.24, fixes incorrect hypertexnames
+    % when envcountsect is used in combination with envcountsame
+    \@addtoreset{#1}{section}
+  \fi
+  \global\@namedef{#1}{\@spthm{#1}{\csname #1name\endcsname}{#4}{#5}}%
   \global\@namedef{end#1}{\@endtheorem}}}}
+
+
 
 \def\@spthm#1#2#3#4{\topsep 7\p@ \@plus2\p@ \@minus4\p@
 \refstepcounter{#1}%
@@ -1095,7 +1149,7 @@ to0pt{\kern0.55\wd0\vrule height0.45\ht0\hss}\box0}}}}
    \fi
 \fi
 
-%definition of divers theorem environments
+%definition of various theorem environments
 \spnewtheorem*{claim}{Claim}{\itshape}{\rmfamily}
 \spnewtheorem*{proof}{Proof}{\itshape}{\rmfamily}
 \if@envcntsame % alle Umgebungen wie Theorem.

@@ -1,20 +1,25 @@
 \section{Discussion}\label{sec:discussion}
 %
-\textbf{Be careful to clarify that complexity analysis is overkill for
-  this problem and too concrete.}
-
-Iteration on unbounded containers is an example of a software bug
-specific to smart contracts. This paper describes the issue and provides
-a solution as a sound static analysis based on abstract interpretation,
-that manages to identify unbounded iterations
-in actual examples of smart contracts.
+Iteration on unbounded containers is an example of an
+\emph{out-of-gas vulnerability} in smart contracts~\cite{AlbertGRS19}.
+This paper provides a sound static boundedness analysis
+based on abstract interpretation.
+Boundedness analysis can also be solved with
+cost analysis~\cite{AlbertAGP11} of the contracts~\cite{PerezKLMH20},
+with tools based on their translation
+into Datalog (MadMax~\cite{GrechKJBSS18}, in general unsound)
+or Horn clauses and polyedra (GASOL~\cite{AlbertCGRR20}, a sound tool).
+Cost analysis is more general, potentially more precise but also
+more expensive and complex than the very lightweight boundedness analysis
+presented here.
 
 We strived to make this paper self-contained. Therefore, our boundedness
 analysis builds solely on a simple but relatively weak side-effect analysis
 (Sec.~\ref{sec:side_effect}) that identifies lists by the
-static type of their elements. This is also a limitation: two lists with
-elements of the same type cannot be distinguished by our analysis, that
-would mark them both as unbounded even when only one of them were so.
-This could lead to imprecise results, that could be overcome by identifying
+type of their elements. This is also a limitation: the
+analysis cannot distinguish two lists with elements of the same type and
+would mark both as unbounded when either is unbounded.
+This can lead to imprecise results, that can be overcome by identifying
 lists in a more precise way, for instance, through a creation point analysis,
 a concretization of class analysis~\cite{TipP00}.
+
