@@ -4,7 +4,7 @@ import java.util.stream.Stream;
 
 import it.univr.boundedness.analyzer.syntax.types.Type;
 
-public record ArithmeticOperation(Expression exp1, AOP aop, Expression exp2) implements Expression {
+public record FieldWrite(Expression exp1, String f, Expression exp2) implements Command {	
 
 	@Override
 	public Stream<Type> sideEffects() {

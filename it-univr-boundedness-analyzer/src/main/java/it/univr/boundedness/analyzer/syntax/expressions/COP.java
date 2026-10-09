@@ -1,4 +1,5 @@
 package it.univr.boundedness.analyzer.syntax.expressions;
 
-public interface Comand {
+public enum COP {
+	LT, LE, GT, GE, EQ, NE
 }
