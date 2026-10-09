@@ -1,0 +1,53 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>25</maven.compiler.release>
+  </properties>
+
+  <groupId>it.univr.boundedness</groupId>
+  <artifactId>it-univr-boundedness-analyzer</artifactId>
+  <version>1.0</version>
+  <name>it-univr-boundedness-analyzer</name>
+  <description>Static analyzer for the boundedness property of smart contracts</description>
+
+  <organization>
+    <url>https://www.univr.it</url>
+    <name>Università di Verona</name>
+  </organization>
+
+  <inceptionYear>2026</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Fausto Spoto</name>
+      <email>fausto.spoto@univr.it</email>
+      <organization>Università di Verona</organization>
+      <organizationUrl>https://www.univr.it</organizationUrl>
+      <timezone>UTC+01:00</timezone>
+    </developer>
+  </developers>
+
+  <dependencies>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
