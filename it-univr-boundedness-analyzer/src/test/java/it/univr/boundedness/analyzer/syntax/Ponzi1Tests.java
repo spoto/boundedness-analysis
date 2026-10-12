@@ -1,8 +1,12 @@
 package it.univr.boundedness.analyzer.syntax;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import it.univr.boundedness.analyzer.sideeffects.SideEffectsAnalyzer;
 import it.univr.boundedness.analyzer.syntax.classes.Class;
 import it.univr.boundedness.analyzer.syntax.classes.Field;
 import it.univr.boundedness.analyzer.syntax.classes.List;
@@ -66,6 +70,8 @@ public class Ponzi1Tests {
 	@Test
     @DisplayName("Checks correctness of the side-effects of Ponzi1")
 	public void sideEffectsOfPoinzi1AreCorrect() {
-		System.out.println(mkPonzi1().toCode());
+		var ponzi1 = mkPonzi1();
+		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(Stream.of(ponzi1));
+		sideEffectsAnalysis.forEach((method, types) -> System.out.println(method + ": " + types.collect(Collectors.toList())));
 	}
 }

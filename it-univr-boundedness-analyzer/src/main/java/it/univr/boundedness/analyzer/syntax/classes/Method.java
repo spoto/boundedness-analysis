@@ -2,7 +2,7 @@ package it.univr.boundedness.analyzer.syntax.classes;
 
 import it.univr.boundedness.analyzer.syntax.Command;
 
-public record Method(Class definingClass, String name, Command body) {
+public record Method(Class definingClass, String name, Command body) implements Comparable<Method> {
 	
 	// custom record constructor
 	public Method {
@@ -11,6 +11,18 @@ public record Method(Class definingClass, String name, Command body) {
 
 	public boolean isConstructor() {
 		return name.equals(definingClass.name());
+	}
+
+	@Override
+	public final boolean equals(Object other) {
+		return other instanceof Method method
+				&& name.equals(method.name)
+				&& definingClass.equals(method.definingClass);
+	}
+
+	@Override
+	public final int hashCode() {
+		return name.hashCode() ^ definingClass.hashCode();
 	}
 
 	@Override
@@ -32,5 +44,14 @@ public record Method(Class definingClass, String name, Command body) {
 		sb.append("\n");
 		sb.append(nesting);
 		sb.append("}");
+	}
+
+	@Override
+	public int compareTo(Method other) {
+		int diff = definingClass.compareTo(other.definingClass);
+		if (diff != 0)
+			return diff;
+
+		return name.compareTo(other.name);
 	}
 }

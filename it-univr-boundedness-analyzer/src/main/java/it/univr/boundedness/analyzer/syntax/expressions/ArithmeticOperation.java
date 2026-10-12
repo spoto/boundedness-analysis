@@ -2,6 +2,7 @@ package it.univr.boundedness.analyzer.syntax.expressions;
 
 import java.util.stream.Stream;
 
+import it.univr.boundedness.analyzer.sideeffects.SideEffectsAnalysis;
 import it.univr.boundedness.analyzer.syntax.AOP;
 import it.univr.boundedness.analyzer.syntax.Expression;
 import it.univr.boundedness.analyzer.syntax.Type;
@@ -18,7 +19,7 @@ public record ArithmeticOperation(Expression exp1, AOP aop, Expression exp2) imp
 	}
 
 	@Override
-	public Stream<Type> sideEffects() {
-		return Stream.concat(exp1.sideEffects(), exp2.sideEffects());
+	public Stream<Type> sideEffects(SideEffectsAnalysis interpretation) {
+		return Stream.of(exp1, exp2).flatMap(exp -> exp.sideEffects(interpretation));
 	}
 }

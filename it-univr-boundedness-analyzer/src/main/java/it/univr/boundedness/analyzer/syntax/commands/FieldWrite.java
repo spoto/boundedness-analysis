@@ -2,6 +2,7 @@ package it.univr.boundedness.analyzer.syntax.commands;
 
 import java.util.stream.Stream;
 
+import it.univr.boundedness.analyzer.sideeffects.SideEffectsAnalysis;
 import it.univr.boundedness.analyzer.syntax.Command;
 import it.univr.boundedness.analyzer.syntax.Expression;
 import it.univr.boundedness.analyzer.syntax.Type;
@@ -21,7 +22,7 @@ public record FieldWrite(Expression exp1, Field f, Expression exp2) implements C
 	}
 
 	@Override
-	public Stream<Type> sideEffects() {
-		return Stream.concat(exp1.sideEffects(), exp2.sideEffects());
+	public Stream<Type> sideEffects(SideEffectsAnalysis interpretation) {
+		return Stream.of(exp1, exp2).flatMap(exp -> exp.sideEffects(interpretation));
 	}
 }

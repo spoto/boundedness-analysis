@@ -1,9 +1,8 @@
 package it.univr.boundedness.analyzer.syntax;
 
-import java.util.stream.Stream;
+import it.univr.boundedness.analyzer.sideeffects.SideEffectsProducer;
 
-public interface Command {
-	Stream<Type> sideEffects();
+public interface Command extends SideEffectsProducer {
 
 	default String toCode() {
 		var sb = new StringBuilder();

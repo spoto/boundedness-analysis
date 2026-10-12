@@ -1,4 +1,5 @@
 package it.univr.boundedness.analyzer.syntax;
 
-public interface Type {
+public interface Type extends Comparable<Type> {
+	boolean isSubtypeOf(Type other);
 }

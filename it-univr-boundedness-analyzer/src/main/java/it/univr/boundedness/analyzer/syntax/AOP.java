@@ -1,7 +1,7 @@
 package it.univr.boundedness.analyzer.syntax;
 
 public enum AOP {
-	ADD, SUB, MUL, DIV;
+	ADD, SUB, MUL, DIV, REM;
 
 	public void toCode(StringBuilder sb) {
 		switch (this) {
@@ -9,6 +9,7 @@ public enum AOP {
 		case SUB: sb.append('-'); break;
 		case MUL: sb.append('*'); break;
 		case DIV: sb.append('/'); break;
+		case REM: sb.append('%'); break;
 		default:
 			throw new IllegalStateException();
 		}

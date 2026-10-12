@@ -1,8 +1,7 @@
 package it.univr.boundedness.analyzer.syntax.classes;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import it.univr.boundedness.analyzer.syntax.Type;
@@ -10,9 +9,12 @@ import it.univr.boundedness.analyzer.syntax.Type;
 public class Class implements Type {
 	private final String name;
 	private final Optional<Class> superclass;
-	private final Set<Field> fields = new HashSet<>();
-	private final Set<Method> methods = new HashSet<>();
+	private final java.util.List<Field> fields = new ArrayList<>();
+	private final java.util.List<Method> methods = new ArrayList<>();
 	public final static String NESTING = "  ";
+	public final static Class OBJECT = new Class("Object");
+	public final static Class CONTRACT = new Class("Contract", OBJECT);
+	public final static Class LIST = new Class("List", OBJECT);
 
 	public Class(String name) {
 		this(name, null);
@@ -39,6 +41,24 @@ public class Class implements Type {
 		return methods.stream();
 	}
 	
+	@Override
+	public boolean isSubtypeOf(Type other) {
+		if (!(other instanceof Class))
+			return false;
+
+		Class cursor = this;
+		while (true) {
+			if (cursor.equals(other))
+				return true;
+
+			var maybeSuperclass = cursor.superclass;
+			if (maybeSuperclass.isEmpty())
+				return false;
+
+			cursor = maybeSuperclass.get();
+		}
+	}
+
 	protected void add(Field field) {
 		fields.add(field);
 	}
@@ -50,6 +70,14 @@ public class Class implements Type {
 	@Override
 	public final String toString() {
 		return name;
+	}
+
+	@Override
+	public int compareTo(Type other) {
+		if (other instanceof Class clazz)
+			return name.compareTo(clazz.name);
+		else
+			return getClass().getName().compareTo(other.getClass().getName());
 	}
 
 	public final String toCode() {
