@@ -4,6 +4,8 @@ import it.univr.boundedness.analyzer.syntax.Type;
 
 public record Int() implements Type {
 
+	public final static Int INSTANCE = new Int();
+
 	@Override
 	public final String toString() {
 		return "int";

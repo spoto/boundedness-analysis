@@ -3,6 +3,7 @@ package it.univr.boundedness.analyzer.syntax;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -27,20 +28,17 @@ import it.univr.boundedness.analyzer.syntax.expressions.Variable;
 
 public class Ponzi1Tests {
 
-	public Class mkPonzi1() {
-		// we start with the representation of the library classes
-		var object = new Class("Object");
-		var contract = new Class("Contract", object);
-		var list = new Class("List", object);
+	private static Class ponzi1;
 
-		// then we represent class Ponzi1
-		var ponzi1 = new Class("Ponzi1", contract);
-		var listOfContract = new List(contract);
+	@BeforeAll
+	public static void mkProgram() {
+		ponzi1 = new Class("Ponzi1", Class.CONTRACT);
+		var listOfContract = new List(Class.CONTRACT);
 		var investors = new Field(ponzi1, "investors", listOfContract, true);
 		new Method(ponzi1, ponzi1.name(),
 				new Sequence(
-						new FieldWrite(Variable.THIS, investors, new ConstructorCall(list)),
-						new Push(new FieldRead(Variable.THIS, investors), contract, Variable.CALLER)
+						new FieldWrite(Variable.THIS, investors, new ConstructorCall(Class.LIST)),
+						new Push(new FieldRead(Variable.THIS, investors), Class.CONTRACT, Variable.CALLER)
 						)
 				);
 
@@ -60,17 +58,13 @@ public class Ponzi1Tests {
 
 						new For(investor, thisInvestors, new Receive(investor, eachInvestorGets))),
 
-						new Push(thisInvestors, contract, Variable.CALLER)
-						)
-				);
-
-		return ponzi1;
+						new Push(thisInvestors, Class.CONTRACT, Variable.CALLER)
+		));
 	}
 
 	@Test
     @DisplayName("Checks correctness of the side-effects of Ponzi1")
 	public void sideEffectsOfPoinzi1AreCorrect() {
-		var ponzi1 = mkPonzi1();
 		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(Stream.of(ponzi1));
 		sideEffectsAnalysis.forEach((method, types) -> System.out.println(method + ": " + types.collect(Collectors.toList())));
 	}

@@ -34,6 +34,10 @@ public record Field(Class definingClass, String name, Type type, boolean isFinal
 
 	public void toCode(StringBuilder sb, String nesting) {
 		sb.append(nesting);
+
+		if (isFinal)
+			sb.append("final ");
+
 		sb.append(type);
 		sb.append(' ');
 		sb.append(name);

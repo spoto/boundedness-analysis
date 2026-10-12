@@ -9,6 +9,12 @@ import it.univr.boundedness.analyzer.syntax.Type;
 public record Last(Expression exp) implements Expression {
 
 	@Override
+	public void toCode(StringBuilder sb) {
+		exp.toCode(sb);
+		sb.append(".last()");
+	}
+
+	@Override
 	public Stream<Type> sideEffects(SideEffectsAnalysis interpretation) {
 		return exp.sideEffects(interpretation);
 	}
