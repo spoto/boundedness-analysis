@@ -17,7 +17,7 @@ An example of computation is reported later.
 \begin{definition}[Side-Effects Analysis]\label{def:side_effect}
   \begin{figure}[t]
     \begin{align*}
-      \sideeffect{c}&=\sideeffect{v}=\sideeffect{\nop}=\varnothing\\
+      \sideeffect{c}&=\sideeffect{v}=\sideeffect{\nop}=\sideeffect{\stopc}=\varnothing\\
       \sideeffect{\new{C}{\exp_1,\ldots,\exp_n}}&=I(C.C)\cup\bigcup_{i=1}^n\sideeffect{\exp_i}\\
       \sideeffect{\push{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup
       \{t\mid\exp_1\text{ has type }\<List<>t\<\text{>}>\}\\

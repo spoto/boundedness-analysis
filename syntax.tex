@@ -19,7 +19,7 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
     &\mid\new{C}{\exp^*}\mid\size{\exp}\mid\last{\exp}\mid\random{\exp}\\
     \com::=&\ \assign{\mathit{v}}{\exp}\mid\assign{\field{\exp}{f}}{\exp}
     \mid\require{\exp}{\exp}\\
-    &\mid\push{\exp}{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\mid\nop\\
+    &\mid\push{\exp}{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\mid\nop\mid\stopc\\
     &\mid\ife{\exp}{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}{\com}\mid\sequence{\com}{\com}.
   \end{align*}
 \end{definition}
@@ -45,4 +45,20 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
   \<List<t\texttt{>}>, where \<t> is the type of the elements of the list.
   Fields $C.f$ can be \<final>, if they are assigned exactly once in each
   constructor of $C$. We assume programs type-checked.
+\end{definition}
+
+\begin{definition}[Program Point]\label{def:program_point}
+  Each command used as the body of a method in a program, and its subcommands,
+  recursively, are uniquely identified by their \emph{program point} $p$.
+  We assume that a program comes with a map $\Pi$ that maps program points
+  to commands. Moreover, if $\com=\Pi(p)$, we assume that:
+  \begin{itemize}
+  \item if $\com\not=\stopc$ then $p_{\|next|}$ is the program point
+    of the command that sequentially follows $\com$;
+  \item if $\com=\for{\mathit{v}}{\exp}{\com_{\|inner|}}$ then
+    $p_{\|inner|}$ is the program point of $\com_{\|inner|}$;
+  \item if $\com=\ife{\exp}{\exp}{\com_{\|then|}}{\com_{\|else|}}$ then
+    $p_{\|then|}$ is the program point of $\com_{\|then|}$ and
+    $p_{\|else|}$ is the program point of $\com_{\|else|}$.
+  \end{itemize}
 \end{definition}
