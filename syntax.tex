@@ -50,8 +50,9 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
 \begin{definition}[Program Point]\label{def:program_point}
   Each command used as the body of a method in a program, and its subcommands,
   recursively, are uniquely identified by their \emph{program point} $p$.
-  We assume that a program comes with a map $\Pi$ that maps program points
-  to commands. Moreover, if $\com=\Pi(p)$, we assume that:
+  We assume that a program comes equipped
+  with a map $\Pi$ that maps program points
+  to commands. Moreover, if $\Pi(p)=\com$, we assume that:
   \begin{itemize}
   \item if $\com\not=\stopc$ then $p_{\|next|}$ is the program point
     of the command that sequentially follows $\com$;
@@ -59,6 +60,10 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
     $p_{\|inner|}$ is the program point of $\com_{\|inner|}$;
   \item if $\com=\ife{\exp}{\exp}{\com_{\|then|}}{\com_{\|else|}}$ then
     $p_{\|then|}$ is the program point of $\com_{\|then|}$ and
-    $p_{\|else|}$ is the program point of $\com_{\|else|}$.
+    $p_{\|else|}$ is the program point of $\com_{\|else|}$;
+  \item if $\com=\sequence{\com_{\|first|}}{\com_{\|second|}}$ then
+    $p_{\|first|}$ is the program point of $\com_{\|first|}$ and
+    $p_{\|second|}$ is the program point of $\com_{\|second|}$.
   \end{itemize}
+  The set of all program points is denoted as $\PP$.
 \end{definition}

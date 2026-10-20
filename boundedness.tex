@@ -126,7 +126,7 @@ of Def.~\ref{def:bo}.
 \begin{definition}[Boundedness Derivation Rules]\label{def:boundness_rules}
   \begin{figure}[t]
     \begin{gather*}
-      \pair{c}{\|bo|}\boderivation\|bo|\qquad\pair{v}{\|bo|}\boderivation\|bo|\\[5pt]
+      \pair{c}{\|bo|}\boderivation\|bo|\quad\pair{v}{\|bo|}\boderivation\|bo|\quad
       \frac{\begin{array}{c}
           \pair{\exp_1}{\|bo|}\boderivation\|bo|_1\quad\cdots\quad\pair{\exp_p}{\|bo|_{p-1}}\boderivation\|bo|_p\\
           \|bo|'=\{(\size{\pi}\le n)\in\|bo|_p\mid\pi\text{ survives }\intsideeffect(C.C)\}
@@ -143,59 +143,57 @@ of Def.~\ref{def:bo}.
   that derives the approximation of the post-states
   from the approximation of the pre-states.
   The boundedness derivation rule $\boderivation$ for commands
-  in Fig.~\ref{fig:bo_derivations_commands1} and~\ref{fig:bo_derivations_commands2}
-  is a small step semantics
-  $\left(\Com\times\bo\right)\boderivation(\Com\cup\{\varepsilon\}\times\bo)$.
-  A derivation $\pair{\com_1}{\|bo|}\boderivation\pair{\com_2}{\|bo|'}$ means that
-  the execution of $\com_1$ from a boundedness state \|bo| performs a single
-  step and then continues with the execution of $\com_2$ from a boundedness state $\|bo|'$.
-  A configuration $\pair{\varepsilon}{\|bo|}$ is a final configuration, reached when
-  the execution stops.
+  in Fig.~\ref{fig:bo_derivations_commands} is a small step semantics
+  $\left(\PP\times\bo\right)\boderivation(\PP\times\bo)$.
+  A derivation $\pair{p}{\|bo|}\boderivation\pair{p'}{\|bo|'}$ means that
+  the execution of the command at program point $p$ from a boundedness state \|bo| performs a single
+  step and then continues with the execution of the program at program point $p'$
+  from a boundedness state $\|bo|'$.
   %
   \begin{figure}[t]
     \begin{gather*}
       % variable assignment
-      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\assign{v}{\exp}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|assign|(\|bo|',\assign{v}{\exp})}}\\[1pt]
+      \frac{\Pi(p)=(\assign{v}{\exp})\quad\pair{\exp}{\|bo|}\boderivation\|bo|'}
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|assign|(\|bo|',\assign{v}{\exp})}}\\[1pt]
       % field assignment
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\assign{\field{\exp_1}{f}}{\exp_2}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|assign|(\|bo|'',\assign{\field{\exp_1}{f}}{\exp_2})}}\\[1pt]
+           \frac{\Pi(p)=(\assign{\field{\exp_1}{f}}{\exp_2})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}
+                {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|assign|(\|bo|'',\assign{\field{\exp_1}{f}}{\exp_2})}}\\[1pt]
       % push
       \frac{\begin{array}{c}
-          \pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''\quad\exp_1\text{ has type \<List<$t$\texttt{>}>}\\
+          \Pi(p)=(\push{\exp_1}{\exp_2})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''\quad\exp_1\text{ has type \<List<$t$\texttt{>}>}\\
           \|bo|_{\text{survives}}=\{(\size{\pi}\le n)\in\|bo|''\mid\pi\text{ survives }\{t\}\}\\
           \|bo|_{\neg\text{survives}}=\{\size{\pi}\le n+1\mid(\size{\pi}\le n)\in\|bo|''\text{ and }\pi\text{ does not survive }\{t\}\}
-      \end{array}}{\pair{\push{\exp_1}{\exp_2}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|_{\text{survives}}\cup\|bo|_{\neg\text{survives}}}}\\[1pt]
+      \end{array}}{\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|_{\text{survives}}\cup\|bo|_{\neg\text{survives}}}}\\[1pt]
       % receive
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\receive{\exp_1}{\exp_2}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|''}}\\[1pt]
+      \frac{\Pi(p)=(\receive{\exp_1}{\exp_2})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|''}}\\[1pt]
       % method call
       \frac{\begin{array}{c}
-          \pair{\exp_0}{\|bo|}\boderivation\|bo|_0\quad\cdots\quad\pair{\exp_p}{\|bo|_{p-1}}\boderivation\|bo|_p\\
+          \Pi(p)=(\call{\exp_0}{m}{\exp_1,\ldots,\exp_p})\quad\pair{\exp_0}{\|bo|}\boderivation\|bo|_0\quad\cdots\quad\pair{\exp_p}{\|bo|_{p-1}}\boderivation\|bo|_p\\
           \text{$C_1.m\cdots C_k.m$ are the methods possibly called here}\\
           \|bo|'=\{(\size{\pi}\le n)\in\|bo|_p\mid\pi\text{ survives }\cup_{i=1}^k\intsideeffect(C_j.m)\}
-      \end{array}}{\pair{\call{\exp_0}{m}{\exp_1,\ldots,\exp_p}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|'}}\\[1pt]
+      \end{array}}{\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|'}}\\[1pt]
       % require
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\require{\exp_1}{\exp_2}\,\xi}{\|bo|}\boderivation{\pair{\xi}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}}
+      \frac{\Pi(p)=(\require{\exp_1}{\exp_2})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{p}{\|bo|}\boderivation{\pair{p_{\|next|}}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}}\\[1pt]
+      % if/then/else
+      \frac{\Pi(p)=\left(\ifetwo{\exp_1}{\exp_2}{\com_{\|then|}}{\com_{\|else|}}\right)\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{p}{\|bo|}\boderivation\pair{p_{\|then|}}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}\\[1pt]
+      \frac{\Pi(p)=\left(\ifetwo{\exp_1}{\exp_2}{\com_{\|then|}}{\com_{\|else|}}\right)\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{p}{\|bo|}\boderivation\pair{p_{\|else|}}{\|improve|(\|bo|'',\neg\cop{\exp_1}{\exp_2})}}\\[1pt]
+      % for each
+      \frac{\Pi(p)=(\for{v}{\exp}{\com})\quad\pair{\exp}{\|bo|}\boderivation\|bo'|}
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|inner|}}{\|bo'|^{-v}}}\qquad
+      \frac{\Pi(p)=(\for{v}{\exp}{\com})}
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|inner|}}{\|bo'|^{-v}}}\\[1pt]
+      \frac{\Pi(p)=(\for{v}{\exp}{\com})}
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|}}\qquad
+      % sequence
+      \frac{\Pi(p)=\sequence{\com}{\com}}
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|first|}}{\|bo|}}\qquad
+      % nop
+      \frac{\Pi(p)=\nop}
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|}}
     \end{gather*}
     \caption{The boundedness derivation rules for commands, part~1. They use
-      a previously computed side-effect analysis $\intsideeffect$. $\xi$ is the continuation
-      that must be executed after the leftmost command terminates. It can be $\xi=\varepsilon$.}
-    \label{fig:bo_derivations_commands1}
-  \end{figure}
-
-    \begin{figure}[th]
-    \begin{gather*}
-      % if/then/else
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\ifetwo{\exp_1}{\exp_2}{\com_1}{\com_2}\,\xi}{\|bo|}\boderivation\pair{\com_1\,\xi}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}\\[1pt]
-      \frac{\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{\ifetwo{\exp_1}{\exp_2}{\com_1}{\com_2}\,\xi}{\|bo|}\boderivation\pair{\com_2\,\xi}{\|improve|(\|bo|'',\copfull{\exp_1}{\neg\|cop|}{\exp_2})}}\\[1pt]
-      % for each
-      \frac{\pair{\exp}{\|bo|}\boderivation\|bo|'}{\pair{\for{v}{\exp}{\com}\,\xi}{\|bo|}\boderivation\pair{\com^{*,v}\,\xi}{\|bo|'}}\\[1pt]
-      \pair{\com^{*,v}\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|}\qquad\pair{\com^{*,v}\,\xi}{\|bo|}\boderivation\pair{\com\,\com^{*,v}\,\xi}{\|bo|^{-v}}\\[1pt]
-      % sequence
-      \pair{\sequence{\com_1}{\com_2}\,\xi}{\|bo|}\boderivation\pair{\com_1\,\com_2\,\xi}{\|bo|}\qquad
-      % nop
-      \pair{\nop\,\xi}{\|bo|}\boderivation\pair{\xi}{\|bo|}
-    \end{gather*}
-    \caption{The boundedness derivation rules for commands, part~2.}
-    \label{fig:bo_derivations_commands2}
+      a previously computed side-effect analysis $\intsideeffect$ to check path survival.}
+    \label{fig:bo_derivations_commands}
   \end{figure}
 \end{definition}
 %
@@ -205,7 +203,7 @@ the actual parameters, recursively, then projects the result on the bounds
 that are not affected by the side-effects of the constructor. This
 rule is intraprocedural, since it does not enter the body of the constructor
 but simply embeds its side-effects in the result.
-In Fig.~\ref{fig:bo_derivations_commands1}, the rule for method call
+In Fig.~\ref{fig:bo_derivations_commands}, the rule for method call
 works similarly, but considers the
 union of the side-effects of all targets of the call. The rules for assignment
 update the boundness aproximation with the effects of the assignment
@@ -219,29 +217,27 @@ of the former remains valid, while that of the latter is conservatively
 weakened by a unit (one element might be added to those lists).
 The rule for \<require> tries to improve (Def.~\ref{def:improvement}) the boundedness state
 with information entailed by the required condition, that must hold or
-otherwise the computation stops. In Fig.~\ref{fig:bo_derivations_commands2},
+otherwise the computation stops. The
 the same occurs for the conditional, that non-deterministically proceeds
 to the \emph{then} branch if the condition holds and to the \emph{else} branch
-if its opposite holds. Finally, the rule for $\for{v}{\exp}{\com}$ evaluates
-$\exp$ and then executes a command $\com^{*,v}$ whose semantics
-is to execute $\com$ zero or more times, non-deterministically,
-every time reassigning $v$ before each iteration.
+if its opposite holds. Finally, the rule for $\for{v}{\exp}{\com}$
+non-deterministically enters the inner loop after evaluating $\exp$, or re-enters the
+loop without re-evaluation $\exp$ or, finally, exits the loop.
 
-The derivation rule in Fig.~\ref{fig:bo_derivations_commands1} and
-in~\ref{fig:bo_derivations_commands2} has been given
+The derivation rule in Fig.~\ref{fig:bo_derivations_commands} has been given
 as a small step semantics in order to allow the computation of a
-boundedness state at the beginning of every command in the program, through an
+boundedness state at each program point, through an
 intraprocedural fixpoint that saturates all execution paths. Namely, at the beginning
-of each method with body $\com$, the analysis starts from the configuration
-$\pair{\com}{\varnothing}$ ($\varnothing$ is a worst-case assumption at the beginning
+of each method with body $\com$ at program point $p_{\|start|}$, the analysis starts from the configuration
+$\pair{p_{\|start|}}{\varnothing}$ ($\varnothing$ is a worst-case assumption at the beginning
 of the method: nothing is known there about the size of the lists)
 and computes all possible derivations from there.
-Whenever a configuration $\pair{\com'\,\xi}{\|bo|}$ is reached, the analysis records
-$\|bo|$ as the state at the program point of $\com'$, if no recording exists there yet.
-If, instead, a previous recorded state $\|bo|_{\|old|}$ exists there,
-the analysis records $\|bo|_{\|new|}=\|bo|_{\|old|}\sqcup\|bo|$ as the state at that program point.
+Whenever a configuration $\pair{p}{\|bo|}$ is reached, the analysis records
+$\|bo|$ as the state at program point of $p$, if no recording exists at $p$ yet.
+If, instead, a previous recorded state $\|bo|_{\|old|}$ exists at $p$,
+the analysis records $\|bo|_{\|new|}=\|bo|_{\|old|}\sqcup\|bo|$ as $p$.
 If $\|bo|_{\|new|}\not=\|bo|_{\|old|}$, the derivation continues from $\|bo|_{\|new|}$.
-Otherwise, the derivation stops.
+Otherwise, that derivation stops.
 
 \begin{example}\label{ex:boundedness_computation}
   The boundedness states computed at each program point
@@ -383,8 +379,8 @@ termination after a given number $\kappa$ of iterations~\cite{CousotC77}.
   $\nabla(\|bo|_1,\|bo|_2)=\|bo|_1\cap\|bo|_2$.
 \end{definition}
 %
-By using a widening, when reaching a program point with an approximation $\|bo|$,
-the new approximation at that program point is computed from the old one as
+By using a widening, when reaching a program point $p$ with an approximation $\|bo|$,
+the new approximation at $p$ is computed from the old one as
 \[
 \|bo|_{\|new|}=\begin{cases}
 \|bo|_{\|old|}\sqcup\|bo| & \text{for the first $\kappa$ iterations}\\
@@ -407,7 +403,7 @@ This information is used to warn about boundedness bugs.
   if for every $\push{\exp_1}{\exp_2}$ in the program such that
   $\<List<$t'$\texttt{>}>$ is the type of $\exp_1$, 
   $t$ and $t'$ share a subtype and $\|bo|$ is the boundedness state computed
-  at the \<push> command,
+  at the program point of the \<push> command,
   it is $\exp_1=\pi\in\paths$ and $(\size{\pi}\le n)\in\|bo|$ for some $n\in\nat$.
 \end{definition}
 %
@@ -441,8 +437,8 @@ This information is used to warn about boundedness bugs.
 %
 \begin{definition}[Warning Generation]\label{def:warnings}
   Our boundedness analyzer issues a warning at each
-  $\for{v}{\exp}{\com}$ command in the program, where
-  $\exp$ has type $\<List<$t$\texttt{>}>$, if and only if it is not true that
+  $\for{v}{w}{\com}$ command in the program, where
+  $w$ has type $\<List<$t$\texttt{>}>$, if and only if it is not true that
   all lists of type $t$ are bounded (Def.~\ref{def:bounded_lists}).
 \end{definition}
 %
