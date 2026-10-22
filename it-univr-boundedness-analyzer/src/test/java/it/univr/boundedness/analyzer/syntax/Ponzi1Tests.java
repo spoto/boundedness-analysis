@@ -10,24 +10,27 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import it.univr.boundedness.analyzer.sideeffects.SideEffectsAnalyzer;
-import it.univr.boundedness.analyzer.syntax.classes.Class;
-import it.univr.boundedness.analyzer.syntax.classes.Field;
-import it.univr.boundedness.analyzer.syntax.classes.List;
-import it.univr.boundedness.analyzer.syntax.classes.Method;
-import it.univr.boundedness.analyzer.syntax.commands.Assignment;
-import it.univr.boundedness.analyzer.syntax.commands.For;
-import it.univr.boundedness.analyzer.syntax.commands.Push;
-import it.univr.boundedness.analyzer.syntax.commands.Receive;
-import it.univr.boundedness.analyzer.syntax.commands.Require;
-import it.univr.boundedness.analyzer.syntax.commands.Sequence;
-import it.univr.boundedness.analyzer.syntax.commands.Return;
-import it.univr.boundedness.analyzer.syntax.expressions.ArithmeticOperation;
-import it.univr.boundedness.analyzer.syntax.expressions.Constant;
-import it.univr.boundedness.analyzer.syntax.expressions.ConstructorCall;
-import it.univr.boundedness.analyzer.syntax.expressions.FieldAccess;
-import it.univr.boundedness.analyzer.syntax.expressions.Size;
-import it.univr.boundedness.analyzer.syntax.expressions.Variable;
+import it.univr.smartcontracts.sideeffects.SideEffectsAnalyzer;
+import it.univr.smartcontracts.syntax.AOP;
+import it.univr.smartcontracts.syntax.COP;
+import it.univr.smartcontracts.syntax.Type;
+import it.univr.smartcontracts.syntax.classes.Class;
+import it.univr.smartcontracts.syntax.classes.Field;
+import it.univr.smartcontracts.syntax.classes.List;
+import it.univr.smartcontracts.syntax.classes.Method;
+import it.univr.smartcontracts.syntax.commands.Assignment;
+import it.univr.smartcontracts.syntax.commands.For;
+import it.univr.smartcontracts.syntax.commands.Push;
+import it.univr.smartcontracts.syntax.commands.Receive;
+import it.univr.smartcontracts.syntax.commands.Require;
+import it.univr.smartcontracts.syntax.commands.Return;
+import it.univr.smartcontracts.syntax.commands.Sequence;
+import it.univr.smartcontracts.syntax.expressions.ArithmeticOperation;
+import it.univr.smartcontracts.syntax.expressions.Constant;
+import it.univr.smartcontracts.syntax.expressions.ConstructorCall;
+import it.univr.smartcontracts.syntax.expressions.FieldAccess;
+import it.univr.smartcontracts.syntax.expressions.Size;
+import it.univr.smartcontracts.syntax.expressions.Variable;
 
 public class Ponzi1Tests {
 
