@@ -222,7 +222,10 @@ the same occurs for the conditional, that non-deterministically proceeds
 to the \emph{then} branch if the condition holds and to the \emph{else} branch
 if its opposite holds. Finally, the rule for $\for{v}{\exp}{\com}$
 non-deterministically enters the inner loop after evaluating $\exp$, or re-enters the
-loop without re-evaluation $\exp$ or, finally, exits the loop.
+loop without re-evaluation $\exp$ or, finally, exits the loop. Note that these rules
+for $\for{v}{\exp}{\com}$ consider more execution paths than the concrete semantics
+of that command, which is fine since the abstract semantics must consider
+an over-approximation of all execution paths.
 
 The derivation rule in Fig.~\ref{fig:bo_derivations_commands} has been given
 as a small step semantics in order to allow the computation of a
