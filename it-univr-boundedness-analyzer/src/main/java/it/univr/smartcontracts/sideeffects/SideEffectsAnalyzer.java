@@ -13,6 +13,7 @@ import it.univr.smartcontracts.syntax.classes.Class;
 import it.univr.smartcontracts.syntax.classes.Method;
 
 public class SideEffectsAnalyzer {
+
 	public SideEffectsAnalysis analyze(Stream<Class> program) {
 		Set<Class> classes = program.collect(Collectors.toSet());
 		SideEffects interpretation = mkInitialInterpretation(classes);

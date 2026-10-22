@@ -22,4 +22,10 @@ public record List(Type inner) implements Type {
 		return (other instanceof List list && inner.equals(list.inner))
 				|| other.equals(Class.OBJECT);
 	}
+
+	@Override
+	public boolean hasSharedSubtypeWith(Type other) {
+		// this is OK since our minimal language has no interfaces nor multiple class inheritance
+		return isSubtypeOf(other) || other.isSubtypeOf(this);
+	}
 }

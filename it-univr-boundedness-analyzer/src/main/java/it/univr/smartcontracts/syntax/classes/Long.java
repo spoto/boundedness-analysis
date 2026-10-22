@@ -20,4 +20,9 @@ public record Long() implements Type {
 	public boolean isSubtypeOf(Type other) {
 		return other instanceof Long;
 	}
+
+	@Override
+	public boolean hasSharedSubtypeWith(Type other) {
+		return other instanceof Long;
+	}
 }

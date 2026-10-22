@@ -1,16 +1,21 @@
 package it.univr.smartcontracts.syntax.expressions;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.LValue;
+import it.univr.smartcontracts.syntax.Path;
 import it.univr.smartcontracts.syntax.Type;
+import it.univr.smartcontracts.syntax.classes.Int;
+import it.univr.smartcontracts.syntax.classes.List;
+import it.univr.smartcontracts.syntax.classes.Long;
+import it.univr.smartcontracts.syntax.classes.Class;
 
-public record Variable(String name) implements LValue {
-	public final static Variable THIS = new Variable("this");
-	public final static Variable CALLER = new Variable("caller");
-	public final static Variable AMOUNT = new Variable("amount");
-	public final static Variable NOW = new Variable("now");
+public record Variable(String name, Type type) implements LValue {
+	public final static Variable CALLER = new Variable("caller", Class.CONTRACT);
+	public final static Variable AMOUNT = new Variable("amount", Int.INSTANCE);
+	public final static Variable NOW = new Variable("now", Long.INSTANCE);
 
 	@Override
 	public void toCode(StringBuilder sb) {
@@ -20,5 +25,28 @@ public record Variable(String name) implements LValue {
 	@Override
 	public Stream<Type> sideEffects(SideEffectsAnalysis interpretation) {
 		return Stream.empty();
+	}
+
+	@Override
+	public Optional<Path> asPath() {
+		return Optional.of(new VariablePath());
+	}
+
+	private class VariablePath implements Path {
+
+		@Override
+		public Type getType() {
+			return type;
+		}
+
+		@Override
+		public String toString() {
+			return name;
+		}
+
+		@Override
+		public boolean survives(Stream<Type> updated) {
+			return !(type instanceof List list) || updated.noneMatch(u -> u.hasSharedSubtypeWith(list.inner()));
+		}
 	}
 }

@@ -20,4 +20,9 @@ public record Int() implements Type {
 	public boolean isSubtypeOf(Type other) {
 		return other instanceof Int;
 	}
+
+	@Override
+	public boolean hasSharedSubtypeWith(Type other) {
+		return other instanceof Int;
+	}
 }

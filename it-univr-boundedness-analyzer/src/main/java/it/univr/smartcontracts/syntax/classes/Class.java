@@ -59,6 +59,12 @@ public class Class implements Type {
 		}
 	}
 
+	@Override
+	public boolean hasSharedSubtypeWith(Type other) {
+		// this is OK since our minimal language has no interfaces nor multiple class inheritance
+		return isSubtypeOf(other) || other.isSubtypeOf(this);
+	}
+
 	protected void add(Field field) {
 		fields.add(field);
 	}

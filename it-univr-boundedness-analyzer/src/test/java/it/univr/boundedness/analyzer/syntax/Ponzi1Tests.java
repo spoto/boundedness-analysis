@@ -16,6 +16,7 @@ import it.univr.smartcontracts.syntax.COP;
 import it.univr.smartcontracts.syntax.Type;
 import it.univr.smartcontracts.syntax.classes.Class;
 import it.univr.smartcontracts.syntax.classes.Field;
+import it.univr.smartcontracts.syntax.classes.Int;
 import it.univr.smartcontracts.syntax.classes.List;
 import it.univr.smartcontracts.syntax.classes.Method;
 import it.univr.smartcontracts.syntax.commands.Assignment;
@@ -43,16 +44,18 @@ public class Ponzi1Tests {
 		ponzi1 = new Class("Ponzi1", Class.CONTRACT);
 		var listOfContract = new List(Class.CONTRACT);
 		var investors = new Field(ponzi1, "investors", listOfContract, true);
+		var THIS = new Variable("this", ponzi1);
+
 		ponzi1Constructor = new Method(ponzi1, ponzi1.name(),
 				new Sequence(new Sequence(
-						new Assignment(new FieldAccess(Variable.THIS, investors), new ConstructorCall(Class.LIST)),
-						new Push(new FieldAccess(Variable.THIS, investors), Class.CONTRACT, Variable.CALLER)),
+						new Assignment(new FieldAccess(THIS, investors), new ConstructorCall(Class.LIST)),
+						new Push(new FieldAccess(THIS, investors), Class.CONTRACT, Variable.CALLER)),
 						new Return()
 				));
 
-		var eachInvestorGets = new Variable("eachInvestorGets");
-		var investor = new Variable("investor");
-		var thisInvestors = new FieldAccess(Variable.THIS, investors);
+		var eachInvestorGets = new Variable("eachInvestorGets", Int.INSTANCE);
+		var investor = new Variable("investor", Class.CONTRACT);
+		var thisInvestors = new FieldAccess(THIS, investors);
 
 		ponzi1Invest = new Method(ponzi1, "invest",
 				new Sequence(new Sequence(new Sequence(new Sequence(

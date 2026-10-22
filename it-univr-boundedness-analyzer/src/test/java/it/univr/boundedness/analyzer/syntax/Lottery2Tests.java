@@ -55,10 +55,11 @@ public class Lottery2Tests {
 		ticketBatchSale = new Class("TicketBatchSale", Class.OBJECT);
 		var buyer = new Field(ticketBatchSale, "buyer", Class.CONTRACT, true);
 		var tickets = new Field(ticketBatchSale, "tickets", Int.INSTANCE, true);
+		var THIS = new Variable("this", ticketBatchSale);
 
 		ticketBatchSaleConstructor = new Method(ticketBatchSale, ticketBatchSale.name(), new Sequence(new Sequence(
-			new Assignment(new FieldAccess(Variable.THIS, buyer), new Variable("buyer")),
-			new Assignment(new FieldAccess(Variable.THIS, tickets), new Variable("tickets"))),
+			new Assignment(new FieldAccess(THIS, buyer), new Variable("buyer", Class.CONTRACT)),
+			new Assignment(new FieldAccess(THIS, tickets), new Variable("tickets", Int.INSTANCE))),
 			new Return()
 		));
 
@@ -67,36 +68,38 @@ public class Lottery2Tests {
 		var endTime = new Field(round, "endTime", Long.INSTANCE, true);
 		var totalTickets = new Field(round, "totalTickets", Int.INSTANCE, false);
 		var winner = new Field(round, "winner", Class.CONTRACT, false);
+		THIS = new Variable("this", round);
 
 		roundConstructor = new Method(round, round.name(), new Sequence(new Sequence(
-			new Assignment(new FieldAccess(Variable.THIS, endTime), new Variable("endTime")),
-			new Assignment(new FieldAccess(Variable.THIS, sales), new ConstructorCall(Class.LIST))),
+			new Assignment(new FieldAccess(THIS, endTime), new Variable("endTime", Long.INSTANCE)),
+			new Assignment(new FieldAccess(THIS, sales), new ConstructorCall(Class.LIST))),
 			new Return()
 		));
 
 		lottery2 = new Class("Lottery2", Class.CONTRACT);
 		var rounds = new Field(lottery2, "rounds", new List(round), true);
 		var duration = new Field(lottery2, "duration", Long.INSTANCE, true);
+		THIS = new Variable("this", lottery2);
 
 		lottery2Constructor = new Method(lottery2, lottery2.name(), new Sequence(new Sequence(new Sequence(
-			new Assignment(new FieldAccess(Variable.THIS, duration), new Variable("duration")),
-			new Assignment(new FieldAccess(Variable.THIS, rounds), new ConstructorCall(Class.LIST))),
-			new Push(new FieldAccess(Variable.THIS, rounds), round,
-				new ConstructorCall(round, new ArithmeticOperation(Variable.NOW, AOP.ADD, new Variable("duration"))))),
+			new Assignment(new FieldAccess(THIS, duration), new Variable("duration", Long.INSTANCE)),
+			new Assignment(new FieldAccess(THIS, rounds), new ConstructorCall(Class.LIST))),
+			new Push(new FieldAccess(THIS, rounds), round,
+				new ConstructorCall(round, new ArithmeticOperation(Variable.NOW, AOP.ADD, new Variable("duration", Long.INSTANCE))))),
 			new Return()
 		));
 
-		var last = new Variable("last");
-		var quantity = new Variable("quantity");
+		var last = new Variable("last", round);
+		var quantity = new Variable("quantity", Int.INSTANCE);
 
 		lottery2Buy = new Method(lottery2, "buy", new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(
 			new Require(Variable.AMOUNT, COP.GT, new Constant(0)),
 			new Require(new ArithmeticOperation(Variable.AMOUNT, AOP.REM, new Constant(1000)), COP.EQ, new Constant(0))),
-			new Assignment(last, new Last(new FieldAccess(Variable.THIS, rounds)))),
+			new Assignment(last, new Last(new FieldAccess(THIS, rounds)))),
 			new If(Variable.NOW, COP.GT, new FieldAccess(last, endTime),
 				new Sequence(
-					new Assignment(last, new ConstructorCall(round, new ArithmeticOperation(Variable.NOW, AOP.ADD, new Variable("duration")))),
-					new Push(new FieldAccess(Variable.THIS, rounds), round, last)
+					new Assignment(last, new ConstructorCall(round, new ArithmeticOperation(Variable.NOW, AOP.ADD, new Variable("duration", Long.INSTANCE)))),
+					new Push(new FieldAccess(THIS, rounds), round, last)
 				),
 				new Nop()
 			)),
@@ -109,13 +112,13 @@ public class Lottery2Tests {
 			new Return()
 		));
 
-		var round = new Variable("round");
-		var sale = new Variable("sale");
-		var roundNumber = new Variable("roundNumber");
-		var numWinningTicket = new Variable("numWinningTicket");
+		var round = new Variable("round", Int.INSTANCE);
+		var sale = new Variable("sale", ticketBatchSale);
+		var roundNumber = new Variable("roundNumber", Int.INSTANCE);
+		var numWinningTicket = new Variable("numWinningTicket", Int.INSTANCE);
 
 		lottery2DrawWinner = new Method(lottery2, "drawWinner", new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(
-			new Assignment(round, new ListAccess(new FieldAccess(Variable.THIS, rounds), roundNumber)),
+			new Assignment(round, new ListAccess(new FieldAccess(THIS, rounds), roundNumber)),
 			new Require(new FieldAccess(round, winner), COP.EQ, Null.INSTANCE)),
 			new Require(Variable.NOW, COP.GT, new FieldAccess(round, endTime))),
 			new Require(new FieldAccess(round, totalTickets), COP.GT, new Constant(0))),

@@ -3,12 +3,12 @@
 This section presents the actual boundedness analysis, that uses
 the results of a preliminary side-effect analysis (Sec.~\ref{sec:side_effect}).
 
-\emph{Paths} are expressions of the language
-(Def.~\ref{def:exp_com}) that start from a variable and dereferences \<final> fields,
+\emph{Paths} are leftvalues
+(Def.~\ref{def:exp_com}) that start from a variable and dereferences \<final> fields only,
 so that their value cannot be affected by side-effect.
 %
 \begin{definition}[Paths]\label{def:path}
-  The set $\paths\subseteq\Exp$ of \emph{paths} is the minimal set such that
+  The set $\paths\subseteq\LValue$ of \emph{paths} is the minimal set \st
   \begin{itemize}
   \item if $v\in\Var$ then $v\in\paths$ is rooted at $v$ and its type is the declaration type of $v$;
   \item if $\pi\in\paths$ is rooted at $v$ and
@@ -115,7 +115,7 @@ Similarly, an assignment can sometimes improve a boundedness state.
     \|assign|(\|bo|,\assign{\pi}{\new{\mathtt{List}}{}})&=\|bo|^{-\pi}\cup\{\size{\pi}\le 0\}\\
     \|assign|(\|bo|,\assign{\pi}{\pi'})&=\|bo|^{-\pi}\cup\{\size{\pi}\le n\mid(\size{\pi'}\le n)\in\|bo|\}\\
     \|assign|(\|bo|,\assign{\pi}{\exp})&=\|bo|^{-\pi}\text{ in all other cases not considered above}\\
-    \|assign|(\|bo|,\assign{\exp}{\exp'})&=\|bo|\text{ if $\exp\not\in\paths$.}
+    \|assign|(\|bo|,\assign{\lvalue}{\exp})&=\|bo|\text{ if $\lvalue\not\in\paths$.}
   \end{align*}
 \end{definition}
 
