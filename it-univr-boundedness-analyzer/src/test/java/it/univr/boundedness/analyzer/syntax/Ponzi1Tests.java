@@ -1,5 +1,8 @@
 package it.univr.boundedness.analyzer.syntax;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.HashSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -13,52 +16,51 @@ import it.univr.boundedness.analyzer.syntax.classes.Field;
 import it.univr.boundedness.analyzer.syntax.classes.List;
 import it.univr.boundedness.analyzer.syntax.classes.Method;
 import it.univr.boundedness.analyzer.syntax.commands.Assignment;
-import it.univr.boundedness.analyzer.syntax.commands.FieldWrite;
 import it.univr.boundedness.analyzer.syntax.commands.For;
 import it.univr.boundedness.analyzer.syntax.commands.Push;
 import it.univr.boundedness.analyzer.syntax.commands.Receive;
 import it.univr.boundedness.analyzer.syntax.commands.Require;
 import it.univr.boundedness.analyzer.syntax.commands.Sequence;
+import it.univr.boundedness.analyzer.syntax.commands.Stop;
 import it.univr.boundedness.analyzer.syntax.expressions.ArithmeticOperation;
 import it.univr.boundedness.analyzer.syntax.expressions.Constant;
 import it.univr.boundedness.analyzer.syntax.expressions.ConstructorCall;
-import it.univr.boundedness.analyzer.syntax.expressions.FieldRead;
+import it.univr.boundedness.analyzer.syntax.expressions.FieldAccess;
 import it.univr.boundedness.analyzer.syntax.expressions.Size;
 import it.univr.boundedness.analyzer.syntax.expressions.Variable;
 
 public class Ponzi1Tests {
 
 	private static Class ponzi1;
+	private static Method ponzi1Constructor;
+	private static Method ponzi1Invest;
 
 	@BeforeAll
 	public static void mkProgram() {
 		ponzi1 = new Class("Ponzi1", Class.CONTRACT);
 		var listOfContract = new List(Class.CONTRACT);
 		var investors = new Field(ponzi1, "investors", listOfContract, true);
-		new Method(ponzi1, ponzi1.name(),
-				new Sequence(
-						new FieldWrite(Variable.THIS, investors, new ConstructorCall(Class.LIST)),
-						new Push(new FieldRead(Variable.THIS, investors), Class.CONTRACT, Variable.CALLER)
-						)
-				);
+		ponzi1Constructor = new Method(ponzi1, ponzi1.name(),
+				new Sequence(new Sequence(
+						new Assignment(new FieldAccess(Variable.THIS, investors), new ConstructorCall(Class.LIST)),
+						new Push(new FieldAccess(Variable.THIS, investors), Class.CONTRACT, Variable.CALLER)),
+						new Stop()
+				));
 
 		var eachInvestorGets = new Variable("eachInvestorGets");
 		var investor = new Variable("investor");
-		var thisInvestors = new FieldRead(Variable.THIS, investors);
+		var thisInvestors = new FieldAccess(Variable.THIS, investors);
 
-		new Method(ponzi1, "invest",
-				new Sequence(new Sequence(new Sequence(
+		ponzi1Invest = new Method(ponzi1, "invest",
+				new Sequence(new Sequence(new Sequence(new Sequence(
 						new Require(Variable.AMOUNT, COP.GE, new Constant(1000)),
-
 						new Assignment(eachInvestorGets, new ArithmeticOperation(
 								Variable.AMOUNT,
 								AOP.DIV,
-								new Size(thisInvestors)
-								))),
-
+								new Size(thisInvestors)))),
 						new For(investor, thisInvestors, new Receive(investor, eachInvestorGets))),
-
-						new Push(thisInvestors, Class.CONTRACT, Variable.CALLER)
+						new Push(thisInvestors, Class.CONTRACT, Variable.CALLER)),
+						new Stop()
 		));
 	}
 
@@ -66,6 +68,10 @@ public class Ponzi1Tests {
     @DisplayName("Checks correctness of the side-effects of Ponzi1")
 	public void sideEffectsOfPoinzi1AreCorrect() {
 		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(Stream.of(ponzi1));
-		sideEffectsAnalysis.forEach((method, types) -> System.out.println(method + ": " + types.collect(Collectors.toList())));
+		var onlyContract = new HashSet<Type>();
+		onlyContract.add(Class.CONTRACT);
+		assertTrue(sideEffectsAnalysis.of(ponzi1Constructor).collect(Collectors.toSet()).equals(onlyContract));
+		assertTrue(sideEffectsAnalysis.of(ponzi1Invest).collect(Collectors.toSet()).equals(onlyContract));
+		//sideEffectsAnalysis.forEach((method, types) -> System.out.println(method + ": " + types.collect(Collectors.toList())));
 	}
 }

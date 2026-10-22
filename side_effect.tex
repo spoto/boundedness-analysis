@@ -1,12 +1,12 @@
 \section{Side-Effect Analysis}\label{sec:side_effect}
 
 Given a command, it is useful to know
-which already existing lists might be affected during its execution.
-Previous work provides precise and complex static analyses for that
+the length of which already existing lists might be affected (increased) during its execution.
+Previous work provides precise and complex static analyses for side-effects
 (see for instance aliasing and side-effect analysis in~\cite{SpotoMP10}).
-Here, for simplicity, we present a simpler cheap side-effect analysis that,
-nevertheless, is often precise enough on simple programs such as smart contracts.
-Possible side-effects are an abstract interpretation of execution traces.
+Here, for simplicity, we present a simpler cheap side-effect analysis, specialized
+for the length of the lists. It is often precise enough on simple programs such as smart contracts.
+Possible side-effects are an abstraction of execution traces.
 Therefore, our analysis is a bottom-up interprocedural
 denotational semantics that uses an interpretation\ie inductive information about
 the side-effects of the methods.
@@ -17,7 +17,7 @@ An example of computation is reported later.
 \begin{definition}[Side-Effects Analysis]\label{def:side_effect}
   \begin{figure}[t]
     \begin{align*}
-      \sideeffect{c}&=\sideeffect{v}=\sideeffect{\nop}=\sideeffect{\stopc}=\varnothing\\
+      \sideeffect{c}=\sideeffect{v}&=\sideeffect{\nop}=\sideeffect{\return}=\varnothing\\
       \sideeffect{\new{C}{\exp_1,\ldots,\exp_n}}&=I(C.C)\cup\bigcup_{i=1}^n\sideeffect{\exp_i}\\
       \sideeffect{\push{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup
       \{t\mid\exp_1\text{ has type }\<List<>t\<\text{>}>\}\\

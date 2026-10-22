@@ -9,6 +9,13 @@ import it.univr.boundedness.analyzer.syntax.Type;
 public record Random(Expression exp) implements Expression {
 
 	@Override
+	public void toCode(StringBuilder sb) {
+		sb.append("random(");
+		exp.toCode(sb);
+		sb.append(')');
+	}
+
+	@Override
 	public Stream<Type> sideEffects(SideEffectsAnalysis interpretation) {
 		return exp.sideEffects(interpretation);
 	}

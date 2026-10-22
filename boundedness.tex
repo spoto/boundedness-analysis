@@ -152,12 +152,9 @@ of Def.~\ref{def:bo}.
   %
   \begin{figure}[t]
     \begin{gather*}
-      % variable assignment
-      \frac{\Pi(p)=(\assign{v}{\exp})\quad\pair{\exp}{\|bo|}\boderivation\|bo|'}
-           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|assign|(\|bo|',\assign{v}{\exp})}}\\[1pt]
-      % field assignment
-           \frac{\Pi(p)=(\assign{\field{\exp_1}{f}}{\exp_2})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}
-                {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|assign|(\|bo|'',\assign{\field{\exp_1}{f}}{\exp_2})}}\\[1pt]
+      % lvalue assignment
+      \frac{\Pi(p)=(\assign{\lvalue}{\exp})\quad\pair{\lvalue}{\|bo|}\boderivation\|bo|'\quad\pair{\exp}{\|bo|'}\boderivation\|bo|''}
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|assign|(\|bo|'',\assign{\lvalue}{\exp})}}\\[1pt]
       % push
       \frac{\begin{array}{c}
           \Pi(p)=(\push{\exp_1}{\exp_2})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''\quad\exp_1\text{ has type \<List<$t$\texttt{>}>}\\

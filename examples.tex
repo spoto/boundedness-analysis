@@ -36,7 +36,8 @@ public class Ponzi1 extends Contract {
 \end{figure}
 
 The smart contract in Fig.~\ref{fig:ponzi1}, from~\cite{IyerD18}, implements a Ponzi scheme.
-It keeps a list of \<investors> (more precisely, \<this.investors>) at
+Constructors and methods implicitly end with a $\return$ command, not written for simplicity.
+This program keeps a list of \<investors> (more precisely, \<this.investors>) at
 line~\ref{ponzi1:investors} where, as in Takamaka, \<Contract> is the superclass of both
 contracts and externally-owned accounts (treated as a special case of contracts).
 The caller of the constructor populates that list initially, for free

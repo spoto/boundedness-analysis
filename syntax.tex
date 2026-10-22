@@ -7,19 +7,19 @@ as containers as well, but we only allow lists to keep
 the presentation simple. Moreover, maps are seldom iterated in smart
 contracts. In Solidity, they \emph{cannot} be iterated, by language design.
 %
-\begin{definition}[Expressions and Commands]\label{def:exp_com}
-  The set of \emph{xpressions} $\Exp$ and the set of
+\begin{definition}[Leftvalues, Expressions and Commands]\label{def:exp_com}
+  The sets of \emph{leftvalues} $\LValue$, \emph{expressions} $\Exp$ and
   \emph{commands} $\Com$ are defined by the following grammar,
   where $c$ is an integer literal constant of the language,
   $v$ is a variable in $\Var$, $\mathit{aop}$ is an arithmetic
   operator ($+$, $-$, $*$\ldots) and $\mathit{cop}$ is a comparison operator
   ($<,\le,=,\not=$\ldots):
   \begin{align*}
-    \exp::=&\ \mathit{c}\mid\mathit{v}\mid\field{\exp}{f}\mid\aop{\exp}{\exp}\\
+    \lvalue::=&\ \mathit{v}\mid\field{\exp}{f}\mid\listread{\exp}{\exp}\\
+    \exp::=&\ \lvalue\mid\mathit{c}\mid\aop{\exp}{\exp}\\
     &\mid\new{C}{\exp^*}\mid\size{\exp}\mid\last{\exp}\mid\random{\exp}\\
-    \com::=&\ \assign{\mathit{v}}{\exp}\mid\assign{\field{\exp}{f}}{\exp}
-    \mid\require{\exp}{\exp}\\
-    &\mid\push{\exp}{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\mid\nop\mid\stopc\\
+    \com::=&\ \assign{\lvalue}{\exp}\mid\require{\exp}{\exp}\\
+    &\mid\push{\exp}{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\mid\nop\mid\return\\
     &\mid\ife{\exp}{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}{\com}\mid\sequence{\com}{\com}.
   \end{align*}
 \end{definition}
@@ -54,7 +54,7 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
   with a map $\Pi$ that maps program points
   to commands. Moreover, if $\Pi(p)=\com$, we assume that:
   \begin{itemize}
-  \item if $\com\not=\stopc$ then $p_{\|next|}$ is the program point
+  \item if $\com\not=\return$ then $p_{\|next|}$ is the program point
     of the command that sequentially follows $\com$;
   \item if $\com=\for{\mathit{v}}{\exp}{\com_{\|inner|}}$ then
     $p_{\|inner|}$ is the program point of $\com_{\|inner|}$;
@@ -82,5 +82,6 @@ $p_{\|next|}$ is the \<for> command where the loop starts.
     \Pi(14)&=\<for\ investors\ in\ investors\ investors.receive(eachInvestorGets)>\\
     \Pi(15)&=\<investors.receive(eachInvestorGets)>
   \end{align*}
-  and $13_{\|next|}=14$, $14_{\|next|}=17$, $15_{\|next|}=14$, $14_{\|inner|}=15$.
+  and $13_{\|next|}=14$, $14_{\|next|}=17$, $15_{\|next|}=14$, $14_{\|inner|}=15$. Note that
+  $17_{\|next|}$ refers to an implicit $\return$ command, for simplicity not shown in Fig.~\ref{fig:ponzi1}.
 \end{example}

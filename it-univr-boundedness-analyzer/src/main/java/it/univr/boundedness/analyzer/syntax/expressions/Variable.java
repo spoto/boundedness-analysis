@@ -3,10 +3,10 @@ package it.univr.boundedness.analyzer.syntax.expressions;
 import java.util.stream.Stream;
 
 import it.univr.boundedness.analyzer.sideeffects.SideEffectsAnalysis;
-import it.univr.boundedness.analyzer.syntax.Expression;
+import it.univr.boundedness.analyzer.syntax.LValue;
 import it.univr.boundedness.analyzer.syntax.Type;
 
-public record Variable(String name) implements Expression {
+public record Variable(String name) implements LValue {
 	public final static Variable THIS = new Variable("this");
 	public final static Variable CALLER = new Variable("caller");
 	public final static Variable AMOUNT = new Variable("amount");
