@@ -21,7 +21,7 @@ import it.univr.boundedness.analyzer.syntax.commands.Push;
 import it.univr.boundedness.analyzer.syntax.commands.Receive;
 import it.univr.boundedness.analyzer.syntax.commands.Require;
 import it.univr.boundedness.analyzer.syntax.commands.Sequence;
-import it.univr.boundedness.analyzer.syntax.commands.Stop;
+import it.univr.boundedness.analyzer.syntax.commands.Return;
 import it.univr.boundedness.analyzer.syntax.expressions.ArithmeticOperation;
 import it.univr.boundedness.analyzer.syntax.expressions.Constant;
 import it.univr.boundedness.analyzer.syntax.expressions.ConstructorCall;
@@ -44,7 +44,7 @@ public class Ponzi2Tests {
 				new Sequence(new Sequence(
 						new Assignment(new FieldAccess(Variable.THIS, investors), new ConstructorCall(Class.LIST)),
 						new Push(new FieldAccess(Variable.THIS, investors), Class.CONTRACT, Variable.CALLER)),
-						new Stop()
+						new Return()
 				));
 
 		var eachInvestorGets = new Variable("eachInvestorGets");
@@ -62,7 +62,7 @@ public class Ponzi2Tests {
 								))),
 						new For(investor, thisInvestors, new Receive(investor, eachInvestorGets))),
 						new Push(thisInvestors, Class.CONTRACT, Variable.CALLER)),
-						new Stop()
+						new Return()
 		));
 	}
 

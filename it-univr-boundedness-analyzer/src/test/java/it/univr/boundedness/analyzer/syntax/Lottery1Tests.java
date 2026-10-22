@@ -25,7 +25,7 @@ import it.univr.boundedness.analyzer.syntax.commands.Push;
 import it.univr.boundedness.analyzer.syntax.commands.Receive;
 import it.univr.boundedness.analyzer.syntax.commands.Require;
 import it.univr.boundedness.analyzer.syntax.commands.Sequence;
-import it.univr.boundedness.analyzer.syntax.commands.Stop;
+import it.univr.boundedness.analyzer.syntax.commands.Return;
 import it.univr.boundedness.analyzer.syntax.expressions.ArithmeticOperation;
 import it.univr.boundedness.analyzer.syntax.expressions.Constant;
 import it.univr.boundedness.analyzer.syntax.expressions.ConstructorCall;
@@ -55,7 +55,7 @@ public class Lottery1Tests {
 		ticketBatchSaleConstructor = new Method(ticketBatchSale, ticketBatchSale.name(), new Sequence(new Sequence(
 			new Assignment(new FieldAccess(Variable.THIS, buyer), new Variable("buyer")),
 			new Assignment(new FieldAccess(Variable.THIS, tickets), new Variable("tickets"))),
-			new Stop()
+			new Return()
 		));
 
 		round = new Class("Round", Class.OBJECT);
@@ -67,7 +67,7 @@ public class Lottery1Tests {
 		roundConstructor = new Method(round, round.name(), new Sequence(new Sequence(
 			new Assignment(new FieldAccess(Variable.THIS, endTime), new Variable("endTime")),
 			new Assignment(new FieldAccess(Variable.THIS, sales), new ConstructorCall(Class.LIST))),
-			new Stop()
+			new Return()
 		));
 
 		lottery1 = new Class("Lottery1", Class.CONTRACT);
@@ -79,7 +79,7 @@ public class Lottery1Tests {
 			new Assignment(new FieldAccess(Variable.THIS, rounds), new ConstructorCall(Class.LIST))),
 			new Push(new FieldAccess(Variable.THIS, rounds), round,
 				new ConstructorCall(round, new ArithmeticOperation(Variable.NOW, AOP.ADD, new Variable("duration"))))),
-			new Stop()
+			new Return()
 		));
 
 		var last = new Variable("last");
@@ -99,7 +99,7 @@ public class Lottery1Tests {
 			new Assignment(quantity, new ArithmeticOperation(Variable.AMOUNT, AOP.DIV, new Constant(1000)))),
 			new Push(new FieldAccess(last, sales), ticketBatchSale, new ConstructorCall(ticketBatchSale, Variable.CALLER, quantity))),
 			new Assignment(new FieldAccess(last, totalTickets), new ArithmeticOperation(new FieldAccess(last, totalTickets), AOP.ADD, quantity))),
-			new Stop()
+			new Return()
 		));
 
 		var round = new Variable("round");
@@ -107,7 +107,7 @@ public class Lottery1Tests {
 		var roundNumber = new Variable("roundNumber");
 		var numWinningTicket = new Variable("numWinningTicket");
 
-		lottery1DrawWinner = new Method(lottery1, "drawWinner", new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(
+		lottery1DrawWinner = new Method(lottery1, "drawWinner", new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(
 			new Assignment(round, new ListAccess(new FieldAccess(Variable.THIS, rounds), roundNumber)),
 			new Require(new FieldAccess(round, winner), COP.EQ, Null.INSTANCE)),
 			new Require(Variable.NOW, COP.GT, new FieldAccess(round, endTime))),
@@ -118,12 +118,13 @@ public class Lottery1Tests {
 					new Sequence(new Sequence(
 						new Assignment(new FieldAccess(round, winner), new FieldAccess(sale, buyer)),
 						new Receive(new FieldAccess(round, winner), new ArithmeticOperation(new Constant(100), AOP.MUL, new FieldAccess(round, totalTickets)))),
-						new Stop()
+						new Return()
 					),
 					new Assignment(numWinningTicket, new ArithmeticOperation(numWinningTicket, AOP.SUB, new FieldAccess(sale, tickets)))
 				)
-			))
-		);
+			)),
+			new Return()
+		));
 	}
 
 	@Test
