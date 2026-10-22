@@ -3,10 +3,9 @@ package it.univr.boundedness.analyzer.syntax.commands;
 import java.util.stream.Stream;
 
 import it.univr.boundedness.analyzer.sideeffects.SideEffectsAnalysis;
-import it.univr.boundedness.analyzer.syntax.Command;
 import it.univr.boundedness.analyzer.syntax.Type;
 
-public record Nop() implements Command {
+public class Nop extends AbstractCommand {
 
 	@Override
 	public void toCode(StringBuilder sb, String nesting) {

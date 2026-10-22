@@ -9,7 +9,21 @@ import it.univr.boundedness.analyzer.syntax.Type;
 import it.univr.boundedness.analyzer.syntax.classes.Class;
 import it.univr.boundedness.analyzer.syntax.expressions.Variable;
 
-public record For(Variable v, Expression exp, Command com) implements Command {	
+public class For extends AbstractCommand {	
+	private final Variable v;
+	private final Expression exp;
+	private final AbstractCommand com;
+
+	public For(Variable v, Expression exp, AbstractCommand com) {
+		this.v = v;
+		this.exp = exp;
+		this.com = com;
+		com.setNext(this);
+	}
+
+	Command getInner() {
+		return com;
+	}
 
 	@Override
 	public void toCode(StringBuilder sb, String nesting) {

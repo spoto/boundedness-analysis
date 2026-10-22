@@ -4,11 +4,19 @@ import java.util.stream.Stream;
 
 import it.univr.boundedness.analyzer.sideeffects.SideEffectsAnalysis;
 import it.univr.boundedness.analyzer.syntax.COP;
-import it.univr.boundedness.analyzer.syntax.Command;
 import it.univr.boundedness.analyzer.syntax.Expression;
 import it.univr.boundedness.analyzer.syntax.Type;
 
-public record Require(Expression exp1, COP cop, Expression exp2) implements Command {	
+public class Require extends AbstractCommand {	
+	private final Expression exp1;
+	private final COP cop;
+	private final Expression exp2;
+
+	public Require(Expression exp1, COP cop, Expression exp2) {
+		this.exp1 = exp1;
+		this.cop = cop;
+		this.exp2 = exp2;
+	}
 
 	@Override
 	public void toCode(StringBuilder sb, String nesting) {

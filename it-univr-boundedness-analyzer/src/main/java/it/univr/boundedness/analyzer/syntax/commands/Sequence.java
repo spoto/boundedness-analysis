@@ -3,10 +3,23 @@ package it.univr.boundedness.analyzer.syntax.commands;
 import java.util.stream.Stream;
 
 import it.univr.boundedness.analyzer.sideeffects.SideEffectsAnalysis;
-import it.univr.boundedness.analyzer.syntax.Command;
 import it.univr.boundedness.analyzer.syntax.Type;
 
-public record Sequence(Command com1, Command com2) implements Command {	
+public class Sequence extends AbstractCommand {	
+	private final AbstractCommand com1;
+	private final AbstractCommand com2;
+
+	public Sequence(AbstractCommand com1, AbstractCommand com2) {
+		this.com1 = com1;
+		this.com2 = com2;
+		com1.setNext(com2);
+	}
+
+	@Override
+	protected void setNext(AbstractCommand next) {
+		super.setNext(next);
+		com2.setNext(next);
+	}
 
 	@Override
 	public void toCode(StringBuilder sb, String nesting) {

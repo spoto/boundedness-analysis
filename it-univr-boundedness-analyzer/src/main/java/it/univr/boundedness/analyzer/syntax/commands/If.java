@@ -9,7 +9,28 @@ import it.univr.boundedness.analyzer.syntax.Expression;
 import it.univr.boundedness.analyzer.syntax.Type;
 import it.univr.boundedness.analyzer.syntax.classes.Class;
 
-public record If(Expression exp1, COP cop, Expression exp2, Command com1, Command com2) implements Command {	
+public class If extends AbstractCommand {	
+	private final Expression exp1;
+	private final COP cop;
+	private final Expression exp2;
+	private final AbstractCommand com1;
+	private final AbstractCommand com2;
+
+	public If(Expression exp1, COP cop, Expression exp2, AbstractCommand com1, AbstractCommand com2) {
+		this.exp1 = exp1;
+		this.cop = cop;
+		this.exp2 = exp2;
+		this.com1 = com1;
+		this.com2 = com2;
+	}
+
+	public Command getThen() {
+		return com1;
+	}
+
+	public Command getElse() {
+		return com2;
+	}
 
 	@Override
 	public void toCode(StringBuilder sb, String nesting) {
