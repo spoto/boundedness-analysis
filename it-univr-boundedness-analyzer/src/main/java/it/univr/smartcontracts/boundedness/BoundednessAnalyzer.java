@@ -51,40 +51,33 @@ public class BoundednessAnalyzer {
 
 			switch (command) {
 			case Nop nop:
-				approximation.propagate(nop.next(), approx, ws, wsApprox);
+				approximation.propagate(nop.next(), nop.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
 				break;
 			case Assignment assignment:
-				approx = assignment.lvalue().boundedness(approx, sideEffectsAnalysis);
-				approx = assignment.exp().boundedness(approx, sideEffectsAnalysis);
-				approx = approx.assign(assignment);
-				approximation.propagate(assignment.next(), approx, ws, wsApprox);
+				approximation.propagate(assignment.next(), assignment.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
 				break;
 			case Push push:
-				approx = push.exp1().boundedness(approx, sideEffectsAnalysis);
-				approx = push.exp2().boundedness(approx, sideEffectsAnalysis);
-				approx = approx.push(push.elementsType());
-				approximation.propagate(push.next(), approx, ws, wsApprox);
+				approximation.propagate(push.next(), push.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
 				break;
 			case Receive receive:
-				approximation.propagate(receive.next(), approx, ws, wsApprox);
+				approximation.propagate(receive.next(), receive.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
 				break;
 			case Require require:
-				approximation.propagate(require.next(), approx, ws, wsApprox);
+				approximation.propagate(require.next(), require.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
 				break;
 			case MethodCall methodCall:
-				approximation.propagate(methodCall.next(), approx, ws, wsApprox);
+				approximation.propagate(methodCall.next(), methodCall.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
 				break;
 			case If _if:
-				approximation.propagate(_if.then(), approx, ws, wsApprox);
-				approximation.propagate(_if._else(), approx, ws, wsApprox);
+				approximation.propagate(_if.then(), _if.boundednessThen(approx, sideEffectsAnalysis), ws, wsApprox);
+				approximation.propagate(_if._else(), _if.boundednessElse(approx, sideEffectsAnalysis), ws, wsApprox);
 				break;
 			case For _for:
-				approximation.propagate(_for.inner(), approx, ws, wsApprox);
-				approximation.propagate(_for.inner(), approx, ws, wsApprox);
-				approximation.propagate(_for.next(), approx, ws, wsApprox);
+				approximation.propagate(_for.inner(), _for.boundednessInner(approx, sideEffectsAnalysis), ws, wsApprox);
+				approximation.propagate(_for.next(), _for.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
 				break;
 			case Sequence sequence:
-				approximation.propagate(sequence.first(), approx, ws, wsApprox);
+				approximation.propagate(sequence.first(), sequence.boundednessFirst(approx, sideEffectsAnalysis), ws, wsApprox);
 				break;
 			case Return _:
 				break;

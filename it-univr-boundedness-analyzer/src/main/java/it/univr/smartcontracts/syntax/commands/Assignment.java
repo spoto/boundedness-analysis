@@ -2,6 +2,7 @@ package it.univr.smartcontracts.syntax.commands;
 
 import java.util.stream.Stream;
 
+import it.univr.smartcontracts.boundedness.State;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.Command;
 import it.univr.smartcontracts.syntax.Expression;
@@ -42,5 +43,11 @@ public class Assignment extends AbstractCommand {
 	@Override
 	public Stream<Type> sideEffects(SideEffectsAnalysis interpretation) {
 		return Stream.of(lvalue, exp).flatMap(exp -> exp.sideEffects(interpretation));
-	}	
+	}
+
+	public State boundedness(State before, SideEffectsAnalysis sideEffectsAnalysis) {
+		State approx = lvalue.boundedness(before, sideEffectsAnalysis);
+		approx = exp.boundedness(approx, sideEffectsAnalysis);
+		return approx.assign(this);
+	}
 }

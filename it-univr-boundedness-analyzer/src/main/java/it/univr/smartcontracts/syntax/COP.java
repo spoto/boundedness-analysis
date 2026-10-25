@@ -15,4 +15,17 @@ public enum COP {
 			throw new IllegalStateException();
 		}
 	}
+
+	public COP neg() {
+		switch (this) {
+		case LT: return GE;
+		case LE: return GT;
+		case GT: return LE;
+		case GE: return LT;
+		case EQ: return NE;
+		case NE: return EQ;
+		default:
+			throw new IllegalStateException();
+		}
+	}
 }

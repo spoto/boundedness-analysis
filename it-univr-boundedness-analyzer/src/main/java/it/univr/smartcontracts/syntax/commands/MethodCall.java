@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import it.univr.smartcontracts.boundedness.State;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.Command;
 import it.univr.smartcontracts.syntax.Expression;
@@ -55,5 +56,22 @@ public class MethodCall extends AbstractCommand {
 
 		return Stream.concat(Stream.of(exp), Stream.of(exps))
 				.flatMap(exp -> exp.sideEffects(interpretation));
+	}
+
+	public State boundedness(State before, SideEffectsAnalysis sideEffectsAnalysis) {
+		State approx = exp.boundedness(before, sideEffectsAnalysis);
+
+		for (int pos = 0; pos < exps.length; pos++)
+			approx = exps[pos].boundedness(approx, sideEffectsAnalysis);
+
+		Set<Type> sideEffectsOfCallees = new HashSet<>();
+		// linear search: inefficient but OK for small programs
+		sideEffectsAnalysis.forEach((method, types) -> {
+			if (!method.isConstructor() && method.name().equals(name) &&
+					(method.definingClass().isSubtypeOf(clazz) || clazz.isSubtypeOf(method.definingClass())))
+				types.forEach(sideEffectsOfCallees::add);
+		});
+
+		return approx.survive(sideEffectsOfCallees.stream());
 	}
 }

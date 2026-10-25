@@ -173,12 +173,12 @@ of Def.~\ref{def:bo}.
       \frac{\Pi(p)=(\require{\exp_1}{\exp_2})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{p}{\|bo|}\boderivation{\pair{p_{\|next|}}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}}\\[1pt]
       % if/then/else
       \frac{\Pi(p)=\left(\ifetwo{\exp_1}{\exp_2}{\com_{\|then|}}{\com_{\|else|}}\right)\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{p}{\|bo|}\boderivation\pair{p_{\|then|}}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}\\[1pt]
-      \frac{\Pi(p)=\left(\ifetwo{\exp_1}{\exp_2}{\com_{\|then|}}{\com_{\|else|}}\right)\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{p}{\|bo|}\boderivation\pair{p_{\|else|}}{\|improve|(\|bo|'',\neg\cop{\exp_1}{\exp_2})}}\\[1pt]
+      \frac{\Pi(p)=\left(\ifetwo{\exp_1}{\exp_2}{\com_{\|then|}}{\com_{\|else|}}\right)\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{p}{\|bo|}\boderivation\pair{p_{\|else|}}{\|improve|(\|bo|'',\negcop{\exp_1}{\exp_2})}}\\[1pt]
       % for each
       \frac{\Pi(p)=(\for{v}{\exp}{\com})\quad\pair{\exp}{\|bo|}\boderivation\|bo'|}
            {\pair{p}{\|bo|}\boderivation\pair{p_{\|inner|}}{\|bo'|^{-v}}}\qquad
       \frac{\Pi(p)=(\for{v}{\exp}{\com})}
-           {\pair{p}{\|bo|}\boderivation\pair{p_{\|inner|}}{\|bo'|^{-v}}}\\[1pt]
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|inner|}}{\|bo|^{-v}}}\\[1pt]
       \frac{\Pi(p)=(\for{v}{\exp}{\com})}
            {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|}}\qquad
       % sequence
