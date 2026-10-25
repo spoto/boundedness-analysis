@@ -2,9 +2,14 @@ package it.univr.smartcontracts.syntax;
 
 import java.util.stream.Stream;
 
-public interface Path {
-	Type getType();
+import it.univr.smartcontracts.syntax.expressions.Variable;
+
+public interface Path extends LValue {
+	Variable root();
+	Type type();
 	String toString();
+	boolean equals(Object other);
+	int hashCode();
 
 	/**
 	 * Determines if this path survives all updates to a list whose element type is in the given

@@ -11,13 +11,38 @@ import it.univr.smartcontracts.syntax.Type;
 import it.univr.smartcontracts.syntax.classes.Field;
 import it.univr.smartcontracts.syntax.classes.List;
 
-public record FieldAccess(Expression exp, Field f) implements LValue {
+public class FieldAccess implements LValue, d {
+	private final Expression exp;
+	private final Field field;
+
+	public FieldAccess(Expression exp, Field field) {
+		this.exp = exp;
+		this.field = field;
+	}
 
 	@Override
 	public void toCode(StringBuilder sb) {
 		exp.toCode(sb);
 		sb.append('.');
-		sb.append(f.name());
+		sb.append(field.name());
+	}
+
+	public Expression exp() {
+		return exp;
+	}
+
+	public Field field() {
+		return field;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof FieldAccess fa && fa.exp.equals(exp) && fa.field.equals(field);
+	}
+
+	@Override
+	public int hashCode() {
+		return exp.hashCode() ^ field.hashCode();
 	}
 
 	@Override
@@ -29,32 +54,44 @@ public record FieldAccess(Expression exp, Field f) implements LValue {
 	public Optional<Path> asPath() {
 		Optional<Path> expAsPath;
 
-		if (exp instanceof LValue lv && f.isFinal() && (expAsPath = lv.asPath()).isPresent())
+		if (exp instanceof LValue lv && field.isFinal() && (expAsPath = lv.asPath()).isPresent())
 			return Optional.of(new FieldAccessPath(expAsPath.get()));
 		else
 			return Optional.empty();
 	}
 
-	private class FieldAccessPath implements Path {
+	private class FieldAccessPath extends FieldAccess implements Path {
 		private final Path inner;
 
 		private FieldAccessPath(Path inner) {
+			super(exp, field);
+
 			this.inner = inner;
 		}
 
 		@Override
-		public Type getType() {
-			return f.type();
+		public Variable root() {
+			return inner.root();
+		}
+
+		@Override
+		public Type type() {
+			return field.type();
 		}
 
 		@Override
 		public String toString() {
-			return inner + "." + f.name();
+			return inner + "." + field.name();
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			return other instanceof FieldAccessPath && super.equals(other);
 		}
 
 		@Override
 		public boolean survives(Stream<Type> updated) {
-			return !(getType() instanceof List list) || updated.noneMatch(u -> u.hasSharedSubtypeWith(list.inner()));
+			return !(type() instanceof List list) || updated.noneMatch(u -> u.hasSharedSubtypeWith(list.inner()));
 		}
 	}
 }

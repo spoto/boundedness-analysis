@@ -4,15 +4,14 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
-import it.univr.smartcontracts.syntax.LValue;
 import it.univr.smartcontracts.syntax.Path;
 import it.univr.smartcontracts.syntax.Type;
+import it.univr.smartcontracts.syntax.classes.Class;
 import it.univr.smartcontracts.syntax.classes.Int;
 import it.univr.smartcontracts.syntax.classes.List;
 import it.univr.smartcontracts.syntax.classes.Long;
-import it.univr.smartcontracts.syntax.classes.Class;
 
-public record Variable(String name, Type type) implements LValue {
+public record Variable(String name, Type type) implements Path {
 	public final static Variable CALLER = new Variable("caller", Class.CONTRACT);
 	public final static Variable AMOUNT = new Variable("amount", Int.INSTANCE);
 	public final static Variable NOW = new Variable("now", Long.INSTANCE);
@@ -29,24 +28,21 @@ public record Variable(String name, Type type) implements LValue {
 
 	@Override
 	public Optional<Path> asPath() {
-		return Optional.of(new VariablePath());
+		return Optional.of(this);
 	}
 
-	private class VariablePath implements Path {
+	@Override
+	public Variable root() {
+		return this;
+	}
 
-		@Override
-		public Type getType() {
-			return type;
-		}
+	@Override
+	public String toString() {
+		return name;
+	}
 
-		@Override
-		public String toString() {
-			return name;
-		}
-
-		@Override
-		public boolean survives(Stream<Type> updated) {
-			return !(type instanceof List list) || updated.noneMatch(u -> u.hasSharedSubtypeWith(list.inner()));
-		}
+	@Override
+	public boolean survives(Stream<Type> updated) {
+		return !(type instanceof List list) || updated.noneMatch(u -> u.hasSharedSubtypeWith(list.inner()));
 	}
 }

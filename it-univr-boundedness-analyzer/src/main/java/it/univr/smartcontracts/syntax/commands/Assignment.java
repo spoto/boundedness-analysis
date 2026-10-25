@@ -16,6 +16,14 @@ public class Assignment extends AbstractCommand {
 		this.exp = exp;
 	}
 
+	public LValue lvalue() {
+		return lvalue;
+	}
+
+	public Expression exp() {
+		return exp;
+	}
+
 	@Override
 	public void toCode(StringBuilder sb, String nesting) {
 		sb.append(nesting);
