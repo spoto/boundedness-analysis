@@ -24,16 +24,16 @@ public class If extends AbstractCommand {
 		this.com2 = com2;
 	}
 
-	public Command getThen() {
+	public Command then() {
 		return com1;
 	}
 
-	public Command getElse() {
+	public Command _else() {
 		return com2;
 	}
 
 	@Override
-	public void toCode(StringBuilder sb, String nesting) {
+	public void toString(StringBuilder sb, String nesting) {
 		sb.append(nesting);
 		sb.append("if (");
 		exp1.toCode(sb);
@@ -42,13 +42,13 @@ public class If extends AbstractCommand {
 		sb.append(' ');
 		exp2.toCode(sb);
 		sb.append(") {\n");
-		com1.toCode(sb, nesting + Class.NESTING);
+		com1.toString(sb, nesting + Class.NESTING);
 		sb.append("\n");
 		sb.append(nesting);
 		sb.append("}\n");
 		sb.append(nesting);
 		sb.append("else {\n");
-		com2.toCode(sb, nesting + Class.NESTING);
+		com2.toString(sb, nesting + Class.NESTING);
 		sb.append("\n");
 		sb.append(nesting);
 		sb.append("}");

@@ -1,5 +1,6 @@
 package it.univr.smartcontracts.boundedness;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -28,12 +29,17 @@ import it.univr.smartcontracts.syntax.expressions.Variable;
  */
 public class State {
 	private final Set<Constraint> constraints;
+	private final boolean isBottom;
+
+	public final static State TOP = new State(Collections.emptySet(), false);
+	public final static State BOTTOM = new State(Collections.emptySet(), true); // the set is irrelevant here
 
 	/**
 	 * The constraints parameter is assumed to be normalized already.
 	 */
-	private State(Set<Constraint> constraints) {
+	private State(Set<Constraint> constraints, boolean isBottom) {
 		this.constraints = constraints;
+		this.isBottom = isBottom;
 	}
 
 	/**
@@ -42,12 +48,18 @@ public class State {
 	 */
 	private State(State original) {
 		this.constraints = new HashSet<>(original.constraints);
+		this.isBottom = original.isBottom;
 	}
 
 	/**
 	 * Yields the least upper bound of this and other.
 	 */
 	public State lub(State other) {
+		if (isBottom)
+			return other;
+		else if (other.isBottom)
+			return this;
+
 		var constraints = new HashSet<Constraint>();
 
 		for (Constraint constraint1: this.constraints) {
@@ -61,20 +73,43 @@ public class State {
 
 		// by construction, there is only one constraint in constraints for each given path,
 		// hence constraints is normalized
-		return new State(constraints);
+		return new State(constraints, false);
 	}
 
 	/**
 	 * Yields the widening of this and other.
 	 */
 	public State widen(State other) {
-		var constraints = new HashSet<>(this.constraints);
-		constraints.retainAll(other.constraints);
-	
-		return new State(constraints);
+		if (isBottom && other.isBottom)
+			return this;
+		else if (isBottom) {
+			var constraints = new HashSet<Constraint>();
+			for (var constraint: other.constraints)
+				if (constraint.n() == 0)
+					constraints.add(constraint);
+
+			return new State(constraints, false);
+		}
+		else if (other.isBottom) {
+			var constraints = new HashSet<Constraint>();
+			for (var constraint: constraints)
+				if (constraint.n() == 0)
+					constraints.add(constraint);
+
+			return new State(constraints, false);
+		}
+		else {
+			var constraints = new HashSet<>(this.constraints);
+			constraints.retainAll(other.constraints);
+
+			return new State(constraints, false);
+		}
 	}
 
 	public State survive(Stream<Type> updated) {
+		if (isBottom)
+			return this;
+
 		var constraints = new HashSet<Constraint>();
 		var updatedAsSet = updated.collect(Collectors.toSet());
 
@@ -83,10 +118,13 @@ public class State {
 				constraints.add(constraint);
 
 		// normalized since it can only be smaller than this
-		return new State(constraints);
+		return new State(constraints, false);
 	}
 
 	public State push(Type updated) {
+		if (isBottom)
+			return this;
+
 		var constraints = new HashSet<Constraint>();
 
 		for (var constraint: this.constraints)
@@ -96,7 +134,7 @@ public class State {
 				constraints.add(new Constraint(constraint.path(), constraint.n() + 1));
 
 		// normalized since it has constraints for exactly the same paths as this
-		return new State(constraints);
+		return new State(constraints, false);
 	}
 
 	public State invalidate(Path path) {
@@ -104,6 +142,9 @@ public class State {
 	}
 
 	public State improve(Expression exp1, COP cop, Expression exp2) {
+		if (isBottom)
+			return this;
+
 		Optional<Path> pathUnderSize1 = pathUnderSize(exp1);
 		Optional<Path> pathUnderSize2 = pathUnderSize(exp2);
 		OptionalInt n1 = exp1 instanceof Constant con ? OptionalInt.of(con.c()) : OptionalInt.empty();
@@ -134,6 +175,9 @@ public class State {
 	}
 
 	public State assign(Assignment assignment) {
+		if (isBottom)
+			return this;
+
 		Optional<Path> lvalueAsPath = assignment.lvalue().asPath();
 		if (lvalueAsPath.isPresent()) {
 			var rvalue = assignment.exp();
@@ -169,12 +213,15 @@ public class State {
 
 	@Override
 	public String toString() {
-		return constraints.toString();
+		if (isBottom)
+			return "bottom";
+		else
+			return constraints.toString();
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof State state && constraints.equals(state.constraints);
+		return other instanceof State state && isBottom == state.isBottom && constraints.equals(state.constraints);
 	}
 
 	@Override
@@ -183,6 +230,9 @@ public class State {
 	}
 
 	private State invalidate(Path path, boolean clone) {
+		if (isBottom)
+			return this;
+
 		if (path instanceof Variable v) {
 			var constraints = new HashSet<Constraint>();
 	
@@ -191,7 +241,7 @@ public class State {
 					constraints.add(constraint);
 	
 			// constraints is a subset of this.constraints, hence it is normalized
-			return new State(constraints);
+			return new State(constraints, false);
 		}
 		else
 			return clone ? new State(this) : this;

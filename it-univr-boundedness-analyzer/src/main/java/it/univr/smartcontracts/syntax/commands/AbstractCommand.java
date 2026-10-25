@@ -12,9 +12,9 @@ abstract class AbstractCommand implements Command {
 	}
 
 	@Override
-	public final String toCode() {
+	public final String toString() {
 		var sb = new StringBuilder();
-		toCode(sb, "");
+		toString(sb, "");
 		return sb.toString();
 	}
 

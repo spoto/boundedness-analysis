@@ -3,6 +3,7 @@ package it.univr.smartcontracts.syntax.commands;
 import java.util.stream.Stream;
 
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
+import it.univr.smartcontracts.syntax.Command;
 import it.univr.smartcontracts.syntax.Type;
 
 public class Sequence extends AbstractCommand {	
@@ -15,6 +16,10 @@ public class Sequence extends AbstractCommand {
 		com1.setNext(com2);
 	}
 
+	public Command first() {
+		return com1;
+	}
+
 	@Override
 	protected void setNext(AbstractCommand next) {
 		super.setNext(next);
@@ -22,10 +27,10 @@ public class Sequence extends AbstractCommand {
 	}
 
 	@Override
-	public void toCode(StringBuilder sb, String nesting) {
-		com1.toCode(sb, nesting);
+	public void toString(StringBuilder sb, String nesting) {
+		com1.toString(sb, nesting);
 		sb.append("\n");
-		com2.toCode(sb, nesting);
+		com2.toString(sb, nesting);
 	}
 
 	@Override

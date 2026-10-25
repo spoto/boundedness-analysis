@@ -8,7 +8,7 @@ import it.univr.smartcontracts.syntax.Type;
 public class Nop extends AbstractCommand {
 
 	@Override
-	public void toCode(StringBuilder sb, String nesting) {
+	public void toString(StringBuilder sb, String nesting) {
 		sb.append(nesting);
 		sb.append("nop");
 	}

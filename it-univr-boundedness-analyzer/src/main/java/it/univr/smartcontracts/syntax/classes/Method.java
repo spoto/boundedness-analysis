@@ -40,7 +40,7 @@ public record Method(Class definingClass, String name, Command body) implements 
 		sb.append(nesting);
 		sb.append(name);
 		sb.append("() {\n");
-		body.toCode(sb, nesting + Class.NESTING);
+		body.toString(sb, nesting + Class.NESTING);
 		sb.append("\n");
 		sb.append(nesting);
 		sb.append("}");

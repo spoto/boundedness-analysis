@@ -19,7 +19,7 @@ public class Push extends AbstractCommand {
 	}
 
 	@Override
-	public void toCode(StringBuilder sb, String nesting) {
+	public void toString(StringBuilder sb, String nesting) {
 		sb.append(nesting);
 		exp1.toCode(sb);
 		sb.append(".push(");

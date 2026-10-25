@@ -5,7 +5,7 @@ import java.util.Optional;
 import it.univr.smartcontracts.sideeffects.SideEffectsProducer;
 
 public interface Command extends SideEffectsProducer {
-	String toCode();
-	void toCode(StringBuilder sb, String nesting);
+	String toString();
+	void toString(StringBuilder sb, String nesting);
 	Optional<Command> next();
 }

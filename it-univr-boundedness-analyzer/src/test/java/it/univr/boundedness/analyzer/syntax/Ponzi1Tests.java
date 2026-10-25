@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import it.univr.smartcontracts.boundedness.BoundednessAnalyzer;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalyzer;
 import it.univr.smartcontracts.syntax.AOP;
 import it.univr.smartcontracts.syntax.COP;
@@ -71,13 +72,21 @@ public class Ponzi1Tests {
 	}
 
 	@Test
-    @DisplayName("Checks correctness of the side-effects of Ponzi1")
-	public void sideEffectsOfPoinzi1AreCorrect() {
+    @DisplayName("Checks correctness of the side-effects analysis of Ponzi1")
+	public void sideEffectsAnalysisOfPoinzi1AreCorrect() {
 		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(Stream.of(ponzi1));
 		var onlyContract = new HashSet<Type>();
 		onlyContract.add(Class.CONTRACT);
 		assertTrue(sideEffectsAnalysis.of(ponzi1Constructor).collect(Collectors.toSet()).equals(onlyContract));
 		assertTrue(sideEffectsAnalysis.of(ponzi1Invest).collect(Collectors.toSet()).equals(onlyContract));
 		//sideEffectsAnalysis.forEach((method, types) -> System.out.println(method + ": " + types.collect(Collectors.toList())));
+	}
+
+	@Test
+    @DisplayName("Checks correctness of the boundedness analysis of Ponzi1")
+	public void boundednessAnalysisOfPoinzi1AreCorrect() {
+		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(Stream.of(ponzi1));
+		var boundednessAnalysis = new BoundednessAnalyzer().analyze(Stream.of(ponzi1), sideEffectsAnalysis, 4);
+		//boundednessAnalysis.forEach((command, state) -> System.out.println(command + ": " + state));
 	}
 }

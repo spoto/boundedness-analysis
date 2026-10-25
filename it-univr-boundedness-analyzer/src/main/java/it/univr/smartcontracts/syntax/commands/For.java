@@ -21,19 +21,19 @@ public class For extends AbstractCommand {
 		com.setNext(this);
 	}
 
-	Command getInner() {
+	public Command inner() {
 		return com;
 	}
 
 	@Override
-	public void toCode(StringBuilder sb, String nesting) {
+	public void toString(StringBuilder sb, String nesting) {
 		sb.append(nesting);
 		sb.append("for ");
 		sb.append(v.name());
 		sb.append(" in ");
 		exp.toCode(sb);
 		sb.append(" {\n");
-		com.toCode(sb, nesting + Class.NESTING);
+		com.toString(sb, nesting + Class.NESTING);
 		sb.append("\n");
 		sb.append(nesting);
 		sb.append("}");

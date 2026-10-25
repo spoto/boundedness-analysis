@@ -23,7 +23,7 @@ public class MethodCall extends AbstractCommand {
 	}
 
 	@Override
-	public void toCode(StringBuilder sb, String nesting) {
+	public void toString(StringBuilder sb, String nesting) {
 		sb.append(nesting);
 		sb.append(name);
 		sb.append('(');
