@@ -4,11 +4,14 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import it.univr.smartcontracts.syntax.COP;
 import it.univr.smartcontracts.syntax.Expression;
 import it.univr.smartcontracts.syntax.LValue;
 import it.univr.smartcontracts.syntax.Path;
+import it.univr.smartcontracts.syntax.Type;
 import it.univr.smartcontracts.syntax.classes.Class;
 import it.univr.smartcontracts.syntax.commands.Assignment;
 import it.univr.smartcontracts.syntax.expressions.Constant;
@@ -68,6 +71,31 @@ public class State {
 		var constraints = new HashSet<>(this.constraints);
 		constraints.retainAll(other.constraints);
 	
+		return new State(constraints);
+	}
+
+	public State survive(Stream<Type> updated) {
+		var constraints = new HashSet<Constraint>();
+		var updatedAsSet = updated.collect(Collectors.toSet());
+
+		for (var constraint: this.constraints)
+			if (constraint.path().survives(updatedAsSet.stream()))
+				constraints.add(constraint);
+
+		// normalized since it can only be smaller than this
+		return new State(constraints);
+	}
+
+	public State push(Type updated) {
+		var constraints = new HashSet<Constraint>();
+
+		for (var constraint: this.constraints)
+			if (constraint.path().survives(Stream.of(updated)))
+				constraints.add(constraint);
+			else
+				constraints.add(new Constraint(constraint.path(), constraint.n() + 1));
+
+		// normalized since it has constraints for exactly the same paths as this
 		return new State(constraints);
 	}
 
