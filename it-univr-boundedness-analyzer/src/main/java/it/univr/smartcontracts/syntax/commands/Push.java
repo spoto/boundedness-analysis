@@ -3,6 +3,7 @@ package it.univr.smartcontracts.syntax.commands;
 import java.util.stream.Stream;
 
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
+import it.univr.smartcontracts.syntax.Command;
 import it.univr.smartcontracts.syntax.Expression;
 import it.univr.smartcontracts.syntax.Type;
 
@@ -16,6 +17,23 @@ public class Push extends AbstractCommand {
 		this.exp1 = exp1;
 		this.elementsType = elementsType;
 		this.exp2 = exp2;
+	}
+
+	public Expression exp1() {
+		return exp1;
+	}
+
+	public Expression exp2() {
+		return exp2;
+	}
+
+	@Override
+	public Command next() {
+		return super.next();
+	}
+
+	public Type elementsType() {
+		return elementsType;
 	}
 
 	@Override

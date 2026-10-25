@@ -3,6 +3,7 @@ package it.univr.smartcontracts.syntax.commands;
 import java.util.stream.Stream;
 
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
+import it.univr.smartcontracts.syntax.Command;
 import it.univr.smartcontracts.syntax.Expression;
 import it.univr.smartcontracts.syntax.LValue;
 import it.univr.smartcontracts.syntax.Type;
@@ -22,6 +23,11 @@ public class Assignment extends AbstractCommand {
 
 	public Expression exp() {
 		return exp;
+	}
+
+	@Override
+	public Command next() {
+		return super.next();
 	}
 
 	@Override

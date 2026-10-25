@@ -1,7 +1,5 @@
 package it.univr.smartcontracts.syntax.commands;
 
-import java.util.Optional;
-
 import it.univr.smartcontracts.syntax.Command;
 
 abstract class AbstractCommand implements Command {
@@ -18,9 +16,8 @@ abstract class AbstractCommand implements Command {
 		return sb.toString();
 	}
 
-	@Override
-	public Optional<Command> next() {
-		return Optional.ofNullable(next);
+	protected Command next() {
+		return next;
 	}
 
 	/**

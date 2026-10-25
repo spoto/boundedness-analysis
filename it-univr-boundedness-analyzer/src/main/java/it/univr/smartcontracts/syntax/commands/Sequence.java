@@ -21,6 +21,11 @@ public class Sequence extends AbstractCommand {
 	}
 
 	@Override
+	public Command next() {
+		return super.next();
+	}
+
+	@Override
 	protected void setNext(AbstractCommand next) {
 		super.setNext(next);
 		com2.setNext(next);

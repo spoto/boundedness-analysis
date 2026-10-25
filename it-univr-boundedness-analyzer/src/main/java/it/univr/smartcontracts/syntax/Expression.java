@@ -1,8 +1,9 @@
 package it.univr.smartcontracts.syntax;
 
-import it.univr.smartcontracts.sideeffects.SideEffectsProducer;
+import it.univr.smartcontracts.boundedness.BoundednessAnalyzable;
+import it.univr.smartcontracts.sideeffects.SideEffectsAnalyzable;
 
-public interface Expression extends SideEffectsProducer {
+public interface Expression extends SideEffectsAnalyzable, BoundednessAnalyzable {
 
 	default String toCode() {
 		var sb = new StringBuilder();

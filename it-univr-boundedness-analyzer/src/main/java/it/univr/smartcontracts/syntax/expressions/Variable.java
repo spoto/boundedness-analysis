@@ -3,6 +3,7 @@ package it.univr.smartcontracts.syntax.expressions;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import it.univr.smartcontracts.boundedness.State;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.Path;
 import it.univr.smartcontracts.syntax.Type;
@@ -24,6 +25,11 @@ public record Variable(String name, Type type) implements Path {
 	@Override
 	public Stream<Type> sideEffects(SideEffectsAnalysis interpretation) {
 		return Stream.empty();
+	}
+
+	@Override
+	public State boundedness(State before, SideEffectsAnalysis sideEffectsAnalysis) {
+		return before;
 	}
 
 	@Override

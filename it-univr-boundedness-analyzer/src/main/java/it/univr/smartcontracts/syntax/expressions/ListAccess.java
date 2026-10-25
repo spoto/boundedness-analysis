@@ -3,6 +3,7 @@ package it.univr.smartcontracts.syntax.expressions;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import it.univr.smartcontracts.boundedness.State;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.Expression;
 import it.univr.smartcontracts.syntax.LValue;
@@ -22,6 +23,11 @@ public record ListAccess(Expression exp1, Expression exp2) implements LValue {
 	@Override
 	public Stream<Type> sideEffects(SideEffectsAnalysis interpretation) {
 		return Stream.of(exp1, exp2).flatMap(exp -> exp.sideEffects(interpretation));
+	}
+
+	@Override
+	public State boundedness(State before, SideEffectsAnalysis sideEffectsAnalysis) {
+		return exp2.boundedness(exp1.boundedness(before, sideEffectsAnalysis), sideEffectsAnalysis);
 	}
 
 	@Override

@@ -4,6 +4,6 @@ import java.util.stream.Stream;
 
 import it.univr.smartcontracts.syntax.Type;
 
-public interface SideEffectsProducer {
+public interface SideEffectsAnalyzable {
 	Stream<Type> sideEffects(SideEffectsAnalysis intepretation);
 }

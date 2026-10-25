@@ -3,6 +3,7 @@ package it.univr.smartcontracts.syntax.commands;
 import java.util.stream.Stream;
 
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
+import it.univr.smartcontracts.syntax.Command;
 import it.univr.smartcontracts.syntax.Expression;
 import it.univr.smartcontracts.syntax.Type;
 
@@ -13,6 +14,11 @@ public class Receive extends AbstractCommand {
 	public Receive(Expression exp1, Expression exp2) {
 		this.exp1 = exp1;
 		this.exp2 = exp2;
+	}
+
+	@Override
+	public Command next() {
+		return super.next();
 	}
 
 	@Override

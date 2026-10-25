@@ -284,6 +284,8 @@ public class State {
 			constraints.remove(toReplace);
 			constraints.add(constraint);
 		}
+		else
+			constraints.add(constraint);
 
 		return this;
 	}

@@ -26,6 +26,11 @@ public class For extends AbstractCommand {
 	}
 
 	@Override
+	public Command next() {
+		return super.next();
+	}
+
+	@Override
 	public void toString(StringBuilder sb, String nesting) {
 		sb.append(nesting);
 		sb.append("for ");
