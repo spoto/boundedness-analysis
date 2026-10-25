@@ -1,7 +1,9 @@
 package it.univr.smartcontracts.syntax.commands;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
+import it.univr.smartcontracts.boundedness.BoundednessAnalysis;
 import it.univr.smartcontracts.boundedness.State;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.Command;
@@ -23,7 +25,13 @@ public class Receive extends AbstractCommand {
 	}
 
 	@Override
-	public void toString(StringBuilder sb, String nesting) {
+	public void toCode(StringBuilder sb, String nesting, Optional<BoundednessAnalysis> boundedness) {
+		boundedness.ifPresent(b -> {
+			sb.append(nesting);
+			sb.append(b.of(this));
+			sb.append("\n");
+		});
+
 		sb.append(nesting);
 		exp1.toCode(sb);
 		sb.append(".receive(");

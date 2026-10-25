@@ -1,7 +1,9 @@
 package it.univr.smartcontracts.syntax.commands;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
+import it.univr.smartcontracts.boundedness.BoundednessAnalysis;
 import it.univr.smartcontracts.boundedness.State;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.Command;
@@ -33,10 +35,10 @@ public class Sequence extends AbstractCommand {
 	}
 
 	@Override
-	public void toString(StringBuilder sb, String nesting) {
-		com1.toString(sb, nesting);
+	public void toCode(StringBuilder sb, String nesting, Optional<BoundednessAnalysis> boundedness) {
+		com1.toCode(sb, nesting, boundedness);
 		sb.append("\n");
-		com2.toString(sb, nesting);
+		com2.toCode(sb, nesting, boundedness);
 	}
 
 	@Override

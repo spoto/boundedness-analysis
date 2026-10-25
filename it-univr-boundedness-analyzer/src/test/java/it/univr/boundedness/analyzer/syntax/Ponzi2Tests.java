@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import it.univr.smartcontracts.boundedness.BoundednessAnalyzer;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalyzer;
 import it.univr.smartcontracts.syntax.AOP;
 import it.univr.smartcontracts.syntax.COP;
@@ -81,5 +82,14 @@ public class Ponzi2Tests {
 		assertTrue(sideEffectsAnalysis.of(ponzi2Constructor).collect(Collectors.toSet()).equals(onlyContract));
 		assertTrue(sideEffectsAnalysis.of(ponzi2Invest).collect(Collectors.toSet()).equals(onlyContract));
 		//sideEffectsAnalysis.forEach((method, types) -> System.out.println(method + ": " + types.collect(Collectors.toList())));
+	}
+
+	@Test
+    @DisplayName("Checks correctness of the boundedness analysis of Ponzi2")
+	public void boundednessAnalysisOfPonzi2IsCorrect() {
+		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(Stream.of(ponzi2));
+		var boundednessAnalysis = new BoundednessAnalyzer().analyze(Stream.of(ponzi2), sideEffectsAnalysis, 4);
+		//boundednessAnalysis.forEach((command, state) -> System.out.println(command + ": " + state));
+		System.out.println(ponzi2.toCode(boundednessAnalysis));
 	}
 }

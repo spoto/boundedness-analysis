@@ -84,9 +84,10 @@ public class Ponzi1Tests {
 
 	@Test
     @DisplayName("Checks correctness of the boundedness analysis of Ponzi1")
-	public void boundednessAnalysisOfPoinzi1AreCorrect() {
+	public void boundednessAnalysisOfPonzi1IsCorrect() {
 		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(Stream.of(ponzi1));
 		var boundednessAnalysis = new BoundednessAnalyzer().analyze(Stream.of(ponzi1), sideEffectsAnalysis, 4);
 		//boundednessAnalysis.forEach((command, state) -> System.out.println(command + ": " + state));
+		System.out.println(ponzi1.toCode(boundednessAnalysis));
 	}
 }

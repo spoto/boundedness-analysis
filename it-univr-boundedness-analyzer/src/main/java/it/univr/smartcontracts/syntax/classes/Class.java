@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import it.univr.smartcontracts.boundedness.BoundednessAnalysis;
 import it.univr.smartcontracts.syntax.Type;
 
 public class Class implements Type {
@@ -87,12 +88,16 @@ public class Class implements Type {
 	}
 
 	public final String toCode() {
+		return toCode(null);
+	}
+
+	public final String toCode(BoundednessAnalysis boundedness) {
 		var sb = new StringBuilder();
-		toCode(sb);
+		toCode(sb, Optional.ofNullable(boundedness));
 		return sb.toString();
 	}
 
-	public void toCode(StringBuilder sb) {
+	public void toCode(StringBuilder sb, Optional<BoundednessAnalysis> boundedness) {
 		sb.append("class " + name);
 		superclass.ifPresent(sc -> sb.append(" extends " + sc.name));
 		sb.append(" {\n");
@@ -103,7 +108,7 @@ public class Class implements Type {
 		});
 
 		methods.stream().forEach(method -> {
-			method.toCode(sb, NESTING);
+			method.toCode(sb, NESTING, boundedness);
 			sb.append("\n");
 		});
 

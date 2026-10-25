@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import it.univr.smartcontracts.boundedness.BoundednessAnalyzer;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalyzer;
 import it.univr.smartcontracts.syntax.AOP;
 import it.univr.smartcontracts.syntax.COP;
@@ -149,5 +150,16 @@ public class Lottery1Tests {
 		roundAndTicketBatchSale.add(ticketBatchSale);
 		assertTrue(sideEffectsAnalysis.of(lottery1Buy).collect(Collectors.toSet()).equals(roundAndTicketBatchSale));
 		sideEffectsAnalysis.forEach((method, types) -> System.out.println(method + ": " + types.collect(Collectors.toList())));
+	}
+
+	@Test
+    @DisplayName("Checks correctness of the boundedness analysis of Lottery1")
+	public void boundednessAnalysisOfLottery1IsCorrect() {
+		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(Stream.of(ticketBatchSale, round, lottery1));
+		var boundednessAnalysis = new BoundednessAnalyzer().analyze(Stream.of(ticketBatchSale, round, lottery1), sideEffectsAnalysis, 4);
+		//boundednessAnalysis.forEach((command, state) -> System.out.println(command + ": " + state));
+		System.out.println(round.toCode(boundednessAnalysis));
+		System.out.println(ticketBatchSale.toCode(boundednessAnalysis));
+		System.out.println(lottery1.toCode(boundednessAnalysis));
 	}
 }

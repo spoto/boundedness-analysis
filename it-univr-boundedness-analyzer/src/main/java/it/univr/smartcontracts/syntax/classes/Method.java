@@ -1,5 +1,8 @@
 package it.univr.smartcontracts.syntax.classes;
 
+import java.util.Optional;
+
+import it.univr.smartcontracts.boundedness.BoundednessAnalysis;
 import it.univr.smartcontracts.syntax.Command;
 
 public record Method(Class definingClass, String name, Command body) implements Comparable<Method> {
@@ -31,16 +34,20 @@ public record Method(Class definingClass, String name, Command body) implements 
 	}
 
 	public String toCode() {
+		return toCode(null);
+	}
+
+	public final String toCode(BoundednessAnalysis boundedness) {
 		var sb = new StringBuilder();
-		toCode(sb, "");
+		toCode(sb, "", Optional.ofNullable(boundedness));
 		return sb.toString();
 	}
 
-	public void toCode(StringBuilder sb, String nesting) {
+	public void toCode(StringBuilder sb, String nesting, Optional<BoundednessAnalysis> boundedness) {
 		sb.append(nesting);
 		sb.append(name);
 		sb.append("() {\n");
-		body.toString(sb, nesting + Class.NESTING);
+		body.toCode(sb, nesting + Class.NESTING, boundedness);
 		sb.append("\n");
 		sb.append(nesting);
 		sb.append("}");

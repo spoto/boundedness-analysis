@@ -27,6 +27,9 @@ import it.univr.smartcontracts.syntax.commands.Sequence;
 
 public class BoundednessAnalyzer {
 
+	// a map stating how many times we analyzed each given command
+	private final Map<Command, Integer> counters = new HashMap<Command, Integer>();
+
 	public BoundednessAnalysis analyze(Stream<Class> program, SideEffectsAnalysis sideEffectsAnalysis, int thresholdForWidening) {
 		Set<Class> classes = program.collect(Collectors.toSet());
 		BoundednessApploximation approximation = mkInitialApproximation(classes);
@@ -38,7 +41,7 @@ public class BoundednessAnalyzer {
 		var wsApprox = ws.stream().map(_ -> State.TOP).collect(Collectors.toCollection(ArrayList::new));
 
 		// a map stating how many times we analyzed each given command
-		var counters = new HashMap<Command, Integer>();
+		//var counters = new HashMap<Command, Integer>();
 
 		while (!ws.isEmpty()) {
 			var command = ws.removeLast();
@@ -47,37 +50,35 @@ public class BoundednessAnalyzer {
 			approx = approximation.merge(command, approx, howManyTimesAlreadyAnalyzed, thresholdForWidening);
 			counters.put(command, howManyTimesAlreadyAnalyzed + 1);
 
-			System.out.println(howManyTimesAlreadyAnalyzed + ": " + approx + "\n" + command + "\n");
-
 			switch (command) {
 			case Nop nop:
-				approximation.propagate(nop.next(), nop.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
+				approximation.propagate(nop.next(), nop.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, thresholdForWidening);
 				break;
 			case Assignment assignment:
-				approximation.propagate(assignment.next(), assignment.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
+				approximation.propagate(assignment.next(), assignment.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, thresholdForWidening);
 				break;
 			case Push push:
-				approximation.propagate(push.next(), push.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
+				approximation.propagate(push.next(), push.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, thresholdForWidening);
 				break;
 			case Receive receive:
-				approximation.propagate(receive.next(), receive.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
+				approximation.propagate(receive.next(), receive.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, thresholdForWidening);
 				break;
 			case Require require:
-				approximation.propagate(require.next(), require.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
+				approximation.propagate(require.next(), require.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, thresholdForWidening);
 				break;
 			case MethodCall methodCall:
-				approximation.propagate(methodCall.next(), methodCall.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
+				approximation.propagate(methodCall.next(), methodCall.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, thresholdForWidening);
 				break;
 			case If _if:
-				approximation.propagate(_if.then(), _if.boundednessThen(approx, sideEffectsAnalysis), ws, wsApprox);
-				approximation.propagate(_if._else(), _if.boundednessElse(approx, sideEffectsAnalysis), ws, wsApprox);
+				approximation.propagate(_if.then(), _if.boundednessThen(approx, sideEffectsAnalysis), ws, wsApprox, thresholdForWidening);
+				approximation.propagate(_if._else(), _if.boundednessElse(approx, sideEffectsAnalysis), ws, wsApprox, thresholdForWidening);
 				break;
 			case For _for:
-				approximation.propagate(_for.inner(), _for.boundednessInner(approx, sideEffectsAnalysis), ws, wsApprox);
-				approximation.propagate(_for.next(), _for.boundedness(approx, sideEffectsAnalysis), ws, wsApprox);
+				approximation.propagate(_for.inner(), _for.boundednessInner(approx, sideEffectsAnalysis), ws, wsApprox, thresholdForWidening);
+				approximation.propagate(_for.next(), _for.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, thresholdForWidening);
 				break;
 			case Sequence sequence:
-				approximation.propagate(sequence.first(), sequence.boundednessFirst(approx, sideEffectsAnalysis), ws, wsApprox);
+				approximation.propagate(sequence.first(), sequence.boundednessFirst(approx, sideEffectsAnalysis), ws, wsApprox, thresholdForWidening);
 				break;
 			case Return _:
 				break;
@@ -93,7 +94,7 @@ public class BoundednessAnalyzer {
 		return new BoundednessApploximation(new HashMap<Command, State>());
 	}
 
-	private static class BoundednessApploximation implements BoundednessAnalysis {
+	private class BoundednessApploximation implements BoundednessAnalysis {
 		private final Map<Command, State> approximations;
 
 		private BoundednessApploximation(Map<Command, State> approximation) {
@@ -135,7 +136,11 @@ public class BoundednessAnalyzer {
 			return other instanceof BoundednessApploximation se && approximations.equals(se.approximations);
 		}
 
-		private void propagate(Command where, State approx, List<Command> ws, List<State> wsApprox) {
+		private void propagate(Command where, State approx, List<Command> ws, List<State> wsApprox, int thresholdForWidening) {
+			int howManyTimesAlreadyAnalyzed = Optional.ofNullable(counters.get(where)).orElse(0);
+			approx = merge(where, approx, howManyTimesAlreadyAnalyzed, thresholdForWidening);
+			counters.put(where, howManyTimesAlreadyAnalyzed + 1);
+
 			if (!approx.equals(of(where))) {
 				approximations.put(where, approx);
 				ws.addLast(where);

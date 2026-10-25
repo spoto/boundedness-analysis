@@ -1,5 +1,8 @@
 package it.univr.smartcontracts.syntax.commands;
 
+import java.util.Optional;
+
+import it.univr.smartcontracts.boundedness.BoundednessAnalysis;
 import it.univr.smartcontracts.syntax.Command;
 
 abstract class AbstractCommand implements Command {
@@ -9,15 +12,19 @@ abstract class AbstractCommand implements Command {
 		this.next = next;
 	}
 
-	@Override
-	public final String toString() {
-		var sb = new StringBuilder();
-		toString(sb, "");
-		return sb.toString();
-	}
-
 	protected Command next() {
 		return next;
+	}
+
+	@Override
+	public final String toCode() {
+		return toCode(null);
+	}
+
+	public final String toCode(BoundednessAnalysis boundedness) {
+		var sb = new StringBuilder();
+		toCode(sb, "", Optional.ofNullable(boundedness));
+		return sb.toString();
 	}
 
 	/**

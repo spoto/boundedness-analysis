@@ -1,7 +1,9 @@
 package it.univr.smartcontracts.syntax.commands;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
+import it.univr.smartcontracts.boundedness.BoundednessAnalysis;
 import it.univr.smartcontracts.boundedness.State;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.COP;
@@ -39,7 +41,19 @@ public class If extends AbstractCommand {
 	}
 
 	@Override
-	public void toString(StringBuilder sb, String nesting) {
+	protected void setNext(AbstractCommand next) {
+		super.setNext(next);
+		com1.setNext(next);
+		com2.setNext(next);
+	}
+
+	@Override
+	public void toCode(StringBuilder sb, String nesting, Optional<BoundednessAnalysis> boundedness) {
+		boundedness.ifPresent(b -> {
+			sb.append(nesting);
+			sb.append(b.of(this));
+			sb.append("\n");
+		});
 		sb.append(nesting);
 		sb.append("if (");
 		exp1.toCode(sb);
@@ -48,13 +62,13 @@ public class If extends AbstractCommand {
 		sb.append(' ');
 		exp2.toCode(sb);
 		sb.append(") {\n");
-		com1.toString(sb, nesting + Class.NESTING);
+		com1.toCode(sb, nesting + Class.NESTING, boundedness);
 		sb.append("\n");
 		sb.append(nesting);
 		sb.append("}\n");
 		sb.append(nesting);
 		sb.append("else {\n");
-		com2.toString(sb, nesting + Class.NESTING);
+		com2.toCode(sb, nesting + Class.NESTING, boundedness);
 		sb.append("\n");
 		sb.append(nesting);
 		sb.append("}");
