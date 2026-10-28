@@ -49,4 +49,9 @@ public class Sequence extends AbstractCommand {
 	public State boundednessFirst(State before, SideEffectsAnalysis sideEffectsAnalysis) {
 		return before;
 	}
+
+	@Override
+	public Stream<Command> subcommands() {
+		return Stream.concat(Stream.of(this), Stream.of(com1, com2).flatMap(Command::subcommands));
+	}
 }

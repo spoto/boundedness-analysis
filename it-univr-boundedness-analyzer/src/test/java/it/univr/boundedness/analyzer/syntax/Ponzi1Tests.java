@@ -1,5 +1,6 @@
 package it.univr.boundedness.analyzer.syntax;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
@@ -39,6 +40,7 @@ public class Ponzi1Tests {
 	private static Class ponzi1;
 	private static Method ponzi1Constructor;
 	private static Method ponzi1Invest;
+	private static For _for;
 
 	@BeforeAll
 	public static void mkProgram() {
@@ -65,7 +67,7 @@ public class Ponzi1Tests {
 								Variable.AMOUNT,
 								AOP.DIV,
 								new Size(thisInvestors)))),
-						new For(investor, thisInvestors, new Receive(investor, eachInvestorGets))),
+						_for = new For(investor, thisInvestors, Class.CONTRACT, new Receive(investor, eachInvestorGets))),
 						new Push(thisInvestors, Class.CONTRACT, Variable.CALLER)),
 						new Return()
 		));
@@ -91,5 +93,7 @@ public class Ponzi1Tests {
 		var boundednessAnalysis = new BoundednessAnalyzer().analyze(program, sideEffectsAnalysis, 4);
 		//boundednessAnalysis.forEach((command, state) -> System.out.println(command + ": " + state));
 		System.out.println(program.toCode(boundednessAnalysis));
+		assertFalse(boundednessAnalysis.allListsAreBounded(Class.CONTRACT));
+		assertTrue(_for.hasWarning(boundednessAnalysis));
 	}
 }

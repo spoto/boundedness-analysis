@@ -31,7 +31,7 @@ public class Require extends AbstractCommand {
 	public void toCode(StringBuilder sb, String nesting, Optional<BoundednessAnalysis> boundedness) {
 		boundedness.ifPresent(b -> {
 			sb.append(nesting);
-			sb.append(b.of(this));
+			sb.append(b.at(this));
 			sb.append("\n");
 		});
 
@@ -54,5 +54,10 @@ public class Require extends AbstractCommand {
 		State approx = exp1.boundedness(before, sideEffectsAnalysis);
 		approx = exp2.boundedness(approx, sideEffectsAnalysis);
 		return approx.improve(exp1, cop, exp2);
+	}
+
+	@Override
+	public Stream<Command> subcommands() {
+		return Stream.of(this);
 	}
 }

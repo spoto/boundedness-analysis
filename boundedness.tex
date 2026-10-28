@@ -437,8 +437,8 @@ This information is used to warn about boundedness bugs.
 %
 \begin{definition}[Warning Generation]\label{def:warnings}
   Our boundedness analyzer issues a warning at each
-  $\for{v}{w}{\com}$ command in the program, where
-  $w$ has type $\<List<$t$\texttt{>}>$, if and only if it is not true that
+  $\for{v}{\exp}{\com}$ command in the program, where
+  $\exp$ has type $\<List<$t$\texttt{>}>$, if and only if it is not true that
   all lists of type $t$ are bounded (Def.~\ref{def:bounded_lists}).
 \end{definition}
 %

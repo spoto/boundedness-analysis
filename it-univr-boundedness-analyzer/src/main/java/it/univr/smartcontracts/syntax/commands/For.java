@@ -15,11 +15,13 @@ import it.univr.smartcontracts.syntax.expressions.Variable;
 public class For extends AbstractCommand {	
 	private final Variable v;
 	private final Expression exp;
+	private final Type elementsType;
 	private final AbstractCommand com;
 
-	public For(Variable v, Expression exp, AbstractCommand com) {
+	public For(Variable v, Expression exp, Type elementsType, AbstractCommand com) {
 		this.v = v;
 		this.exp = exp;
+		this.elementsType = elementsType;
 		this.com = com;
 		com.setNext(this);
 	}
@@ -37,7 +39,7 @@ public class For extends AbstractCommand {
 	public void toCode(StringBuilder sb, String nesting, Optional<BoundednessAnalysis> boundedness) {
 		boundedness.ifPresent(b -> {
 			sb.append(nesting);
-			sb.append(b.of(this));
+			sb.append(b.at(this));
 			sb.append("\n");
 		});
 		sb.append(nesting);
@@ -64,5 +66,14 @@ public class For extends AbstractCommand {
 	public State boundednessInner(State before, SideEffectsAnalysis sideEffectsAnalysis) {
 		// the other rule for inner is implied by this one that yields less precise results, in general
 		return exp.boundedness(before, sideEffectsAnalysis).invalidate(v);
+	}
+
+	@Override
+	public Stream<Command> subcommands() {
+		return Stream.concat(Stream.of(this), com.subcommands());
+	}
+
+	public boolean hasWarning(BoundednessAnalysis boundednessAnalysis) {
+		return !boundednessAnalysis.allListsAreBounded(elementsType);
 	}
 }

@@ -8,6 +8,7 @@ import it.univr.smartcontracts.boundedness.State;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.Command;
 import it.univr.smartcontracts.syntax.Expression;
+import it.univr.smartcontracts.syntax.LValue;
 import it.univr.smartcontracts.syntax.Type;
 
 // elementsType is the type of the elements of exp1
@@ -27,11 +28,25 @@ public class Push extends AbstractCommand {
 		return super.next();
 	}
 
+	public boolean canAffect(Type elementsType) {
+		return elementsType.hasSharedSubtypeWith(this.elementsType);
+	}
+
+	public boolean isBounded(BoundednessAnalysis boundednessAnalysis) {
+		if (exp1 instanceof LValue lvalue) {
+			var maybePath = lvalue.asPath();
+			if (maybePath.isPresent())
+				return boundednessAnalysis.at(this).isBounded(maybePath.get());
+		}
+
+		return false;
+	}
+
 	@Override
 	public void toCode(StringBuilder sb, String nesting, Optional<BoundednessAnalysis> boundedness) {
 		boundedness.ifPresent(b -> {
 			sb.append(nesting);
-			sb.append(b.of(this));
+			sb.append(b.at(this));
 			sb.append("\n");
 		});
 
@@ -52,5 +67,10 @@ public class Push extends AbstractCommand {
 		State approx = exp1.boundedness(before, sideEffectsAnalysis);
 		approx = exp2.boundedness(approx, sideEffectsAnalysis);
 		return approx.push(elementsType);
+	}
+
+	@Override
+	public Stream<Command> subcommands() {
+		return Stream.of(this);
 	}
 }

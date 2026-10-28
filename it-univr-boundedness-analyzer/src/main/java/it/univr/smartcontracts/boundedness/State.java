@@ -51,6 +51,10 @@ public class State {
 		this.isBottom = original.isBottom;
 	}
 
+	public boolean isBounded(Path path) {
+		return isBottom || constraints.stream().map(Constraint::path).anyMatch(path::equals);
+	}
+
 	/**
 	 * Yields the least upper bound of this and other.
 	 */

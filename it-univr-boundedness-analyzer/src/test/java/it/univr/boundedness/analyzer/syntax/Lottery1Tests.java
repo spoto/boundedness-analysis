@@ -1,5 +1,6 @@
 package it.univr.boundedness.analyzer.syntax;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
@@ -50,6 +51,7 @@ public class Lottery1Tests {
 	private static Method lottery1Constructor;
 	private static Method lottery1Buy;
 	private static Method lottery1DrawWinner;
+	private static For _for;
 
 	@BeforeAll
 	public static void mkProgram() {
@@ -121,7 +123,7 @@ public class Lottery1Tests {
 			new Require(Variable.NOW, COP.GT, new FieldAccess(round, endTime))),
 			new Require(new FieldAccess(round, totalTickets), COP.GT, new Constant(0))),
 			new Assignment(numWinningTicket, new Random(new FieldAccess(round, totalTickets)))),
-			new For(sale, new FieldAccess(round, sales),
+			_for = new For(sale, new FieldAccess(round, sales), ticketBatchSale,
 				new If(new FieldAccess(sale, tickets), COP.GT, numWinningTicket,
 					new Sequence(new Sequence(
 						new Assignment(new FieldAccess(round, winner), new FieldAccess(sale, buyer)),
@@ -161,5 +163,8 @@ public class Lottery1Tests {
 		var boundednessAnalysis = new BoundednessAnalyzer().analyze(program, sideEffectsAnalysis, 4);
 		//boundednessAnalysis.forEach((command, state) -> System.out.println(command + ": " + state));
 		System.out.println(program.toCode(boundednessAnalysis));
+		assertFalse(boundednessAnalysis.allListsAreBounded(round));
+		assertFalse(boundednessAnalysis.allListsAreBounded(ticketBatchSale));
+		assertTrue(_for.hasWarning(boundednessAnalysis));
 	}
 }

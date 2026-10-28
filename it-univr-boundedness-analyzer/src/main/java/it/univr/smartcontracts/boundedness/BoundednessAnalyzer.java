@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.Command;
 import it.univr.smartcontracts.syntax.Program;
+import it.univr.smartcontracts.syntax.Type;
 import it.univr.smartcontracts.syntax.classes.Class;
 import it.univr.smartcontracts.syntax.classes.Method;
 import it.univr.smartcontracts.syntax.commands.Assignment;
@@ -28,11 +28,10 @@ import it.univr.smartcontracts.syntax.commands.Sequence;
 public class BoundednessAnalyzer {
 
 	public BoundednessAnalysis analyze(Program program, SideEffectsAnalysis sideEffectsAnalysis, int thresholdForWidening) {
-		Set<Class> classes = program.classes().collect(Collectors.toSet());
-		BoundednessApploximation approximation = mkInitialApproximation(classes);
+		BoundednessApploximation approximation = mkInitialApproximation(program);
 
 		// we initialize the working set of commands with the bodies of the methods of the classes of the program
-		var ws = classes.stream().flatMap(Class::methods).map(Method::body).collect(Collectors.toCollection(ArrayList::new));
+		var ws = program.classes().flatMap(Class::methods).map(Method::body).collect(Collectors.toCollection(ArrayList::new));
 
 		// for each command, there is a corresponding approximation that needs to be propagated
 		var wsApprox = ws.stream().map(_ -> State.TOP).collect(Collectors.toCollection(ArrayList::new));
@@ -87,19 +86,26 @@ public class BoundednessAnalyzer {
 		return approximation;
 	}
 
-	private BoundednessApploximation mkInitialApproximation(Set<Class> classes) {
-		return new BoundednessApploximation(new HashMap<Command, State>());
+	private BoundednessApploximation mkInitialApproximation(Program program) {
+		return new BoundednessApploximation(program, new HashMap<Command, State>());
 	}
 
 	private static class BoundednessApploximation implements BoundednessAnalysis {
+		private final Program program;
 		private final Map<Command, State> approximations;
 
-		private BoundednessApploximation(Map<Command, State> approximation) {
+		private BoundednessApploximation(Program program, Map<Command, State> approximation) {
+			this.program = program;
 			this.approximations = approximation;
 		}
 
 		@Override
-		public State of(Command command) {
+		public Program program() {
+			return program;
+		}
+
+		@Override
+		public State at(Command command) {
 			var result = approximations.get(command);
 			if (result == null)
 				// if there is no information, the command is deemed unreachable
@@ -114,8 +120,20 @@ public class BoundednessAnalyzer {
 			approximations.entrySet().forEach(entry -> action.accept(entry.getKey(), entry.getValue()));
 		}
 
+		@Override
+		public boolean allListsAreBounded(Type elementsType) {
+			return program.classes()
+					.flatMap(Class::methods)
+					.map(Method::body)
+					.flatMap(Command::subcommands)
+					.filter(command -> command instanceof Push)
+					.map(command -> (Push) command)
+					.filter(push -> push.canAffect(elementsType))
+					.allMatch(push -> push.isBounded(this));
+		}
+
 		public State merge(Command command, State approx, int howManyTimesAlreadyAnalyzed, int thresholdForWidening) {
-			var oldApprox = of(command);
+			var oldApprox = at(command);
 
 			if (howManyTimesAlreadyAnalyzed <= thresholdForWidening)
 				return oldApprox.lub(approx);
@@ -138,7 +156,7 @@ public class BoundednessAnalyzer {
 			approx = merge(where, approx, howManyTimesAlreadyAnalyzed, thresholdForWidening);
 			counters.put(where, howManyTimesAlreadyAnalyzed + 1);
 
-			if (!approx.equals(of(where))) {
+			if (!approx.equals(at(where))) {
 				approximations.put(where, approx);
 				ws.addLast(where);
 				wsApprox.addLast(approx);

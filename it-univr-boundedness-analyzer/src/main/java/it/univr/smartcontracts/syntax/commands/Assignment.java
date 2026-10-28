@@ -37,7 +37,7 @@ public class Assignment extends AbstractCommand {
 	public void toCode(StringBuilder sb, String nesting, Optional<BoundednessAnalysis> boundedness) {
 		boundedness.ifPresent(b -> {
 			sb.append(nesting);
-			sb.append(b.of(this));
+			sb.append(b.at(this));
 			sb.append("\n");
 		});
 		sb.append(nesting);
@@ -56,5 +56,10 @@ public class Assignment extends AbstractCommand {
 		State approx = lvalue.boundedness(before, sideEffectsAnalysis);
 		approx = exp.boundedness(approx, sideEffectsAnalysis);
 		return approx.assign(this);
+	}
+
+	@Override
+	public Stream<Command> subcommands() {
+		return Stream.of(this);
 	}
 }

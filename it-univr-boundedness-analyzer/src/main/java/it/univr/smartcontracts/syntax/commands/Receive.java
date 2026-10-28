@@ -28,7 +28,7 @@ public class Receive extends AbstractCommand {
 	public void toCode(StringBuilder sb, String nesting, Optional<BoundednessAnalysis> boundedness) {
 		boundedness.ifPresent(b -> {
 			sb.append(nesting);
-			sb.append(b.of(this));
+			sb.append(b.at(this));
 			sb.append("\n");
 		});
 
@@ -46,5 +46,10 @@ public class Receive extends AbstractCommand {
 
 	public State boundedness(State before, SideEffectsAnalysis sideEffectsAnalysis) {
 		return exp2.boundedness(exp1.boundedness(before, sideEffectsAnalysis), sideEffectsAnalysis);
+	}
+
+	@Override
+	public Stream<Command> subcommands() {
+		return Stream.of(this);
 	}
 }
