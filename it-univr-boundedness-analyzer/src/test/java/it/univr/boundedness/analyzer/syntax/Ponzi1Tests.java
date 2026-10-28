@@ -35,7 +35,7 @@ import it.univr.smartcontracts.syntax.expressions.FieldAccess;
 import it.univr.smartcontracts.syntax.expressions.Size;
 import it.univr.smartcontracts.syntax.expressions.Variable;
 
-public class Ponzi1Tests {
+public class Ponzi1Tests extends AbstractTest {
 	private static Program program;
 	private static Class ponzi1;
 	private static Method ponzi1Constructor;
@@ -91,9 +91,10 @@ public class Ponzi1Tests {
 	public void boundednessAnalysisOfPonzi1IsCorrect() {
 		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(program);
 		var boundednessAnalysis = new BoundednessAnalyzer().analyze(program, sideEffectsAnalysis, 4);
-		//boundednessAnalysis.forEach((command, state) -> System.out.println(command + ": " + state));
-		System.out.println(program.toCode(boundednessAnalysis));
 		assertFalse(boundednessAnalysis.allListsAreBounded(Class.CONTRACT));
 		assertTrue(_for.hasWarning(boundednessAnalysis));
+
+		if (isPrintRequested())
+			System.out.println(program.toCode(boundednessAnalysis));
 	}
 }

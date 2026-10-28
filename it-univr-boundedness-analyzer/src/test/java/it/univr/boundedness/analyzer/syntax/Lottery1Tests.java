@@ -41,7 +41,7 @@ import it.univr.smartcontracts.syntax.expressions.Null;
 import it.univr.smartcontracts.syntax.expressions.Random;
 import it.univr.smartcontracts.syntax.expressions.Variable;
 
-public class Lottery1Tests {
+public class Lottery1Tests extends AbstractTest {
 	private static Program program;
 	private static Class ticketBatchSale;
 	private static Class round;
@@ -161,10 +161,11 @@ public class Lottery1Tests {
 	public void boundednessAnalysisOfLottery1IsCorrect() {
 		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(program);
 		var boundednessAnalysis = new BoundednessAnalyzer().analyze(program, sideEffectsAnalysis, 4);
-		//boundednessAnalysis.forEach((command, state) -> System.out.println(command + ": " + state));
-		System.out.println(program.toCode(boundednessAnalysis));
 		assertFalse(boundednessAnalysis.allListsAreBounded(round));
 		assertFalse(boundednessAnalysis.allListsAreBounded(ticketBatchSale));
 		assertTrue(_for.hasWarning(boundednessAnalysis));
+
+		if (isPrintRequested())
+			System.out.println(program.toCode(boundednessAnalysis));
 	}
 }
