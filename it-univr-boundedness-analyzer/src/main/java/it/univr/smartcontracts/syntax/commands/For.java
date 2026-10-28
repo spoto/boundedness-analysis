@@ -47,7 +47,13 @@ public class For extends AbstractCommand {
 		sb.append(v.name());
 		sb.append(" in ");
 		exp.toCode(sb);
-		sb.append(" {\n");
+		sb.append(" {");
+		boundedness.filter(this::hasWarning).ifPresent(b -> {
+			sb.append(" ***** WARNING!!! iteration on unbounded list ");
+			sb.append(exp.toCode());
+			sb.append(" *****");
+		});
+		sb.append('\n');
 		com.toCode(sb, nesting + Class.NESTING, boundedness);
 		sb.append("\n");
 		sb.append(nesting);
