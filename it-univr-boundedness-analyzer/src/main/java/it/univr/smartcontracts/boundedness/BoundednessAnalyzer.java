@@ -8,10 +8,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.Command;
+import it.univr.smartcontracts.syntax.Program;
 import it.univr.smartcontracts.syntax.classes.Class;
 import it.univr.smartcontracts.syntax.classes.Method;
 import it.univr.smartcontracts.syntax.commands.Assignment;
@@ -27,8 +27,8 @@ import it.univr.smartcontracts.syntax.commands.Sequence;
 
 public class BoundednessAnalyzer {
 
-	public BoundednessAnalysis analyze(Stream<Class> program, SideEffectsAnalysis sideEffectsAnalysis, int thresholdForWidening) {
-		Set<Class> classes = program.collect(Collectors.toSet());
+	public BoundednessAnalysis analyze(Program program, SideEffectsAnalysis sideEffectsAnalysis, int thresholdForWidening) {
+		Set<Class> classes = program.classes().collect(Collectors.toSet());
 		BoundednessApploximation approximation = mkInitialApproximation(classes);
 
 		// we initialize the working set of commands with the bodies of the methods of the classes of the program

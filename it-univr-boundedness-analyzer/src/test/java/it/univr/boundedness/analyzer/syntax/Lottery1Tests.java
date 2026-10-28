@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +13,7 @@ import it.univr.smartcontracts.boundedness.BoundednessAnalyzer;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalyzer;
 import it.univr.smartcontracts.syntax.AOP;
 import it.univr.smartcontracts.syntax.COP;
+import it.univr.smartcontracts.syntax.Program;
 import it.univr.smartcontracts.syntax.Type;
 import it.univr.smartcontracts.syntax.classes.Class;
 import it.univr.smartcontracts.syntax.classes.Field;
@@ -41,6 +41,7 @@ import it.univr.smartcontracts.syntax.expressions.Random;
 import it.univr.smartcontracts.syntax.expressions.Variable;
 
 public class Lottery1Tests {
+	private static Program program;
 	private static Class ticketBatchSale;
 	private static Class round;
 	private static Class lottery1;
@@ -132,13 +133,14 @@ public class Lottery1Tests {
 			)),
 			new Return()
 		));
+
+		program = new Program(ticketBatchSale, Lottery1Tests.round, lottery1);
 	}
 
 	@Test
     @DisplayName("Checks correctness of the side-effects of Lottery1")
 	public void sideEffectsOfPoinzi1AreCorrect() {
-		System.out.println(lottery1.toCode());
-		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(Stream.of(ticketBatchSale, round, lottery1));
+		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(program);
 		assertTrue(sideEffectsAnalysis.of(ticketBatchSaleConstructor).count() == 0L);
 		assertTrue(sideEffectsAnalysis.of(roundConstructor).count() == 0L);
 		var onlyRound = new HashSet<Type>();
@@ -155,11 +157,9 @@ public class Lottery1Tests {
 	@Test
     @DisplayName("Checks correctness of the boundedness analysis of Lottery1")
 	public void boundednessAnalysisOfLottery1IsCorrect() {
-		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(Stream.of(ticketBatchSale, round, lottery1));
-		var boundednessAnalysis = new BoundednessAnalyzer().analyze(Stream.of(ticketBatchSale, round, lottery1), sideEffectsAnalysis, 4);
+		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(program);
+		var boundednessAnalysis = new BoundednessAnalyzer().analyze(program, sideEffectsAnalysis, 4);
 		//boundednessAnalysis.forEach((command, state) -> System.out.println(command + ": " + state));
-		System.out.println(round.toCode(boundednessAnalysis));
-		System.out.println(ticketBatchSale.toCode(boundednessAnalysis));
-		System.out.println(lottery1.toCode(boundednessAnalysis));
+		System.out.println(program.toCode(boundednessAnalysis));
 	}
 }

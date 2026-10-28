@@ -8,14 +8,15 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import it.univr.smartcontracts.syntax.Program;
 import it.univr.smartcontracts.syntax.Type;
 import it.univr.smartcontracts.syntax.classes.Class;
 import it.univr.smartcontracts.syntax.classes.Method;
 
 public class SideEffectsAnalyzer {
 
-	public SideEffectsAnalysis analyze(Stream<Class> program) {
-		Set<Class> classes = program.collect(Collectors.toSet());
+	public SideEffectsAnalysis analyze(Program program) {
+		Set<Class> classes = program.classes().collect(Collectors.toSet());
 		SideEffects interpretation = mkInitialInterpretation(classes);
 		SideEffects oldInterpretation;
 

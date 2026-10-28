@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +13,7 @@ import it.univr.smartcontracts.boundedness.BoundednessAnalyzer;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalyzer;
 import it.univr.smartcontracts.syntax.AOP;
 import it.univr.smartcontracts.syntax.COP;
+import it.univr.smartcontracts.syntax.Program;
 import it.univr.smartcontracts.syntax.Type;
 import it.univr.smartcontracts.syntax.classes.Class;
 import it.univr.smartcontracts.syntax.classes.Field;
@@ -35,7 +35,7 @@ import it.univr.smartcontracts.syntax.expressions.Size;
 import it.univr.smartcontracts.syntax.expressions.Variable;
 
 public class Ponzi2Tests {
-
+	private static Program program;
 	private static Class ponzi2;
 	private static Method ponzi2Constructor;
 	private static Method ponzi2Invest;
@@ -71,12 +71,14 @@ public class Ponzi2Tests {
 						new Push(thisInvestors, Class.CONTRACT, Variable.CALLER)),
 						new Return()
 		));
+
+		program = new Program(ponzi2);
 	}
 
 	@Test
     @DisplayName("Checks correctness of the side-effects of Ponzi2")
 	public void sideEffectsOfPoinzi1AreCorrect() {
-		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(Stream.of(ponzi2));
+		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(program);
 		var onlyContract = new HashSet<Type>();
 		onlyContract.add(Class.CONTRACT);
 		assertTrue(sideEffectsAnalysis.of(ponzi2Constructor).collect(Collectors.toSet()).equals(onlyContract));
@@ -87,9 +89,9 @@ public class Ponzi2Tests {
 	@Test
     @DisplayName("Checks correctness of the boundedness analysis of Ponzi2")
 	public void boundednessAnalysisOfPonzi2IsCorrect() {
-		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(Stream.of(ponzi2));
-		var boundednessAnalysis = new BoundednessAnalyzer().analyze(Stream.of(ponzi2), sideEffectsAnalysis, 4);
+		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(program);
+		var boundednessAnalysis = new BoundednessAnalyzer().analyze(program, sideEffectsAnalysis, 4);
 		//boundednessAnalysis.forEach((command, state) -> System.out.println(command + ": " + state));
-		System.out.println(ponzi2.toCode(boundednessAnalysis));
+		System.out.println(program.toCode(boundednessAnalysis));
 	}
 }
