@@ -21,9 +21,11 @@ import it.univr.smartcontracts.syntax.commands.MethodCall;
 import it.univr.smartcontracts.syntax.commands.Nop;
 import it.univr.smartcontracts.syntax.commands.Push;
 import it.univr.smartcontracts.syntax.commands.Receive;
+import it.univr.smartcontracts.syntax.commands.RemoveFirst;
 import it.univr.smartcontracts.syntax.commands.Require;
 import it.univr.smartcontracts.syntax.commands.Return;
 import it.univr.smartcontracts.syntax.commands.Sequence;
+import it.univr.smartcontracts.syntax.commands.While;
 
 public class BoundednessAnalyzer {
 
@@ -56,6 +58,9 @@ public class BoundednessAnalyzer {
 			case Push push:
 				approximation.propagate(push.next(), push.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, counters, thresholdForWidening);
 				break;
+			case RemoveFirst removeFirst:
+				approximation.propagate(removeFirst.next(), removeFirst.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, counters, thresholdForWidening);
+				break;
 			case Receive receive:
 				approximation.propagate(receive.next(), receive.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, counters, thresholdForWidening);
 				break;
@@ -72,6 +77,10 @@ public class BoundednessAnalyzer {
 			case For _for:
 				approximation.propagate(_for.inner(), _for.boundednessInner(approx, sideEffectsAnalysis), ws, wsApprox, counters, thresholdForWidening);
 				approximation.propagate(_for.next(), _for.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, counters, thresholdForWidening);
+				break;
+			case While _while:
+				approximation.propagate(_while.inner(), _while.boundednessInner(approx, sideEffectsAnalysis), ws, wsApprox, counters, thresholdForWidening);
+				approximation.propagate(_while.next(), _while.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, counters, thresholdForWidening);
 				break;
 			case Sequence sequence:
 				approximation.propagate(sequence.first(), sequence.boundednessFirst(approx, sideEffectsAnalysis), ws, wsApprox, counters, thresholdForWidening);

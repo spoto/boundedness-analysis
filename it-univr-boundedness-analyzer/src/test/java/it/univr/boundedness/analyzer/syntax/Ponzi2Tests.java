@@ -25,9 +25,11 @@ import it.univr.smartcontracts.syntax.commands.Assignment;
 import it.univr.smartcontracts.syntax.commands.For;
 import it.univr.smartcontracts.syntax.commands.Push;
 import it.univr.smartcontracts.syntax.commands.Receive;
+import it.univr.smartcontracts.syntax.commands.RemoveFirst;
 import it.univr.smartcontracts.syntax.commands.Require;
 import it.univr.smartcontracts.syntax.commands.Return;
 import it.univr.smartcontracts.syntax.commands.Sequence;
+import it.univr.smartcontracts.syntax.commands.While;
 import it.univr.smartcontracts.syntax.expressions.ArithmeticOperation;
 import it.univr.smartcontracts.syntax.expressions.Constant;
 import it.univr.smartcontracts.syntax.expressions.ConstructorCall;
@@ -47,12 +49,14 @@ public class Ponzi2Tests extends AbstractTest {
 		ponzi2 = new Class("Ponzi2", Class.CONTRACT);
 		var listOfContract = new List(Class.CONTRACT);
 		var investors = new Field(ponzi2, "investors", listOfContract, true);
+		var minimumInvestment = new Field(ponzi2, "minimumInvestment", Int.INSTANCE, false);
 		var THIS = new Variable("this", ponzi2);
 
 		ponzi2Constructor = new Method(ponzi2, ponzi2.name(),
-				new Sequence(new Sequence(
+				new Sequence(new Sequence(new Sequence(
 						new Assignment(new FieldAccess(THIS, investors), new ConstructorCall(Class.LIST)),
 						new Push(new FieldAccess(THIS, investors), Class.CONTRACT, Variable.CALLER)),
+						new Assignment(new FieldAccess(THIS, minimumInvestment), new Constant(1000))),
 						new Return()
 				));
 
@@ -61,9 +65,10 @@ public class Ponzi2Tests extends AbstractTest {
 		var thisInvestors = new FieldAccess(THIS, investors);
 
 		ponzi2Invest = new Method(ponzi2, "invest",
-				new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(
-						new Require(Variable.AMOUNT, COP.GE, new Constant(1000)),
-						new Require(new Size(thisInvestors), COP.LT, new Constant(100))),
+				new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(
+						new Require(Variable.AMOUNT, COP.GE, new FieldAccess(THIS, minimumInvestment)),
+						new While(new Size(thisInvestors), COP.GT, new Constant(100),
+								new RemoveFirst(thisInvestors, Class.CONTRACT))),
 						new Assignment(eachInvestorGets, new ArithmeticOperation(
 								Variable.AMOUNT,
 								AOP.DIV,
@@ -71,6 +76,7 @@ public class Ponzi2Tests extends AbstractTest {
 								))),
 						_for = new For(investor, thisInvestors, Class.CONTRACT, new Receive(investor, eachInvestorGets))),
 						new Push(thisInvestors, Class.CONTRACT, Variable.CALLER)),
+						new Assignment(new FieldAccess(THIS, minimumInvestment), new ArithmeticOperation(new ArithmeticOperation(Variable.AMOUNT, AOP.MUL, new Constant(11)), AOP.DIV, new Constant(10)))),
 						new Return()
 		));
 

@@ -659,7 +659,7 @@ public class Ponzi1 extends Contract {
     require(amount >= minimum_investment, "too little");
     |\invariant{$\varnothing$}|
     while (investors.size() > 100)
-      |\invariant{$\{\size{\mathtt{this.investors}}\le 0\}$}|
+      |\invariant{$\varnothing$}|
       investors.removeFirst();
     |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
     int eachInvestorGets = amount / investors.size();

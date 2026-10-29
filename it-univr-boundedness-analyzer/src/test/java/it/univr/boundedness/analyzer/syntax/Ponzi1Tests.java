@@ -47,12 +47,14 @@ public class Ponzi1Tests extends AbstractTest {
 		ponzi1 = new Class("Ponzi1", Class.CONTRACT);
 		var listOfContract = new List(Class.CONTRACT);
 		var investors = new Field(ponzi1, "investors", listOfContract, true);
+		var minimumInvestment = new Field(ponzi1, "minimumInvestment", Int.INSTANCE, false);
 		var THIS = new Variable("this", ponzi1);
 
 		ponzi1Constructor = new Method(ponzi1, ponzi1.name(),
-				new Sequence(new Sequence(
+				new Sequence(new Sequence(new Sequence(
 						new Assignment(new FieldAccess(THIS, investors), new ConstructorCall(Class.LIST)),
 						new Push(new FieldAccess(THIS, investors), Class.CONTRACT, Variable.CALLER)),
+						new Assignment(new FieldAccess(THIS, minimumInvestment), new Constant(1000))),
 						new Return()
 				));
 
@@ -61,14 +63,15 @@ public class Ponzi1Tests extends AbstractTest {
 		var thisInvestors = new FieldAccess(THIS, investors);
 
 		ponzi1Invest = new Method(ponzi1, "invest",
-				new Sequence(new Sequence(new Sequence(new Sequence(
-						new Require(Variable.AMOUNT, COP.GE, new Constant(1000)),
+				new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(
+						new Require(Variable.AMOUNT, COP.GE, new FieldAccess(THIS, minimumInvestment)),
 						new Assignment(eachInvestorGets, new ArithmeticOperation(
 								Variable.AMOUNT,
 								AOP.DIV,
 								new Size(thisInvestors)))),
 						_for = new For(investor, thisInvestors, Class.CONTRACT, new Receive(investor, eachInvestorGets))),
 						new Push(thisInvestors, Class.CONTRACT, Variable.CALLER)),
+						new Assignment(new FieldAccess(THIS, minimumInvestment), new ArithmeticOperation(new ArithmeticOperation(Variable.AMOUNT, AOP.MUL, new Constant(11)), AOP.DIV, new Constant(10)))),
 						new Return()
 		));
 
