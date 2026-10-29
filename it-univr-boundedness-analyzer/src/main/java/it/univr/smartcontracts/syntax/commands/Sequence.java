@@ -7,6 +7,7 @@ import it.univr.smartcontracts.boundedness.BoundednessAnalysis;
 import it.univr.smartcontracts.boundedness.State;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.Command;
+import it.univr.smartcontracts.syntax.Expression;
 import it.univr.smartcontracts.syntax.Type;
 
 public class Sequence extends AbstractCommand {	
@@ -53,5 +54,10 @@ public class Sequence extends AbstractCommand {
 	@Override
 	public Stream<Command> subcommands() {
 		return Stream.concat(Stream.of(this), Stream.of(com1, com2).flatMap(Command::subcommands));
+	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.of(com1, com2).flatMap(Command::subexpressions);
 	}
 }

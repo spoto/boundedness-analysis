@@ -11,4 +11,5 @@ public interface Command extends SideEffectsAnalyzable {
 	String toCode(BoundednessAnalysis boundedness);
 	void toCode(StringBuilder sb, String nesting, Optional<BoundednessAnalysis> boundedness);
 	Stream<Command> subcommands();
+	Stream<Expression> subexpressions();
 }

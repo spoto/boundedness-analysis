@@ -12,7 +12,7 @@ import it.univr.smartcontracts.syntax.Type;
 import it.univr.smartcontracts.syntax.classes.Field;
 import it.univr.smartcontracts.syntax.classes.List;
 
-public class FieldAccess implements LValue, d {
+public class FieldAccess implements LValue {
 	private final Expression exp;
 	private final Field field;
 
@@ -38,6 +38,11 @@ public class FieldAccess implements LValue, d {
 
 	@Override
 	public boolean equals(Object other) {
+		if (other instanceof FieldAccess fa) {
+			System.out.println(fa.exp + " vs " + exp);
+			System.out.println("1: " + (fa.exp.equals(exp)));
+			System.out.println("1: " + (fa.field.equals(field)));
+		}
 		return other instanceof FieldAccess fa && fa.exp.equals(exp) && fa.field.equals(field);
 	}
 
@@ -64,6 +69,11 @@ public class FieldAccess implements LValue, d {
 			return Optional.of(new FieldAccessPath(expAsPath.get()));
 		else
 			return Optional.empty();
+	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.concat(Stream.of(this), exp.subexpressions());
 	}
 
 	private class FieldAccessPath extends FieldAccess implements Path {
@@ -98,6 +108,11 @@ public class FieldAccess implements LValue, d {
 		@Override
 		public boolean survives(Stream<Type> updated) {
 			return !(type() instanceof List list) || updated.noneMatch(u -> u.hasSharedSubtypeWith(list.inner()));
+		}
+
+		@Override
+		public Path replaceRootWith(Path path) {
+			return new FieldAccess(inner.replaceRootWith(path), field).asPath().get();
 		}
 	}
 }

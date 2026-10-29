@@ -168,8 +168,8 @@ public class Lottery2Tests extends AbstractTest {
 		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(program);
 		var boundednessAnalysis = new BoundednessAnalyzer().analyze(program, sideEffectsAnalysis, 4);
 		assertFalse(boundednessAnalysis.allListsAreBounded(round));
-		//assertTrue(boundednessAnalysis.allListsAreBounded(ticketBatchSale));// TODO: activate
-		//assertFalse(_for.hasWarning(boundednessAnalysis)); // TODO: activate
+		assertTrue(boundednessAnalysis.allListsAreBounded(ticketBatchSale));
+		assertFalse(_for.hasWarning(boundednessAnalysis));
 
 		if (isPrintRequested())
 			System.out.println(program.toCode(boundednessAnalysis));

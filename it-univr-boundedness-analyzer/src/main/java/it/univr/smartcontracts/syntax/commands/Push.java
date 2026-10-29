@@ -73,4 +73,9 @@ public class Push extends AbstractCommand {
 	public Stream<Command> subcommands() {
 		return Stream.of(this);
 	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.of(exp1, exp2).flatMap(Expression::subexpressions);
+	}
 }

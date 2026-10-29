@@ -24,4 +24,9 @@ public record Last(Expression exp) implements Expression {
 	public State boundedness(State before, SideEffectsAnalysis sideEffectsAnalysis) {
 		return exp.boundedness(before, sideEffectsAnalysis);
 	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.concat(Stream.of(this), exp.subexpressions());
+	}
 }

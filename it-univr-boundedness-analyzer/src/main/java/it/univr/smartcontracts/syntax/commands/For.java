@@ -82,4 +82,9 @@ public class For extends AbstractCommand {
 	public boolean hasWarning(BoundednessAnalysis boundednessAnalysis) {
 		return !boundednessAnalysis.allListsAreBounded(elementsType);
 	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.concat(com.subexpressions(), exp.subexpressions());
+	}
 }

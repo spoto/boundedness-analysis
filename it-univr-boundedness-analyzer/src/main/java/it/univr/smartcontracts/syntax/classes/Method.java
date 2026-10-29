@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import it.univr.smartcontracts.boundedness.BoundednessAnalysis;
 import it.univr.smartcontracts.syntax.Command;
+import it.univr.smartcontracts.syntax.commands.MethodCall;
+import it.univr.smartcontracts.syntax.expressions.ConstructorCall;
 
 public record Method(Class definingClass, String name, Command body) implements Comparable<Method> {
 	
@@ -14,6 +16,21 @@ public record Method(Class definingClass, String name, Command body) implements 
 
 	public boolean isConstructor() {
 		return name.equals(definingClass.name());
+	}
+
+	/**
+	 * Checks if this is a constructor that does not call any other method or constructor
+	 * (with the only exception of the constructor of List).
+	 */
+	public boolean isSimpleConstructor() {
+		return isConstructor() &&
+			body.subexpressions()
+				.filter(expression -> expression instanceof ConstructorCall)
+				.map(expression -> (ConstructorCall) expression)
+				.allMatch(ConstructorCall::isCallToEmptyConstructorOfList) &&
+			body.subcommands()
+				.noneMatch(command -> command instanceof MethodCall);
+				
 	}
 
 	@Override

@@ -28,4 +28,9 @@ public record ArithmeticOperation(Expression exp1, AOP aop, Expression exp2) imp
 	public State boundedness(State before, SideEffectsAnalysis sideEffectsAnalysis) {
 		return exp2.boundedness(exp1.boundedness(before, sideEffectsAnalysis), sideEffectsAnalysis);
 	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.concat(Stream.of(this), Stream.of(exp1, exp2).flatMap(Expression::subexpressions));
+	}
 }

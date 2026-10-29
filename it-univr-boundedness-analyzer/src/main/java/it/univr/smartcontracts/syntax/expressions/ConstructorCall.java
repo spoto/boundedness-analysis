@@ -61,4 +61,13 @@ public record ConstructorCall(Class clazz, Expression... exps) implements Expres
 
 		return before.survive(updated.get());
 	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.concat(Stream.of(this), Stream.of(exps).flatMap(Expression::subexpressions));
+	}
+
+	public boolean isCallToEmptyConstructorOfList() {
+		return exps.length == 0 && Class.LIST.equals(clazz);
+	}
 }

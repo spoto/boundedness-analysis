@@ -77,4 +77,9 @@ public class While extends AbstractCommand {
 	public Stream<Command> subcommands() {
 		return Stream.concat(Stream.of(this), com.subcommands());
 	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.concat(com.subexpressions(), Stream.of(exp1, exp2).flatMap(Expression::subexpressions));
+	}
 }

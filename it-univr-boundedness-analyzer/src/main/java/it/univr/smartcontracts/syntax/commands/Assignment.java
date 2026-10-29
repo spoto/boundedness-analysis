@@ -52,14 +52,19 @@ public class Assignment extends AbstractCommand {
 		return Stream.of(lvalue, exp).flatMap(exp -> exp.sideEffects(interpretation));
 	}
 
-	public State boundedness(State before, SideEffectsAnalysis sideEffectsAnalysis) {
+	public State boundedness(State before, SideEffectsAnalysis sideEffectsAnalysis, BoundednessAnalysis boundednessAnalysis) {
 		State approx = lvalue.boundedness(before, sideEffectsAnalysis);
 		approx = exp.boundedness(approx, sideEffectsAnalysis);
-		return approx.assign(this);
+		return approx.assign(this, boundednessAnalysis);
 	}
 
 	@Override
 	public Stream<Command> subcommands() {
 		return Stream.of(this);
+	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.of(lvalue, exp).flatMap(Expression::subexpressions);
 	}
 }

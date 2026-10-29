@@ -34,4 +34,9 @@ public record ListAccess(Expression exp1, Expression exp2) implements LValue {
 	public Optional<Path> asPath() {
 		return Optional.empty();
 	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.concat(Stream.of(this), Stream.of(exp1, exp2).flatMap(Expression::subexpressions));
+	}
 }

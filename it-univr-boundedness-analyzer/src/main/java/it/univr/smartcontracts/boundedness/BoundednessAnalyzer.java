@@ -1,6 +1,7 @@
 package it.univr.smartcontracts.boundedness;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,28 @@ public class BoundednessAnalyzer {
 		BoundednessApploximation approximation = mkInitialApproximation(program);
 
 		// we initialize the working set of commands with the bodies of the methods of the classes of the program
-		var ws = program.classes().flatMap(Class::methods).map(Method::body).collect(Collectors.toCollection(ArrayList::new));
+		// the simple constructors are put at the end, so that they are analyzed before anything else
+
+		var comparator = new Comparator<Method>() {
+
+			@Override
+			public int compare(Method method1, Method method2) {
+				boolean method1IsSimple = method1.isSimpleConstructor();
+				boolean method2IsSimple = method2.isSimpleConstructor();
+				if (method1IsSimple && !method2IsSimple)
+					return 1;
+				else if (!method1IsSimple && method2IsSimple)
+					return -1;
+				else
+					return method1.toString().compareTo(method2.toString());
+			}
+		};
+
+		var ws = program.classes()
+				.flatMap(Class::methods)
+				.sorted(comparator)
+				.map(Method::body)
+				.collect(Collectors.toCollection(ArrayList::new));
 
 		// for each command, there is a corresponding approximation that needs to be propagated
 		var wsApprox = ws.stream().map(_ -> State.TOP).collect(Collectors.toCollection(ArrayList::new));
@@ -53,7 +75,7 @@ public class BoundednessAnalyzer {
 				approximation.propagate(nop.next(), nop.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, counters, thresholdForWidening);
 				break;
 			case Assignment assignment:
-				approximation.propagate(assignment.next(), assignment.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, counters, thresholdForWidening);
+				approximation.propagate(assignment.next(), assignment.boundedness(approx, sideEffectsAnalysis, approximation), ws, wsApprox, counters, thresholdForWidening);
 				break;
 			case Push push:
 				approximation.propagate(push.next(), push.boundedness(approx, sideEffectsAnalysis), ws, wsApprox, counters, thresholdForWidening);

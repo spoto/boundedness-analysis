@@ -7,6 +7,7 @@ import it.univr.smartcontracts.boundedness.BoundednessAnalysis;
 import it.univr.smartcontracts.boundedness.State;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
 import it.univr.smartcontracts.syntax.Command;
+import it.univr.smartcontracts.syntax.Expression;
 import it.univr.smartcontracts.syntax.Type;
 
 public class Nop extends AbstractCommand {
@@ -40,5 +41,10 @@ public class Nop extends AbstractCommand {
 	@Override
 	public Stream<Command> subcommands() {
 		return Stream.of(this);
+	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.empty();
 	}
 }

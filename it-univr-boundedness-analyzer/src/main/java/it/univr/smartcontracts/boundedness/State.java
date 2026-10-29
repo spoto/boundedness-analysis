@@ -15,6 +15,7 @@ import it.univr.smartcontracts.syntax.Path;
 import it.univr.smartcontracts.syntax.Type;
 import it.univr.smartcontracts.syntax.classes.Class;
 import it.univr.smartcontracts.syntax.commands.Assignment;
+import it.univr.smartcontracts.syntax.commands.Return;
 import it.univr.smartcontracts.syntax.expressions.Constant;
 import it.univr.smartcontracts.syntax.expressions.ConstructorCall;
 import it.univr.smartcontracts.syntax.expressions.Size;
@@ -178,7 +179,7 @@ public class State {
 			return this;
 	}
 
-	public State assign(Assignment assignment) {
+	public State assign(Assignment assignment, BoundednessAnalysis boundednessAnalysis) {
 		if (isBottom)
 			return this;
 
@@ -186,9 +187,35 @@ public class State {
 		if (lvalueAsPath.isPresent()) {
 			var rvalue = assignment.exp();
 
-			if (rvalue instanceof ConstructorCall cc && cc.clazz().equals(Class.LIST))
+			if (rvalue instanceof ConstructorCall cc && cc.isCallToEmptyConstructorOfList())
 				// we need to clone before add
 				return invalidate(lvalueAsPath.get(), true).add(new Constraint(lvalueAsPath.get(), 0));
+			else if (rvalue instanceof ConstructorCall cc) {
+				// linear search: inefficient but OK for small programs
+				var target = boundednessAnalysis.program().classes().flatMap(Class::methods)
+					.filter(method -> method.definingClass().equals(cc.clazz()))
+					.findAny()
+					.orElseThrow(() -> new IllegalStateException("Cannot find the target of " + cc));
+
+				if (target.isSimpleConstructor()) {
+					State approxAtReturns = target.body()
+						.subcommands()
+						.filter(command -> command instanceof Return)
+						.map(_return -> boundednessAnalysis.at(_return))
+						.reduce(BOTTOM, State::lub);
+
+					// we replace paths such as this.... with the lvalue
+					var result = invalidate(lvalueAsPath.get(), true);
+	
+					for (Constraint constraint: approxAtReturns.constraints)
+						if (constraint.path().root().name().equals("this"))
+							result = result.add(new Constraint(constraint.path().replaceRootWith(lvalueAsPath.get()), constraint.n()));
+
+					return result;
+				}
+
+				return this;
+			}
 			else {
 				Optional<Path> rvalueAsPath = rvalue instanceof LValue lvalue ? lvalue.asPath() : Optional.empty();
 				if (rvalueAsPath.isPresent()) {

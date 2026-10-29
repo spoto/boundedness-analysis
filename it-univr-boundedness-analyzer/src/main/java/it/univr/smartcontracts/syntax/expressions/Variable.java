@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 
 import it.univr.smartcontracts.boundedness.State;
 import it.univr.smartcontracts.sideeffects.SideEffectsAnalysis;
+import it.univr.smartcontracts.syntax.Expression;
 import it.univr.smartcontracts.syntax.Path;
 import it.univr.smartcontracts.syntax.Type;
 import it.univr.smartcontracts.syntax.classes.Class;
@@ -50,5 +51,15 @@ public record Variable(String name, Type type) implements Path {
 	@Override
 	public boolean survives(Stream<Type> updated) {
 		return !(type instanceof List list) || updated.noneMatch(u -> u.hasSharedSubtypeWith(list.inner()));
+	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.of(this);
+	}
+
+	@Override
+	public Path replaceRootWith(Path path) {
+		return path;
 	}
 }

@@ -16,4 +16,6 @@ public interface Path extends LValue {
 	 * stream of types.
 	 */
 	boolean survives(Stream<Type> updated);
+
+	Path replaceRootWith(Path path);
 }

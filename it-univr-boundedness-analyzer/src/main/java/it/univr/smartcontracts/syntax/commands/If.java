@@ -95,4 +95,10 @@ public class If extends AbstractCommand {
 	public Stream<Command> subcommands() {
 		return Stream.concat(Stream.of(this), Stream.of(then, _else).flatMap(Command::subcommands));
 	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.concat(Stream.of(exp1, exp2).flatMap(Expression::subexpressions),
+				Stream.of(then, _else).flatMap(Command::subexpressions));
+	}
 }

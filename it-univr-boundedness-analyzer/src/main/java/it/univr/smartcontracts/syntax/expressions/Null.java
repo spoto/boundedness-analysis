@@ -25,4 +25,9 @@ public record Null() implements Expression {
 	public State boundedness(State before, SideEffectsAnalysis sideEffectsAnalysis) {
 		return before;
 	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.of(this);
+	}
 }

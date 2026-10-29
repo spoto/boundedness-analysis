@@ -87,4 +87,9 @@ public class MethodCall extends AbstractCommand {
 	public Stream<Command> subcommands() {
 		return Stream.of(this);
 	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return Stream.concat(exp.subexpressions(), Stream.of(exps).flatMap(Expression::subexpressions));
+	}
 }

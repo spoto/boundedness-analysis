@@ -55,4 +55,9 @@ public class RemoveFirst extends AbstractCommand {
 	public Stream<Command> subcommands() {
 		return Stream.of(this);
 	}
+
+	@Override
+	public Stream<Expression> subexpressions() {
+		return exp.subexpressions();
+	}
 }
