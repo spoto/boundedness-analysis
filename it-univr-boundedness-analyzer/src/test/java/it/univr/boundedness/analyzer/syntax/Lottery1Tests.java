@@ -153,7 +153,6 @@ public class Lottery1Tests extends AbstractTest {
 		roundAndTicketBatchSale.add(round);
 		roundAndTicketBatchSale.add(ticketBatchSale);
 		assertTrue(sideEffectsAnalysis.of(lottery1Buy).collect(Collectors.toSet()).equals(roundAndTicketBatchSale));
-		sideEffectsAnalysis.forEach((method, types) -> System.out.println(method + ": " + types.collect(Collectors.toList())));
 	}
 
 	@Test

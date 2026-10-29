@@ -38,11 +38,6 @@ public class FieldAccess implements LValue {
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof FieldAccess fa) {
-			System.out.println(fa.exp + " vs " + exp);
-			System.out.println("1: " + (fa.exp.equals(exp)));
-			System.out.println("1: " + (fa.field.equals(field)));
-		}
 		return other instanceof FieldAccess fa && fa.exp.equals(exp) && fa.field.equals(field);
 	}
 
