@@ -4,7 +4,7 @@ This section presents the actual boundedness analysis, that uses
 the results of a preliminary side-effect analysis (Sec.~\ref{sec:side_effect}).
 
 \emph{Paths} are leftvalues
-(Def.~\ref{def:exp_com}) that start from a variable and dereferences \<final> fields only,
+(Def.~\ref{def:exp_com}) that start from a variable and dereference \<final> fields only,
 so that their value cannot be affected by side-effect.
 %
 \begin{definition}[Paths]\label{def:path}
@@ -25,12 +25,11 @@ so that their value cannot be affected by side-effect.
 \end{example}
 %
 A path $\pi$ bound to a list $l$ cannot see $l$ replaced by side-effect,
-but can see $l$ modified by side-effect (for instance, enlarged).
-Otherwise, $\pi$ is said to \emph{survive}.
+but can see $l$ enlarged by side-effect. Otherwise, $\pi$ is said to \emph{survive}.
 %
 \begin{definition}[Path Survival]\label{def:survival}
-  Given $\pi\in\paths$ and a set of types $U$, the path $\pi$ is said to
-  \emph{survive any update to a list of a type in $U$} (or just
+  Given $\pi\in\paths$ and a set of types $U$, then $\pi$ is said to
+  \emph{survive any enlargement of a list of a type in $U$} (or just
   \emph{$\pi$ survives $U$}) if
   \begin{itemize}
   \item $\pi$'s type is not a list, or
@@ -52,7 +51,7 @@ Otherwise, $\pi$ is said to \emph{survive}.
 \end{example}
 
 \begin{definition}[Boundedness States]\label{def:bo}
-  A \emph{boundedness state} \|bo| is
+  A \emph{boundedness state} \|bo| is either $\bot$ or
   \[
   \left\{\left.\begin{array}{c}
   \size{\pi_1}\le n_1\\
@@ -63,17 +62,19 @@ Otherwise, $\pi$ is said to \emph{survive}.
   The set of all possible boundedness states is $\bo$.
 \end{definition}
 %
-The intuition is that \|bo| represents the set of all concrete states
+The intuition is that $\bot$ represents the mpety set of concrete states and
+that \|bo| represents the set of all concrete states
 where $\pi_i$ holds a list whose length is at most $n_i$, for every $i=1,\ldots,k$.
 %
 \begin{proposition}[Abstract Domain]\label{prop:abstract_domain}
   In terms of abstract interpretation, any $\|bo|\in\bo$ is an abstraction
-  of concrete states and $\bo$ is an abstract domain whose elements
-  are ordered as $\|bo|_1\sqsubseteq\|bo|_2$
+  of concrete states and $\bo$ is an abstract domain whose bottom is $\bot$
+  and whose other elements are ordered as $\|bo|_1\sqsubseteq\|bo|_2$
   if and only if for every $(\size{\pi}\le n)\in\|bo|_2$ there exists
   $(\size{\pi}\le n')\in\|bo|_1$ with $n'\le n$.
   Therefore, $\varnothing$ is the top (least precise) element of $\bo$.
-  The least upper bound operator on $\bo$ is
+  The least upper bound operator yields the other operand if any operand is
+  $\bot$, otherwise it is
   \[
   \|bo|_1\sqcup\|bo|_2=\left\{\size{\pi}\le\max(n_1,n_2)\left|\begin{array}{l}
   (\size{\pi}\le n_1)\in\|bo|_1\\
@@ -87,7 +88,8 @@ is a single variable, since paths only refer to \<final> fields,
 whose value cannot be changed.
 %
 \begin{definition}[Bounds Invalidation]\label{def:invalidation}
-  Given $\|bo|\in\bo$ and $\pi\in\paths$, the \emph{invalidation of $\pi$ in $\|bo|$} is
+  Given $\|bo|\in\bo$ and $\pi\in\paths$, the \emph{invalidation of $\pi$ in $\|bo|$}
+  is $\bot$ if $\|bo|$ is $\bot$, otherwise it is
   \[
   \|bo|^{-\pi}=\begin{cases}
   \{(\size{\pi'}\le n)\in\|bo|\mid\pi'\text{ is not rooted at }v\} & \text{if $\pi$ is a variable $v$}\\
@@ -102,12 +104,15 @@ Similarly, an assignment can sometimes improve a boundedness state.
 %
 \begin{definition}[Bounds Improvement and Assignment]\label{def:improvement}
   Given $\|bo|\in\bo$, the
-  \emph{improvement of \|bo| \wrt a comparison expression $\cop{\exp_1}{\exp_2}$} is
+  \emph{improvement of \|bo| \wrt a comparison expression $\cop{\exp_1}{\exp_2}$}
+  is $\bot$ if $\|bo|$ is $\bot$, otherwise it is
   \begin{align*}
     \|improve|(\|bo|,\copfull{\size{\pi}}{\le}{n})&=\|bo|\cup\{\size{\pi}\le n\}\\
     \|improve|(\|bo|,\copfull{\size{\pi}}{<}{n})&=\|bo|\cup\{\size{\pi}\le n-1\}\\
+    \|improve|(\|bo|,\copfull{\size{\pi}}{==}{n})&=\|bo|\cup\{\size{\pi}\le n\}\\
     \|improve|(\|bo|,\copfull{n}{\ge}{\size{\pi}})&=\|bo|\cup\{\size{\pi}\le n\}\\
     \|improve|(\|bo|,\copfull{n}{>}{\size{\pi}})&=\|bo|\cup\{\size{\pi}\le n-1\}\\
+    \|improve|(\|bo|,\copfull{n}{==}{\size{\pi}})&=\|bo|\cup\{\size{\pi}\le n\}\\
     \|improve|(\|bo|,\cop{\exp_1}{\exp_2})&=\|bo|\text{ in all other cases.}
   \end{align*}
   The \emph{assignment in \|bo|} is (here, $\pi,\pi'\in\paths$):
@@ -121,7 +126,11 @@ Similarly, an assignment can sometimes improve a boundedness state.
 
 Boundedness is a property of computation states hence we present
 its analysis in operational form, as a derivation rule over the boundedness states
-of Def.~\ref{def:bo}.
+of Def.~\ref{def:bo}:
+a derivation $\pair{p}{\|bo|}\boderivation\pair{p'}{\|bo|'}$ means that
+the execution of the command at program point $p$ from a boundedness state \|bo| performs a single
+step and then continues with the execution of the command at program point $p'$
+from a boundedness state $\|bo|'$.
 %
 \begin{definition}[Boundedness Derivation Rules]\label{def:boundness_rules}
   \begin{figure}[t]
@@ -145,10 +154,6 @@ of Def.~\ref{def:bo}.
   The boundedness derivation rule $\boderivation$ for commands
   in Fig.~\ref{fig:bo_derivations_commands} is a small step semantics
   $\left(\PP\times\bo\right)\boderivation(\PP\times\bo)$.
-  A derivation $\pair{p}{\|bo|}\boderivation\pair{p'}{\|bo|'}$ means that
-  the execution of the command at program point $p$ from a boundedness state \|bo| performs a single
-  step and then continues with the execution of the program at program point $p'$
-  from a boundedness state $\|bo|'$.
   %
   \begin{figure}[t]
     \begin{gather*}

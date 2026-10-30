@@ -11,21 +11,23 @@ on the idiosyncrasies of a specific programming language.
   \begin{lstlisting}[language=pseudo]
 public class Ponzi1 extends Contract {
   private final List<Contract> investors;|\label{ponzi1:investors}|
-  private final static int MINIMUM_INVESTMENT = 1000;
+  private int minimumInvestment;
 
   public Ponzi1() {
     investors = new List();
     investors.push(caller);|\label{ponzi1:creator}|
+    minimumInvestment = 1000;
   }
 
   public payable void invest() {|\label{ponzi1:invest}|
-    require(amount >= MINIMUM_INVESTMENT, "you invested too little");|\label{ponzi1:require}|
+    require(amount >= minimumInvestment, "you invested too little");|\label{ponzi1:require}|
 
     int eachInvestorGets = amount / investors.size();
     for investor in investors|\label{ponzi1:iteration}|
       investor.receive(eachInvestorGets);|\label{ponzi1:receive}|
 
     investors.push(caller);|\label{ponzi1:expand}|
+    minimumInvestment = amount * 11 / 10; // 10% more then before
   }
 }
   \end{lstlisting}
@@ -50,11 +52,11 @@ added to \<investors> (line~\ref{ponzi1:expand}). There is no upper bound
 to the size of \<investors> and no way of removing investors.
 As long as \<invest()> gets called,
 \<investors> grows arbitrarily. Therefore, there is no upper bound
-to the gas needed to execute the loop at line~\ref{ponzi1:iteration}: once
-it exceeds the maximum allowed for a blockchain transaction, the smart contract is
+to the gas needed to execute the loop at line~\ref{ponzi1:iteration}. Once
+that gas exceeds the maximum allowed for a blockchain transaction, the smart contract is
 effectively blocked: \<invest()> can only fail for gas exhaustion, reverting
 all transaction updates, and some investors will never be able to redeem their investment.
-We will say that list \<investors> and the loop at line~\ref{ponzi1:iteration}
+We will say that the list \<investors> and the loop at line~\ref{ponzi1:iteration}
 are \emph{unbounded} and we expect a sound boundedness analyzer to warn about an
 unbouded loop at line~\ref{ponzi1:iteration}\footnote{The \<receive()> at
 line~\ref{ponzi1:receive} in Fig.~\ref{fig:ponzi1} is the payment
@@ -68,36 +70,42 @@ still leaves this contract suffering from an unboundedness issue.}.
   \begin{lstlisting}[language=pseudo]
 public class Ponzi2 extends Contract {
   private final List<Contract> investors;|\label{ponzi2:investors}|
-  private final static int MINIMUM_INVESTMENT = 1000;
+  private int minimumInvestment;
 
   public Ponzi2() {
     investors = new List();
     investors.push(caller);|\label{ponzi2:creator}|
+    minimumInvestment = 1000;
   }
 
   public payable void invest() {|\label{ponzi2:invest}|
-    require(amount >= MINIMUM_INVESTMENT, "you invested too little");|\label{ponzi2:require}|
-    require(investors.size() < 100, "no more investors are allowed");|\label{ponzi2:require_limit}|
+    require(amount >= minimumInvestment, "you invested too little");|\label{ponzi2:require}|
+
+    while (investors.size() > 100)|\label{ponzi2:require_limit}|
+      investors.removeFirst();
 
     int eachInvestorGets = amount / investors.size();
     for investor in investors|\label{ponzi2:iteration}|
       investor.receive(eachInvestorGets);|\label{ponzi2:receive}|
 
     investors.push(caller);|\label{ponzi2:expand}|
+    minimumInvestment = amount * 11 / 10; // 10% more then before
   }
 }
   \end{lstlisting}
   \caption{A modification of the contract in Fig.~\ref{fig:ponzi1}, that enforces
-    an upper bound to the size of \<investors> (line~\ref{ponzi2:require_limit}).
+    an upper bound to the size of \<investors> by dropping the oldest investors
+    (line~\ref{ponzi2:require_limit}).
     That list and the loop at line~\ref{ponzi2:iteration} are bounded.}
   \label{fig:ponzi2}
 \end{figure}
 %
 Fig.~\ref{fig:ponzi2} shows how to fix this unboundedness issue.
 It reports a modification of the smart contract in Fig.~\ref{fig:ponzi1} that
-constrains the size of \<investors> (line~\ref{ponzi2:require_limit}) to be
-$100$ at most. Thus, the iteration at line~\ref{ponzi2:iteration}
-is bounded and a precise analyzer should issue no warning in Fig.~\ref{fig:ponzi2}.
+drops the oldest elements of \<investors> (line~\ref{ponzi2:require_limit}):
+its size is bounded to $100$ at most now.
+Thus, the iteration at line~\ref{ponzi2:iteration}
+is bounded as well and a precise analyzer should issue no warning in Fig.~\ref{fig:ponzi2}.
 This example shows that boundedness is unrelated to the exact maximal gas cost of a loop:
 $100$ iterations might be acceptable or not, depending on the maximal gas allowed
 for a blockchain transaction. Boundedness is an abstract semantical and blockchain-agnostic
@@ -172,7 +180,7 @@ public class Lottery1 extends Contract {
   \end{lstlisting}
   \caption{A smart contract for a recurring lottery. Lottery rounds have a duration,
     after which a round expires. Tickets are sold in batches. This contract
-    suffers from an unbounded iteration at line~\ref{lottery1:iteration} on the unbounded
+    suffers from an unbounded iteration at line~\ref{lottery1:iteration}, on the unbounded
     list of sales in a round.}
   \label{fig:lottery1}
 \end{figure}
@@ -227,7 +235,7 @@ hence its unboundedness is not problematic and a precise analyzer is expected to
 issue no warning about \<rounds>.
 %
 \begin{figure}[t]
-  \begin{lstlisting}[language=pseudo,numbers=none]
+  \begin{lstlisting}[language=pseudo]
 public class Lottery2 extends Contract {
   ...
   private final List<Round> rounds; // all existing rounds
@@ -237,16 +245,14 @@ public class Lottery2 extends Contract {
     require(amount > 0 && amount % TICKET_PRICE == 0);
 
     Round last = rounds.last();
-    if (now > last.endTime) {
+    if (now > last.endTime or last.sales.size() >= MAX_SALES) {|\label{lottery2:changed}|
       last = new Round(now + duration);
       rounds.push(last);|\label{lottery2:push_round}|
     }
 
-    if (last.sales.size() < MAX_SALES) {
-      int quantity = amount / TICKET_PRICE;
-      last.sales.push(new TicketBatchSale(caller, quantity));
-      last.totalTickets += quantity;
-    }
+    int quantity = amount / TICKET_PRICE;
+    last.sales.push(new TicketBatchSale(caller, quantity));
+    last.totalTickets += quantity;
   }
   ...
 }
@@ -257,8 +263,8 @@ public class Lottery2 extends Contract {
   \label{fig:lottery2}
 \end{figure}
 %
-A solution to this unboundedness bug is to
-limit the maximal number of sales in each round, as shown in
-Fig.~\ref{fig:lottery2}. Note that the list \<rounds> remains unbounded, but that
+This unboundedness bug is fixed by starting
+a new round as soon as a maximal number of sales in reached in the current round, as shown in
+Fig.~\ref{fig:lottery2} (see line~\ref{lottery2:changed}). Note that the list \<rounds> remains unbounded, but that
 is irrelevant. We expect a precise boundedness analyzer to issue no
 warning in Fig.~\ref{fig:lottery2}.

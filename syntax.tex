@@ -18,9 +18,10 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
     \lvalue::=&\ \mathit{v}\mid\field{\exp}{f}\mid\listread{\exp}{\exp}\\
     \exp::=&\ \lvalue\mid\mathit{c}\mid\aop{\exp}{\exp}\\
     &\mid\new{C}{\exp^*}\mid\size{\exp}\mid\last{\exp}\mid\random{\exp}\\
-    \com::=&\ \assign{\lvalue}{\exp}\mid\require{\exp}{\exp}\\
-    &\mid\push{\exp}{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\mid\nop\mid\return\\
-    &\mid\ife{\exp}{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}{\com}\mid\sequence{\com}{\com}.
+    \com::=&\ \assign{\lvalue}{\exp}\mid\require{\exp}{\exp}\mid\push{\exp}{\exp}\\
+    &\mid\removeFirst{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\mid\nop\\
+    &\mid\ife{\exp}{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}{\com}\\
+    & \mid\while{\exp}{\com}\mid\sequence{\com}{\com}\mid\return.
   \end{align*}
 \end{definition}
 
@@ -56,14 +57,15 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
   \begin{itemize}
   \item if $\com\not=\return$ then $p_{\|next|}$ is the program point
     of the command that sequentially follows $\com$;
-  \item if $\com=\for{\mathit{v}}{\exp}{\com_{\|inner|}}$ then
+  \item if $\com=\for{\mathit{v}}{\exp}{\com_{\|inner|}}$
+    or $\com=\while{\exp}{\com_{\|inner|}}$ then
     $p_{\|inner|}$ is the program point of $\com_{\|inner|}$;
   \item if $\com=\ife{\exp}{\exp}{\com_{\|then|}}{\com_{\|else|}}$ then
     $p_{\|then|}$ is the program point of $\com_{\|then|}$ and
     $p_{\|else|}$ is the program point of $\com_{\|else|}$;
   \item if $\com=\sequence{\com_{\|first|}}{\com_{\|second|}}$ then
-    $p_{\|first|}$ is the program point of $\com_{\|first|}$ and
-    $p_{\|second|}$ is the program point of $\com_{\|second|}$.
+    $p_{\|first|}$ is the program point of $\com_{\|first|}$.
+    %and $p_{\|second|}$ is the program point of $\com_{\|second|}$.
   \end{itemize}
   The set of all program points is denoted as $\PP$.
 \end{definition}
@@ -71,17 +73,17 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
 We do not formalize how $p_{\|next|}$, $p_{\|inner|}$ and so on are defined, since
 this should be obvious. For instance, for the last commands of the \emph{then} or
 \emph{else} branch of a conditional, their $p_{\|next|}$ is the program point of the
-command after the conditional; for the last command of the body of a loop,
+command after the conditional; for the last command of a \<for> loop,
 $p_{\|next|}$ is the \<for> command where the loop starts.
 %
 \begin{example}
   Consider method \<invest()> in Fig.~\ref{fig:ponzi1}. Using line numbers of program points,
   it is, for instance,
   \begin{align*}
-    \Pi(13)&=\<int eachInvestorGets = amount / investors.size()>\\
-    \Pi(14)&=\<for\ investors\ in\ investors\ investors.receive(eachInvestorGets)>\\
-    \Pi(15)&=\<investors.receive(eachInvestorGets)>
+    \Pi(14)&=\<int eachInvestorGets = amount / investors.size()>\\
+    \Pi(15)&=\<for\ investors\ in\ investors\ investors.receive(eachInvestorGets)>\\
+    \Pi(16)&=\<investors.receive(eachInvestorGets)>
   \end{align*}
-  and $13_{\|next|}=14$, $14_{\|next|}=17$, $15_{\|next|}=14$, $14_{\|inner|}=15$. Note that
-  $17_{\|next|}$ refers to an implicit $\return$ command, for simplicity not shown in Fig.~\ref{fig:ponzi1}.
+  and $14_{\|next|}=15$, $15_{\|next|}=18$, $16_{\|next|}=15$, $15_{\|inner|}=16$. Note that
+  $19_{\|next|}$ refers to an implicit $\return$ command, for simplicity not shown in Fig.~\ref{fig:ponzi1}.
 \end{example}

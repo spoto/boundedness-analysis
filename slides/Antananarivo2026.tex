@@ -104,10 +104,10 @@
 % invariants inside the code
 \newcommand{\invariant}[1]{\color{magenta}{#1}}
 
-\subtitle{Deuxi\`eme Colloque International Interreg\\Antananarivo, Madagascar, 3/11/2026}
+\subtitle{Deuxi\`eme Colloque International Interreg\\Antananarivo, Madagascar, 2/11/2026}
 \title{Boundedness Analysis of Smart Contracts}
 \institute{Universit\`a di Verona/Universit\'e de la R\'eunion}
-\date{3/11/2026}
+\date{2/11/2026}
 
 \setbeamercovered{invisible}
 
@@ -214,23 +214,23 @@ protected, public, static, payable, return, super, switch, this, throw, throws, 
       \begin{lstlisting}[language=pseudo]
 public class Ponzi1 extends Contract {
   private final List<Contract> investors;
-  private int minimum_investment;
+  private int minimumInvestment;
 
   public Ponzi1() {
     investors = new List();
     investors.push(caller);
-    minimum_investment = 1000;
+    minimumInvestment = 1000;
   }
 
   public payable void invest() {
-    require(amount >= minimum_investment, "too little");
+    require(amount >= minimumInvestment, "too little");
 
     int eachInvestorGets = amount / investors.size();
     for investor in investors
       investor.receive(eachInvestorGets);
 
     investors.push(caller);
-    minimum_investment = amount * 11 / 10;
+    minimumInvestment = amount * 11 / 10;
   }
 }
       \end{lstlisting}
@@ -248,23 +248,23 @@ public class Ponzi1 extends Contract {
       \begin{lstlisting}[language=pseudo,numbers=none]
 |\setallgray|public class Ponzi1 extends Contract {
   |\setallcolors|private final List<Contract> investors;
-  |\setallgray|private int minimum_investment;
+  |\setallgray|private int minimumInvestment;
 
   |\setallcolors|public |\setallgray|Ponzi1() {
     investors = new List();
     |\setallcolors|investors.push(caller);
-    |\setallgray|minimum_investment = 1000;
+    |\setallgray|minimumInvestment = 1000;
   }
 
   |\setallcolors|public |\setallgray|payable void invest() {
-    require(amount >= minimum_investment, "too little");
+    require(amount >= minimumInvestment, "too little");
 
     int eachInvestorGets = amount / investors.size();
     |\setallcolors|for investor in investors
       investor.receive(eachInvestorGets);
 
     investors.push(caller);
-    |\setallgray|minimum_investment = amount * 11 / 10;
+    |\setallgray|minimumInvestment = amount * 11 / 10;
   }
 }
       \end{lstlisting}
@@ -309,16 +309,16 @@ public class Ponzi1 extends Contract {
       \begin{lstlisting}[language=pseudo]
 public class Ponzi2 extends Contract {
   private final List<Contract> investors;
-  private int minimum_investment;
+  private int minimumInvestment;
 
   public Ponzi2() {
     investors = new List();
     investors.push(caller);
-    minimum_investment = 1000;
+    minimumInvestment = 1000;
   }
 
   public payable void invest() {
-    require(amount >= minimum_investment, "too little");
+    require(amount >= minimumInvestment, "too little");
 
     while (investors.size() > 100)
       investors.removeFirst();
@@ -328,7 +328,7 @@ public class Ponzi2 extends Contract {
       investor.receive(eachInvestorGets);
 
     investors.push(caller);
-    minimum_investment = amount * 11 / 10;
+    minimumInvestment = amount * 11 / 10;
   }
 }
       \end{lstlisting}
@@ -472,23 +472,23 @@ public class Lottery2 extends Contract {
       \begin{lstlisting}[language=pseudo]
 public class Ponzi1 extends Contract {
   private final List<Contract> investors;
-  private int minimum_investment;
+  private int minimumInvestment;
 
   public Ponzi1() {
     investors = new List();
     investors.push(caller);
-    minimum_investment = 1000;
+    minimumInvestment = 1000;
   }
 
   public payable void invest() {
-    require(amount >= minimum_investment, "too little");
+    require(amount >= minimumInvestment, "too little");
 
     int eachInvestorGets = amount / investors.size();
     for investor in investors
       investor.receive(eachInvestorGets);
 
     investors.push(caller);
-    minimum_investment = amount * 11 / 10;
+    minimumInvestment = amount * 11 / 10;
   }
 }
       \end{lstlisting}
@@ -626,12 +626,12 @@ public class Ponzi1 extends Contract {
     |\invariant{$\{\size{\mathtt{this.investors}}\le 0\}$}|
     investors.push(caller);
     |\invariant{$\{\size{\mathtt{this.investors}}\le 1\}$}|
-    minimum_investment = 1000;
+    minimumInvestment = 1000;
   }
 
   public payable void invest() {
     |\invariant{$\varnothing$}|
-    require(amount >= minimum_investment, "too little");
+    require(amount >= minimumInvestment, "too little");
     |\invariant{$\varnothing$}|
     int eachInvestorGets = amount / investors.size();
     |\invariant{$\varnothing$}|
@@ -641,7 +641,7 @@ public class Ponzi1 extends Contract {
     |\invariant{$\varnothing$}|
     investors.push(caller);
     |\invariant{$\varnothing$}|
-    minimum_investment = amount * 11 / 10;
+    minimumInvestment = amount * 11 / 10;
   }
   \end{lstlisting}
 
@@ -656,7 +656,7 @@ public class Ponzi1 extends Contract {
 
   public payable void invest() {
     |\invariant{$\varnothing$}|
-    require(amount >= minimum_investment, "too little");
+    require(amount >= minimumInvestment, "too little");
     |\invariant{$\varnothing$}|
     while (investors.size() > 100)
       |\invariant{$\varnothing$}|
@@ -670,7 +670,7 @@ public class Ponzi1 extends Contract {
     |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
     investors.push(caller);
     |\invariant{$\{\size{\mathtt{this.investors}}\le 101\}$}|
-    minimum_investment = amount * 11 / 10;
+    minimumInvestment = amount * 11 / 10;
   }
   \end{lstlisting}
 \end{frame}
@@ -794,12 +794,12 @@ public class Ponzi1 extends Contract {
       \begin{lstlisting}[language=pseudo]
 public class Ponzi3 extends Contract {
   private final List<Contract> investors;
-  private int minimum_investment;
+  private int minimumInvestment;
 
   public Ponzi3() { ... }
 
   public payable void invest() {
-    require(amount >= minimum_investment, "too little");
+    require(amount >= minimumInvestment, "too little");
 
     [correct fix but the analyzer issues a false warning here]
     if (investors.size() > 100)
@@ -810,7 +810,7 @@ public class Ponzi3 extends Contract {
       investor.receive(eachInvestorGets);
 
     investors.push(caller);
-    minimum_investment = amount * 11 / 10;
+    minimumInvestment = amount * 11 / 10;
   }
 }
       \end{lstlisting}
