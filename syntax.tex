@@ -21,7 +21,7 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
     \com::=&\ \assign{\lvalue}{\exp}\mid\require{\exp}{\exp}\mid\push{\exp}{\exp}\\
     &\mid\removeFirst{\exp}\mid\receive{\exp}{\exp}\mid\call{\exp}{m}{\exp^*}\mid\nop\\
     &\mid\ife{\exp}{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}{\com}\\
-    & \mid\while{\exp}{\com}\mid\sequence{\com}{\com}\mid\return.
+    & \mid\while{\exp}{\exp}{\com}\mid\sequence{\com}{\com}\mid\return.
   \end{align*}
 \end{definition}
 
@@ -58,7 +58,7 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
   \item if $\com\not=\return$ then $p_{\|next|}$ is the program point
     of the command that sequentially follows $\com$;
   \item if $\com=\for{\mathit{v}}{\exp}{\com_{\|inner|}}$
-    or $\com=\while{\exp}{\com_{\|inner|}}$ then
+    or $\com=\while{\exp}{\exp}{\com_{\|inner|}}$ then
     $p_{\|inner|}$ is the program point of $\com_{\|inner|}$;
   \item if $\com=\ife{\exp}{\exp}{\com_{\|then|}}{\com_{\|else|}}$ then
     $p_{\|then|}$ is the program point of $\com_{\|then|}$ and

@@ -24,8 +24,9 @@ so that their value cannot be affected by side-effect.
   \<this.investors> is a path rooted at \<this> of type \<List<Contract\texttt{>}>.
 \end{example}
 %
-A path $\pi$ bound to a list $l$ cannot see $l$ replaced by side-effect,
-but can see $l$ enlarged by side-effect. Otherwise, $\pi$ is said to \emph{survive}.
+The list bound to a path $\pi$ cannot be replaced by side-effect,
+but it can be enlarged by side-effect, or otherwise
+$\pi$ is said to \emph{survive} the side-effect.
 %
 \begin{definition}[Path Survival]\label{def:survival}
   Given $\pi\in\paths$ and a set of types $U$, then $\pi$ is said to
@@ -54,15 +55,15 @@ but can see $l$ enlarged by side-effect. Otherwise, $\pi$ is said to \emph{survi
   A \emph{boundedness state} \|bo| is either $\bot$ or
   \[
   \left\{\left.\begin{array}{c}
-  \size{\pi_1}\le n_1\\
-  \vdots\\
+  \size{\pi_1}\le n_1\\[-0.7ex]
+  \ldots\\
   \size{\pi_k}\le n_k
   \end{array}\right|\pi_i\in\paths\text{ and }n_i\in\nat\text{ for every $i=1,\ldots,k$}\right\}.
   \]
   The set of all possible boundedness states is $\bo$.
 \end{definition}
 %
-The intuition is that $\bot$ represents the mpety set of concrete states and
+The intuition is that $\bot$ represents the empty set of concrete states and
 that \|bo| represents the set of all concrete states
 where $\pi_i$ holds a list whose length is at most $n_i$, for every $i=1,\ldots,k$.
 %
@@ -70,8 +71,8 @@ where $\pi_i$ holds a list whose length is at most $n_i$, for every $i=1,\ldots,
   In terms of abstract interpretation, any $\|bo|\in\bo$ is an abstraction
   of concrete states and $\bo$ is an abstract domain whose bottom is $\bot$
   and whose other elements are ordered as $\|bo|_1\sqsubseteq\|bo|_2$
-  if and only if for every $(\size{\pi}\le n)\in\|bo|_2$ there exists
-  $(\size{\pi}\le n')\in\|bo|_1$ with $n'\le n$.
+  if and only if for every $(\size{\pi}\le n_2)\in\|bo|_2$ there exists
+  $(\size{\pi}\le n_1)\in\|bo|_1$ with $n_1\le n_2$.
   Therefore, $\varnothing$ is the top (least precise) element of $\bo$.
   The least upper bound operator yields the other operand if any operand is
   $\bot$, otherwise it is
@@ -124,10 +125,10 @@ Similarly, an assignment can sometimes improve a boundedness state.
   \end{align*}
 \end{definition}
 
-Boundedness is a property of computation states hence we present
-its analysis in operational form, as a derivation rule over the boundedness states
-of Def.~\ref{def:bo}:
-a derivation $\pair{p}{\|bo|}\boderivation\pair{p'}{\|bo|'}$ means that
+Boundedness is a property of states hence we present
+its analysis in operational form, as a derivation rule over boundedness states
+(Def.~\ref{def:bo}):
+$\pair{p}{\|bo|}\boderivation\pair{p'}{\|bo|'}$ means that
 the execution of the command at program point $p$ from a boundedness state \|bo| performs a single
 step and then continues with the execution of the command at program point $p'$
 from a boundedness state $\|bo|'$.
@@ -166,6 +167,9 @@ from a boundedness state $\|bo|'$.
           \|bo|_{\text{survives}}=\{(\size{\pi}\le n)\in\|bo|''\mid\pi\text{ survives }\{t\}\}\\
           \|bo|_{\neg\text{survives}}=\{\size{\pi}\le n+1\mid(\size{\pi}\le n)\in\|bo|''\text{ and }\pi\text{ does not survive }\{t\}\}
       \end{array}}{\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|_{\text{survives}}\cup\|bo|_{\neg\text{survives}}}}\\[1pt]
+      % removeFirst
+      \frac{\Pi(p)=(\removeFirst{\exp})\quad\pair{\exp}{\|bo|}\boderivation\|bo|'}
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|'}}\\[1pt]
       % receive
       \frac{\Pi(p)=(\receive{\exp_1}{\exp_2})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|''}}\\[1pt]
       % method call
@@ -191,7 +195,14 @@ from a boundedness state $\|bo|'$.
            {\pair{p}{\|bo|}\boderivation\pair{p_{\|first|}}{\|bo|}}\qquad
       % nop
       \frac{\Pi(p)=\nop}
-           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|}}
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|}}\\[1pt]
+      % while
+      \frac{\Pi(p)=(\while{\exp_1}{\exp_2}{\com})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'
+           \quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|inner|}}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}\\[1pt]
+      \frac{\Pi(p)=(\while{\exp_1}{\exp_2}{\com})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'
+           \quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|improve|(\|bo|'',\negcop{\exp_1}{\exp_2})}}\\[1pt]
     \end{gather*}
     \caption{The boundedness derivation rules for commands, part~1. They use
       a previously computed side-effect analysis $\intsideeffect$ to check path survival.}
@@ -209,40 +220,46 @@ In Fig.~\ref{fig:bo_derivations_commands}, the rule for method call
 works similarly, but considers the
 union of the side-effects of all targets of the call. The rules for assignment
 update the boundness aproximation with the effects of the assignment
-(Def.~\ref{def:improvement}). The rule for \<push> is the most interesting.
+(Def.~\ref{def:improvement}). The rule for \<push> is the most interesting one.
 It evaluates receiver and parameter of \<push> and then splits the
 resulting bounds into those about lists whose static type guarantees that
-they are unaffected by the \<push> ($\|bo|_{\mathit{survives}}$) and those for lists
-that, instead,
-might be affected ($\|bo|_{\neg\mathit{survives}}$). The approximation of the size
+they cannot be enlarged by the \<push> ($\|bo|_{\mathit{survives}}$)
+and those for lists that might be enlarged instead
+($\|bo|_{\neg\mathit{survives}}$). The approximation of the size
 of the former remains valid, while that of the latter is conservatively
-weakened by a unit (one element might be added to those lists).
-The rule for \<require> tries to improve (Def.~\ref{def:improvement}) the boundedness state
+weakened by one (one element might be added to those lists).
+The rule for \<removeFirst> cannot improve the constraints, instead,
+since it is not enough to know that a list might be affected to conclude
+that it will be affected and the approximation of its size can be
+safely decreased by one. Therefore, that rule leaves the constraints unchanged,
+conservatively.
+The rule for \<require> tries to improve
+(Def.~\ref{def:improvement}) the boundedness state
 with information entailed by the required condition, that must hold or
 otherwise the computation stops. The
 the same occurs for the conditional, that non-deterministically proceeds
 to the \emph{then} branch if the condition holds and to the \emph{else} branch
 if its opposite holds. Finally, the rule for $\for{v}{\exp}{\com}$
 non-deterministically enters the inner loop after evaluating $\exp$, or re-enters the
-loop without re-evaluation $\exp$ or, finally, exits the loop. Note that these rules
-for $\for{v}{\exp}{\com}$ consider more execution paths than the concrete semantics
+loop without re-evaluation $\exp$ or, finally, exits the loop. That
+considers more execution paths than the concrete semantics
 of that command, which is fine since the abstract semantics must consider
 an over-approximation of all execution paths.
 
-The derivation rule in Fig.~\ref{fig:bo_derivations_commands} has been given
+The rules in Fig.~\ref{fig:bo_derivations_commands} have been given
 as a small step semantics in order to allow the computation of a
-boundedness state at each program point, through an
-intraprocedural fixpoint that saturates all execution paths. Namely, at the beginning
-of each method with body $\com$ at program point $p_{\|start|}$, the analysis starts from the configuration
-$\pair{p_{\|start|}}{\varnothing}$ ($\varnothing$ is a worst-case assumption at the beginning
+boundedness state at each program point, through a
+fixpoint that saturates all execution paths. Namely, at the beginning
+of each method with body $\com$ at program point $p_{\|start|}$, the analysis starts from $\pair{p_{\|start|}}{\varnothing}$
+($\varnothing$ is a worst-case assumption at the beginning
 of the method: nothing is known there about the size of the lists)
 and computes all possible derivations from there.
 Whenever a configuration $\pair{p}{\|bo|}$ is reached, the analysis records
-$\|bo|$ as the state at program point of $p$, if no recording exists at $p$ yet.
+$\|bo|$ as the state at program point $p$, if no record exists at $p$ yet.
 If, instead, a previous recorded state $\|bo|_{\|old|}$ exists at $p$,
 the analysis records $\|bo|_{\|new|}=\|bo|_{\|old|}\sqcup\|bo|$ as $p$.
-If $\|bo|_{\|new|}\not=\|bo|_{\|old|}$, the derivation continues from $\|bo|_{\|new|}$.
-Otherwise, that derivation stops.
+If $\|bo|_{\|new|}\not=\|bo|_{\|old|}$, the derivation continues
+from $\|bo|_{\|new|}$. Otherwise, it stops.
 
 \begin{example}\label{ex:boundedness_computation}
   The boundedness states computed at each program point
