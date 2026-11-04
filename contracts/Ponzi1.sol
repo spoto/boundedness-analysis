@@ -1,29 +1,28 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // This program has a boundedness bug inside invest()
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity ^0.4.24;
 
 contract Ponzi1 {
     address[] public investors; // dynamic array
-    uint constant public MINIMUM_INVESTMENT = 1000;
+    uint public minimumInvestment;
 
-    constructor () {
+    constructor () public {
         investors.push(msg.sender);
+        minimumInvestment = 1000;
     }
 
     function invest() payable public {
-        require(msg.value >= MINIMUM_INVESTMENT, "too small investment");
-        require(investors.length < 100, "no more investors are allowed");
+        require(msg.value >= minimumInvestment, "too small investment");
 
-        // innvestors.length is never zero because the constructor
+        // investors.length is never zero because the constructor
         // populates it with at least a first investor
         uint eachInvestorGets = msg.value / investors.length;
         // if there are too many investors, the subsequent loop would
         // require too much gas, more than the maximum allowed by Ethereum,
         // effectively making it impossible for new investors to join
-	// BOUNDEDNESS BUG
-        for (uint i = 0; i < investors.length; i++) {
-            (bool done, ) = payable(investors[i]).call{value:eachInvestorGets}("");
-        }
+        // BOUNDEDNESS BUG
+        for (uint i = 0; i < investors.length; i++)
+            investors[i].call.value(eachInvestorGets)("");
 
         investors.push(msg.sender);
     }

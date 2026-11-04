@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // This program has a boundedness bug inside drawWinner()
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity ^0.4.24;
 
 contract Lottery1 {
 
@@ -27,9 +27,10 @@ contract Lottery1 {
     uint public duration;
 
     // duration is a time specification
-    constructor (uint _duration) {
+    constructor (uint _duration) public {
         duration = _duration;
-        Round storage round = rounds.push();
+        rounds.length++;
+        Round storage round = rounds[rounds.length - 1];
         round.endTime = block.timestamp + _duration;
     }
 
@@ -38,7 +39,8 @@ contract Lottery1 {
 
         Round storage last = rounds[rounds.length - 1];
         if (block.timestamp > last.endTime) {
-            last = rounds.push();
+            rounds.length++;
+            last = rounds[rounds.length - 1];
             last.endTime = block.timestamp + duration;
         }
  
@@ -58,12 +60,12 @@ contract Lottery1 {
 
         uint numWinningTicket = random(round.totalTickets, 0xbeaf);
 
-	// BOUNDEDNESS BUG
+        // BOUNDEDNESS BUG
         for (uint i = 0; i < round.sales.length; i++) {
             TicketSale memory sale = round.sales[i];
             if (sale.tickets > numWinningTicket) {
                 round.winner = sale.buyer;
-                (bool success, ) = round.winner.call{value : TICKET_PRICE * round.totalTickets}("");
+                bool success = round.winner.call.value(TICKET_PRICE * round.totalTickets)("");
             }
             else
                 numWinningTicket -= sale.tickets;
@@ -73,6 +75,6 @@ contract Lottery1 {
     // Yields a "random" number between 0 and max-1; the seed makes manipulations
     // by miners slightly more difficult
     function random(uint max, uint seed) view private returns (uint) {
-        return uint(keccak256(bytes.concat(bytes32(seed), blockhash(block.number - 1)))) % max;
+        return uint(keccak256(abi.encodePacked(bytes32(seed), blockhash(block.number - 1)))) % max;
     }
 }

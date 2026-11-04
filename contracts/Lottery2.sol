@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
-// This program has no boundedness bug
-pragma solidity >=0.8.0 <0.9.0;
+// This program has no boundedness bug inside drawWinner()
+pragma solidity ^0.4.24;
 
-contract Lottery2 {
+contract Lottery1 {
 
     // a round of the lottery: ticket sales can be added until the end time
     // has expired, after which a winner of the round can be drawn
@@ -19,7 +19,6 @@ contract Lottery2 {
     }
 
     uint constant public TICKET_PRICE = 1000;
-    uint constant public MAX_SALES = 5000;
 
     // all rounds created so far
     Round[] public rounds;
@@ -28,9 +27,10 @@ contract Lottery2 {
     uint public duration;
 
     // duration is a time specification
-    constructor (uint _duration) {
+    constructor (uint _duration) public {
         duration = _duration;
-        Round storage round = rounds.push();
+        rounds.length++;
+        Round storage round = rounds[rounds.length - 1];
         round.endTime = block.timestamp + _duration;
     }
 
@@ -38,17 +38,16 @@ contract Lottery2 {
         require(msg.value > 0 && msg.value % TICKET_PRICE == 0, "you can only buy a positive integral number of tickets");
 
         Round storage last = rounds[rounds.length - 1];
-        if (block.timestamp > last.endTime) {
-            last = rounds.push();
+        if (block.timestamp > last.endTime || last.sales.length >= 5000) {
+            rounds.length++;
+            last = rounds[rounds.length - 1];
             last.endTime = block.timestamp + duration;
         }
  
-        if (last.sales.length < MAX_SALES) {
-            uint quantity = msg.value / TICKET_PRICE;
-            TicketSale memory sale = TicketSale(msg.sender, quantity);
-            last.sales.push(sale);
-            last.totalTickets += quantity;
-        }
+        uint quantity = msg.value / TICKET_PRICE;
+        TicketSale memory sale = TicketSale(msg.sender, quantity);
+        last.sales.push(sale);
+        last.totalTickets += quantity;
     }
 
     function drawWinner(uint roundNumber) public {
@@ -61,11 +60,12 @@ contract Lottery2 {
 
         uint numWinningTicket = random(round.totalTickets, 0xbeaf);
 
+        // NO BOUNDEDNESS BUG
         for (uint i = 0; i < round.sales.length; i++) {
             TicketSale memory sale = round.sales[i];
             if (sale.tickets > numWinningTicket) {
                 round.winner = sale.buyer;
-                (bool success, ) = round.winner.call{value : TICKET_PRICE * round.totalTickets}("");
+                bool success = round.winner.call.value(TICKET_PRICE * round.totalTickets)("");
             }
             else
                 numWinningTicket -= sale.tickets;
@@ -75,6 +75,6 @@ contract Lottery2 {
     // Yields a "random" number between 0 and max-1; the seed makes manipulations
     // by miners slightly more difficult
     function random(uint max, uint seed) view private returns (uint) {
-        return uint(keccak256(bytes.concat(bytes32(seed), blockhash(block.number - 1)))) % max;
+        return uint(keccak256(abi.encodePacked(bytes32(seed), blockhash(block.number - 1)))) % max;
     }
 }
