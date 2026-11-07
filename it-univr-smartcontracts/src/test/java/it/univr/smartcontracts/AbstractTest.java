@@ -1,4 +1,4 @@
-package it.univr.boundedness.analyzer.syntax;
+package it.univr.smartcontracts;
 
 public abstract class AbstractTest {
 	

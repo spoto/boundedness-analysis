@@ -1,4 +1,4 @@
-package it.univr.boundedness.analyzer.syntax;
+package it.univr.smartcontracts;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,11 +25,9 @@ import it.univr.smartcontracts.syntax.commands.Assignment;
 import it.univr.smartcontracts.syntax.commands.For;
 import it.univr.smartcontracts.syntax.commands.Push;
 import it.univr.smartcontracts.syntax.commands.Receive;
-import it.univr.smartcontracts.syntax.commands.RemoveFirst;
 import it.univr.smartcontracts.syntax.commands.Require;
 import it.univr.smartcontracts.syntax.commands.Return;
 import it.univr.smartcontracts.syntax.commands.Sequence;
-import it.univr.smartcontracts.syntax.commands.While;
 import it.univr.smartcontracts.syntax.expressions.ArithmeticOperation;
 import it.univr.smartcontracts.syntax.expressions.Constant;
 import it.univr.smartcontracts.syntax.expressions.ConstructorCall;
@@ -37,22 +35,22 @@ import it.univr.smartcontracts.syntax.expressions.FieldAccess;
 import it.univr.smartcontracts.syntax.expressions.Size;
 import it.univr.smartcontracts.syntax.expressions.Variable;
 
-public class Ponzi2Tests extends AbstractTest {
+public class Ponzi1Tests extends AbstractTest {
 	private static Program program;
-	private static Class ponzi2;
-	private static Method ponzi2Constructor;
-	private static Method ponzi2Invest;
+	private static Class ponzi1;
+	private static Method ponzi1Constructor;
+	private static Method ponzi1Invest;
 	private static For _for;
 
 	@BeforeAll
 	public static void mkProgram() {
-		ponzi2 = new Class("Ponzi2", Class.CONTRACT);
+		ponzi1 = new Class("Ponzi1", Class.CONTRACT);
 		var listOfContract = new List(Class.CONTRACT);
-		var investors = new Field(ponzi2, "investors", listOfContract, true);
-		var minimumInvestment = new Field(ponzi2, "minimumInvestment", Int.INSTANCE, false);
-		var THIS = new Variable("this", ponzi2);
+		var investors = new Field(ponzi1, "investors", listOfContract, true);
+		var minimumInvestment = new Field(ponzi1, "minimumInvestment", Int.INSTANCE, false);
+		var THIS = new Variable("this", ponzi1);
 
-		ponzi2Constructor = new Method(ponzi2, ponzi2.name(),
+		ponzi1Constructor = new Method(ponzi1, ponzi1.name(),
 				new Sequence(new Sequence(new Sequence(
 						new Assignment(new FieldAccess(THIS, investors), new ConstructorCall(Class.LIST)),
 						new Push(new FieldAccess(THIS, investors), Class.CONTRACT, Variable.CALLER)),
@@ -64,43 +62,40 @@ public class Ponzi2Tests extends AbstractTest {
 		var investor = new Variable("investor", Class.CONTRACT);
 		var thisInvestors = new FieldAccess(THIS, investors);
 
-		ponzi2Invest = new Method(ponzi2, "invest",
-				new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(
+		ponzi1Invest = new Method(ponzi1, "invest",
+				new Sequence(new Sequence(new Sequence(new Sequence(new Sequence(
 						new Require(Variable.AMOUNT, COP.GE, new FieldAccess(THIS, minimumInvestment)),
-						new While(new Size(thisInvestors), COP.GT, new Constant(100),
-								new RemoveFirst(thisInvestors, Class.CONTRACT))),
 						new Assignment(eachInvestorGets, new ArithmeticOperation(
 								Variable.AMOUNT,
 								AOP.DIV,
-								new Size(thisInvestors)
-								))),
+								new Size(thisInvestors)))),
 						_for = new For(investor, thisInvestors, Class.CONTRACT, new Receive(investor, eachInvestorGets))),
 						new Push(thisInvestors, Class.CONTRACT, Variable.CALLER)),
 						new Assignment(new FieldAccess(THIS, minimumInvestment), new ArithmeticOperation(new ArithmeticOperation(Variable.AMOUNT, AOP.MUL, new Constant(11)), AOP.DIV, new Constant(10)))),
 						new Return()
 		));
 
-		program = new Program(ponzi2);
+		program = new Program(ponzi1);
 	}
 
 	@Test
-    @DisplayName("Checks correctness of the side-effects of Ponzi2")
-	public void sideEffectsOfPoinzi1AreCorrect() {
+    @DisplayName("Checks correctness of the side-effects analysis of Ponzi1")
+	public void sideEffectsAnalysisOfPoinzi1AreCorrect() {
 		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(program);
 		var onlyContract = new HashSet<Type>();
 		onlyContract.add(Class.CONTRACT);
-		assertTrue(sideEffectsAnalysis.of(ponzi2Constructor).collect(Collectors.toSet()).equals(onlyContract));
-		assertTrue(sideEffectsAnalysis.of(ponzi2Invest).collect(Collectors.toSet()).equals(onlyContract));
+		assertTrue(sideEffectsAnalysis.of(ponzi1Constructor).collect(Collectors.toSet()).equals(onlyContract));
+		assertTrue(sideEffectsAnalysis.of(ponzi1Invest).collect(Collectors.toSet()).equals(onlyContract));
 		//sideEffectsAnalysis.forEach((method, types) -> System.out.println(method + ": " + types.collect(Collectors.toList())));
 	}
 
 	@Test
-    @DisplayName("Checks correctness of the boundedness analysis of Ponzi2")
-	public void boundednessAnalysisOfPonzi2IsCorrect() {
+    @DisplayName("Checks correctness of the boundedness analysis of Ponzi1")
+	public void boundednessAnalysisOfPonzi1IsCorrect() {
 		var sideEffectsAnalysis = new SideEffectsAnalyzer().analyze(program);
 		var boundednessAnalysis = new BoundednessAnalyzer().analyze(program, sideEffectsAnalysis, 4);
-		assertTrue(boundednessAnalysis.allListsAreBounded(Class.CONTRACT));
-		assertFalse(_for.hasWarning(boundednessAnalysis));
+		assertFalse(boundednessAnalysis.allListsAreBounded(Class.CONTRACT));
+		assertTrue(_for.hasWarning(boundednessAnalysis));
 
 		if (isPrintRequested())
 			System.out.println(program.toCode(boundednessAnalysis));

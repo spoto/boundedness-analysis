@@ -1,4 +1,4 @@
-package it.univr.boundedness.analyzer.syntax;
+package it.univr.smartcontracts;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
