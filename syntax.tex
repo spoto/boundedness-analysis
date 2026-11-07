@@ -9,11 +9,12 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
 %
 \begin{definition}[Leftvalues, Expressions and Commands]\label{def:exp_com}
   The sets of \emph{leftvalues} $\LValue$, \emph{expressions} $\Exp$ and
-  \emph{commands} $\Com$ are defined by the following grammar,
+  \emph{commands} $\Com$ are defined by the grammar in Fig.~\ref{fig:syntax},
   where $c$ is an integer literal constant of the language,
   $v$ is a variable in $\Var$, $\mathit{aop}$ is an arithmetic
   operator ($+$, $-$, $*$\ldots) and $\mathit{cop}$ is a comparison operator
-  ($<,\le,=,\not=$\ldots):
+  ($<,\le,=,\not=$\ldots).
+  \begin{figure}
   \begin{align*}
     \lvalue::=&\ \mathit{v}\mid\field{\exp}{f}\mid\listread{\exp}{\exp}\\
     \exp::=&\ \lvalue\mid\mathit{c}\mid\aop{\exp}{\exp}\\
@@ -23,6 +24,8 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
     &\mid\ife{\exp}{\exp}{\com}{\com}\mid\for{\mathit{v}}{\exp}{\com}\\
     & \mid\while{\exp}{\exp}{\com}\mid\sequence{\com}{\com}\mid\return.
   \end{align*}
+  \caption{The syntax of our minimalistic language for smart contracts.}\label{fig:syntax}
+  \end{figure}
 \end{definition}
 %
 The syntax is kept minimal. For instance, the \texttt{or} in Fig.~\ref{fig:lottery2}
@@ -32,9 +35,7 @@ must be written with a conditoinal with an inner conditional.
   A \emph{program} is a collection of \emph{classes}.
   Each class $C$ has a \emph{superclass}, some \emph{field signatures} $C.f$
   and some \emph{methods} $C.m$, declared as
-  \[
-  C.m(p_1:t_1,\ldots,p_n:t_n)\ \<let>\ l_1:t_1',\ldots,l_q:t_q'\ \<in>\ \com,
-  \]
+  $C.m(p_1:t_1,\ldots,p_n:t_n)\ \<let>\ l_1:t_1',\ldots,l_q:t_q'\ \<in>\ \com$,
   where $\com$ is the \emph{body} of the method, $p_1\cdots p_n$ are its
   formal parameters, of type $t_1\cdots t_n$, and $l_1\cdots l_q$ are its
   local variables, of type $t_1'\cdots t_q'$. Local variables include the
@@ -73,9 +74,9 @@ must be written with a conditoinal with an inner conditional.
   The set of all program points is denoted as $\PP$.
 \end{definition}
 %
-We do not formalize how $p_{\|next|}$, $p_{\|inner|}$ and so on are defined, since
-this should be obvious. For instance, for the last commands of the \emph{then} or
-\emph{else} branch of a conditional, their $p_{\|next|}$ is the program point of the
+We do not formalize the definition of $p_{\|next|}$, $p_{\|inner|}$ and so on, which
+should be obvious. For instance, the $p_{\|next|}$ of the last commands of the \emph{then} or
+\emph{else} branch of a conditional is the program point of the
 command after the conditional; for the last command of a \<for> loop,
 $p_{\|next|}$ is the \<for> command where the loop starts.
 %

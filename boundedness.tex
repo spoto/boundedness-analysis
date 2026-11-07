@@ -8,7 +8,7 @@ $\intsideeffect$ can be computed by recursive descent on the commands.
 Here, we just assume that it has already been computed.
 
 \emph{Paths} are leftvalues
-(Def.~\ref{def:exp_com}) that start from a variable and dereference \<final> fields
+(Def.~\ref{def:exp_com}) that start at a variable and dereference \<final> fields
 only\footnote{Or fields that the compiler con infer as effectively \<final>, for being
 assigned only and always once in the constructor.},
 so that their value cannot be affected by side-effect.
@@ -61,11 +61,9 @@ $\pi$ \emph{survives} the side-effect.
   The set of boundedness states $\bo$ consists in
   $\bot$ and in all finite collections $\|bo|$ of constraints
   \[
-  \left\{\left.\begin{array}{c}
-  \size{\pi_1}\le n_1\\[-0.7ex]
-  \ldots\\
-  \size{\pi_k}\le n_k
-  \end{array}\right|\pi_i\in\paths\text{ and }n_i\in\nat\text{ for every $i=1,\ldots,k$}\right\}.
+  \left\{
+  \size{\pi_1}\le n_1\cdots\size{\pi_k}\le n_k
+  \mid\pi_i\in\paths\text{ and }n_i\in\nat\text{ for every $i=1,\ldots,k$}\right\}.
   \]
 \end{definition}
 %
@@ -382,9 +380,9 @@ line~\ref{lottery1:call_to_round} in Fig.~\ref{fig:lottery1}.
 \end{example}
 
 In Ex.~\ref{ex:boundedness_computation}, the computation of the boundedness analysis
-converges. This is expected for simple code such as smart contracts. However,
+converges. This is expected for simple smart contracts, but
 $\bo$ has infinite ascending chains hence that computation
-might diverge, in general, and we have defined a widening operator to force
+might diverge, in general. We have defined a widening operator to force
 termination after a given number $\kappa$ of iterations~\cite{CousotC77}.
 
 In the following, we assume that a boundedness analysis has been computed.
