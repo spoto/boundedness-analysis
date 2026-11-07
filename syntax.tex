@@ -24,7 +24,10 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
     & \mid\while{\exp}{\exp}{\com}\mid\sequence{\com}{\com}\mid\return.
   \end{align*}
 \end{definition}
-
+%
+The syntax is kept minimal. For instance, the \texttt{or} in Fig.~\ref{fig:lottery2}
+must be written with a conditoinal with an inner conditional.
+%
 \begin{definition}[Program]\label{def:program}
   A \emph{program} is a collection of \emph{classes}.
   Each class $C$ has a \emph{superclass}, some \emph{field signatures} $C.f$

@@ -25,8 +25,8 @@ so that their value cannot be affected by side-effect.
 \end{example}
 %
 The list bound to a path $\pi$ cannot be replaced by side-effect,
-but it can be enlarged by side-effect, or otherwise
-$\pi$ is said to \emph{survive} the side-effect.
+but it can be enlarged by side-effect. When that does not happens,
+$\pi$ \emph{survives} the side-effect.
 %
 \begin{definition}[Path Survival]\label{def:survival}
   Given $\pi\in\paths$ and a set of types $U$, then $\pi$ is said to
@@ -52,7 +52,8 @@ $\pi$ is said to \emph{survive} the side-effect.
 \end{example}
 
 \begin{definition}[Boundedness States]\label{def:bo}
-  A \emph{boundedness state} \|bo| is either $\bot$ or
+  A \emph{boundedness state} \|bo| is either $\bot$ or a finite
+  collection of constraints
   \[
   \left\{\left.\begin{array}{c}
   \size{\pi_1}\le n_1\\[-0.7ex]
@@ -170,8 +171,6 @@ from a boundedness state $\|bo|'$.
       % removeFirst
       \frac{\Pi(p)=(\removeFirst{\exp})\quad\pair{\exp}{\|bo|}\boderivation\|bo|'}
            {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|'}}\\[1pt]
-      % receive
-      \frac{\Pi(p)=(\receive{\exp_1}{\exp_2})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'\quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}{\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|''}}\\[1pt]
       % method call
       \frac{\begin{array}{c}
           \Pi(p)=(\call{\exp_0}{m}{\exp_1,\ldots,\exp_p})\quad\pair{\exp_0}{\|bo|}\boderivation\|bo|_0\quad\cdots\quad\pair{\exp_p}{\|bo|_{p-1}}\boderivation\|bo|_p\\
@@ -189,23 +188,10 @@ from a boundedness state $\|bo|'$.
       \frac{\Pi(p)=(\for{v}{\exp}{\com})}
            {\pair{p}{\|bo|}\boderivation\pair{p_{\|inner|}}{\|bo|^{-v}}}\\[1pt]
       \frac{\Pi(p)=(\for{v}{\exp}{\com})}
-           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|}}\qquad
-      % sequence
-      \frac{\Pi(p)=\sequence{\com}{\com}}
-           {\pair{p}{\|bo|}\boderivation\pair{p_{\|first|}}{\|bo|}}\qquad
-      % nop
-      \frac{\Pi(p)=\nop}
-           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|}}\\[1pt]
-      % while
-      \frac{\Pi(p)=(\while{\exp_1}{\exp_2}{\com})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'
-           \quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}
-           {\pair{p}{\|bo|}\boderivation\pair{p_{\|inner|}}{\|improve|(\|bo|'',\cop{\exp_1}{\exp_2})}}\\[1pt]
-      \frac{\Pi(p)=(\while{\exp_1}{\exp_2}{\com})\quad\pair{\exp_1}{\|bo|}\boderivation\|bo|'
-           \quad\pair{\exp_2}{\|bo|'}\boderivation\|bo|''}
-           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|improve|(\|bo|'',\negcop{\exp_1}{\exp_2})}}\\[1pt]
+           {\pair{p}{\|bo|}\boderivation\pair{p_{\|next|}}{\|bo|}}
     \end{gather*}
-    \caption{The boundedness derivation rules for commands, part~1. They use
-      a previously computed side-effect analysis $\intsideeffect$ to check path survival.}
+    \caption{A subset of the boundedness derivation rules for commands. They use
+      a previously computed side-effect analysis $\intsideeffect$ to check for path survival.}
     \label{fig:bo_derivations_commands}
   \end{figure}
 \end{definition}
@@ -218,8 +204,8 @@ rule is intraprocedural, since it does not enter the body of the constructor
 but simply embeds its side-effects in the result.
 In Fig.~\ref{fig:bo_derivations_commands}, the rule for method call
 works similarly, but considers the
-union of the side-effects of all targets of the call. The rules for assignment
-update the boundness aproximation with the effects of the assignment
+union of the side-effects of all targets of the call. The rule for assignment
+updates the boundness aproximation with the effects of the assignment
 (Def.~\ref{def:improvement}). The rule for \<push> is the most interesting one.
 It evaluates receiver and parameter of \<push> and then splits the
 resulting bounds into those about lists whose static type guarantees that
@@ -230,18 +216,18 @@ of the former remains valid, while that of the latter is conservatively
 weakened by one (one element might be added to those lists).
 The rule for \<removeFirst> cannot improve the constraints, instead,
 since it is not enough to know that a list might be affected to conclude
-that it will be affected and the approximation of its size can be
+that it will be affected and that the approximation of its size can be
 safely decreased by one. Therefore, that rule leaves the constraints unchanged,
 conservatively.
 The rule for \<require> tries to improve
 (Def.~\ref{def:improvement}) the boundedness state
 with information entailed by the required condition, that must hold or
-otherwise the computation stops. The
-the same occurs for the conditional, that non-deterministically proceeds
+else the computation stops. The
+same for the conditional, that non-deterministically proceeds
 to the \emph{then} branch if the condition holds and to the \emph{else} branch
-if its opposite holds. Finally, the rule for $\for{v}{\exp}{\com}$
-non-deterministically enters the inner loop after evaluating $\exp$, or re-enters the
-loop without re-evaluation $\exp$ or, finally, exits the loop. That
+if its opposite holds. The rules for $\for{v}{\exp}{\com}$
+non-deterministically enter the inner loop after evaluating $\exp$, or re-enter the
+loop without re-evaluation $\exp$ or, finally, exit the loop. That
 considers more execution paths than the concrete semantics
 of that command, which is fine since the abstract semantics must consider
 an over-approximation of all execution paths.
@@ -264,10 +250,10 @@ from $\|bo|_{\|new|}$. Otherwise, it stops.
 \begin{example}\label{ex:boundedness_computation}
   The boundedness states computed at each program point
   of \<Ponzi1> (Fig.~\ref{fig:ponzi1}) are in Fig.~\ref{fig:boundedness_ponzi1}.
-  They are always $\varnothing$, except after the assignment
-  of an empty list to \<this.investors>. Note how a \<push> modifies the
+  They are always $\varnothing$, except after assigning
+  the empty list to \<this.investors>. Note how a \<push> modifies the
   bound upon propagation. The boundedness states for \<Ponzi2> (Fig.~\ref{fig:ponzi2})
-  are in Fig.~\ref{fig:boundedness_ponzi2}. This time, the second \<require>
+  are in Fig.~\ref{fig:boundedness_ponzi2}. Here, the \<while> loop
   improves the approximation of the bound on \<investors>.
   The boundedness states for \<Lottery1> (Fig.~\ref{fig:lottery1})
   and \<Lottery2> (Fig.~\ref{fig:lottery2})
@@ -282,11 +268,13 @@ from $\|bo|_{\|new|}$. Otherwise, it stops.
     |\invariant{$\{\size{\mathtt{this.investors}}\le 0\}$}|
     investors.push(caller);
     |\invariant{$\{\size{\mathtt{this.investors}}\le 1\}$}|
+    minimumInvestment = 1000;
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 1\}$}|
   }
 
   public payable void invest() {
     |\invariant{$\varnothing$}|
-    require(amount >= MINIMUM_INVESTMENT, "you invested too little");
+    require(amount >= minimumInvestment, "you invested too little");
     |\invariant{$\varnothing$}|
     int eachInvestorGets = amount / investors.size();
     |\invariant{$\varnothing$}|
@@ -296,6 +284,8 @@ from $\|bo|_{\|new|}$. Otherwise, it stops.
     |\invariant{$\varnothing$}|
     investors.push(caller);
     |\invariant{$\varnothing$}|
+    minimumInvestment = amount * 11 / 10;
+    |\invariant{$\varnothing$}|
   }
     \end{lstlisting}
     \caption{The boundedness states computed for \<Ponzi1> (Fig.~\ref{fig:ponzi1}).}
@@ -304,31 +294,28 @@ from $\|bo|_{\|new|}$. Otherwise, it stops.
 
   \begin{figure}[t]
     \begin{lstlisting}[language=pseudo]
-  public Ponzi2() {
-    |\invariant{$\varnothing$}|
-    investors = new List();
-    |\invariant{$\{\size{\mathtt{this.investors}}\le 0\}$}|
-    investors.push(caller);|\label{line:boundedness_ponzi2_push1}|
-    |\invariant{$\{\size{\mathtt{this.investors}}\le 1\}$}|
-  }
-
   public payable void invest() {
     |\invariant{$\varnothing$}|
-    require(amount >= MINIMUM_INVESTMENT, "you invested too little");
+    require(amount >= minimumInvestment, "you invested too little");
     |\invariant{$\varnothing$}|
-    require(investors.size() < 100, "no more investors are allowed");
-    |\invariant{$\{\size{\mathtt{this.investors}}\le 99\}$}|
-    int eachInvestorGets = amount / investors.size();
-    |\invariant{$\{\size{\mathtt{this.investors}}\le 99\}$}|
-    for investor in investors
-      |\invariant{$\{\size{\mathtt{this.investors}}\le 99\}$}|
-      investor.receive(eachInvestorGets);
-    |\invariant{$\{\size{\mathtt{this.investors}}\le 99\}$}|
-    investors.push(caller);|\label{line:boundedness_ponzi2_push2}|
+    while (investors.size() > 100)
+      |\invariant{$\varnothing$}|
+      investors.removeFirst();
     |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
+    int eachInvestorGets = amount / investors.size();
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
+    for investor in investors
+      |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
+      investor.receive(eachInvestorGets);
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
+    investors.push(caller);|\label{line:boundedness_ponzi2_push2}|
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 101\}$}|
+    minimumInvestment = amount * 11 / 10;
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 101\}$}|
   }
     \end{lstlisting}
-    \caption{The boundedness states computed for \<Ponzi2> (Fig.~\ref{fig:ponzi2}).}
+    \caption{The boundedness states computed for \<Ponzi2> (Fig.~\ref{fig:ponzi2}).
+    Those for the constructor are identical to Fig.~\ref{fig:boundedness_ponzi1}.}
     \label{fig:boundedness_ponzi2}
   \end{figure}
 
@@ -351,7 +338,20 @@ from $\|bo|_{\|new|}$. Otherwise, it stops.
     rounds.push(new Round(now + duration));
     |\invariant{$\{\size{\mathtt{this.rounds}}\le 1\}$}|
   }
-    \end{lstlisting}
+
+  public payable void buy() {
+    ...
+    |\invariant{$\varnothing$}|
+    if (now > last.endTime) {
+      |\invariant{$\varnothing$}|
+      last = new Round(now + duration);
+      |\invariant{$\{\size{\mathtt{last.sales}}\le 0\}$}|
+      rounds.push(last);
+      |\invariant{$\{\size{\mathtt{last.sales}}\le 0\}$}|
+    }
+    ...
+  }
+  \end{lstlisting}
     \caption{The boundedness states computed for \<Lottery1> (Fig.~\ref{fig:lottery1}).
     They are $\varnothing$ everywhere, except in the snippets shown above.}
     \label{fig:boundedness_lottery1}
@@ -365,26 +365,25 @@ from $\|bo|_{\|new|}$. Otherwise, it stops.
     |\invariant{$\varnothing$}|
     Round last = rounds.last();
     |\invariant{$\varnothing$}|
-    if (now > last.endTime) {
+    if (now > last.endTime or last.sales.size() >= MAX_SALES) {
       |\invariant{$\varnothing$}|
       last = new Round(now + duration);
-      |\invariant{$\varnothing$}|
+      |\invariant{$\{\size{\mathtt{last.sales}}\le 0\}$}|
       rounds.push(last);
-      |\invariant{$\varnothing$}|
+      |\invariant{$\{\size{\mathtt{last.sales}}\le 0\}$}|
     }
-    |\invariant{$\varnothing$}|
-    if (last.sales.size() < MAX_SALES) {
-      |\invariant{$\{\size{\mathtt{last.sales}}\le 4999\}$}|
-      int quantity = amount / TICKET_PRICE;
-      |\invariant{$\{\size{\mathtt{last.sales}}\le 4999\}$}|
-      last.sales.push(new TicketBatchSale(caller, quantity));
-      |\invariant{$\{\size{\mathtt{last.sales}}\le 5000\}$}|
-      last.totalTickets += quantity;
-      |\invariant{$\{\size{\mathtt{last.sales}}\le 5000\}$}|
-    }
+    |\invariant{$\{\size{\mathtt{last.sales}}\le 4999\}$}|
+    int quantity = amount / TICKET_PRICE;
+    |\invariant{$\{\size{\mathtt{last.sales}}\le 4999\}$}|
+    last.sales.push(new TicketBatchSale(caller, quantity));
+    |\invariant{$\{\size{\mathtt{last.sales}}\le 5000\}$}|
+    last.totalTickets += quantity;
+    |\invariant{$\{\size{\mathtt{last.sales}}\le 5000\}$}|
   }
     \end{lstlisting}
-    \caption{The boundedness states computed for \<Lottery2> (Fig.~\ref{fig:lottery2}) are the same as for \<Lottery1> (Fig.~\ref{fig:boundedness_lottery1}), except for the method \<buy()>, shown above.}
+    \caption{The boundedness states computed for \<Lottery2> (Fig.~\ref{fig:lottery2})
+      are the same as for \<Lottery1> (Fig.~\ref{fig:boundedness_lottery1}),
+      except for the method \<buy()>, shown above.}
     \label{fig:boundedness_lottery2}
   \end{figure}
 
@@ -411,7 +410,7 @@ the new approximation at $p$ is computed from the old one as
 \]
 %
 \begin{proposition}[Termination]\label{prop:termination}
-  The operator $\nabla$ is a widening operator on finite elements of $\bo$.
+  The operator $\nabla$ is a widening operator on $\bo$.
   Therefore, the computation
   of a boundedness state at each program point must terminate in
   a finite number of iterations.
@@ -443,7 +442,7 @@ This information is used to warn about boundedness bugs.
   at line~\ref{ponzi2:creator} is $\{\size{\mathtt{this.investors}}\le 0\}$
   (Fig.~\ref{fig:boundedness_ponzi2})
   and that computed at the \<push> at line~\ref{ponzi2:expand} is
-  $\{\size{\mathtt{this.investors}}\le 99\}$ (Fig.~\ref{fig:boundedness_ponzi2}).
+  $\{\size{\mathtt{this.investors}}\le 100\}$ (Fig.~\ref{fig:boundedness_ponzi2}).
   Similarly, in \<Lottery1> (Fig.~\ref{fig:lottery1}),
   not all lists of \<Round> and not all lists of \<TicketBatchSale> are bounded,
   since the boundedness state computed at the
@@ -481,3 +480,14 @@ This information is used to warn about boundedness bugs.
   (Ex.~\ref{ex:bounded_lists}). These results are exactly
   those foreseen in Sec.~\ref{sec:examples}.
 \end{example}
+%
+Ex.~\ref{ex:warnings} shows that our analysis is correct and precise on the
+examples from Sec.~\ref{sec:examples}. In general, however, boundedness is an undecidable
+property, hence our analysis will be correct but imprecise. For instance, by replacing
+the \<while> at line~\ref{ponzi2:require_limit} with an \<if>, the contract
+\<Ponzi2> has still no boundedess issue, since the length of list \<investors> can
+be $101$ at most at that line, hence a single \<removeFirst> is enough to bound its size
+to $100$ at the subsequent \<push> at line~\ref{ponzi2:expand}. But our analysis fails
+to identify that and issues a false alarm at the iteration at line~\ref{ponzi2:iteration}.
+In this case, some form of class invariant is needed, which is beyond the scope
+of our analysis.

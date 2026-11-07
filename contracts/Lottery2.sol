@@ -2,7 +2,7 @@
 // This program has no boundedness bug inside drawWinner()
 pragma solidity ^0.4.24;
 
-contract Lottery1 {
+contract Lottery2 {
 
     // a round of the lottery: ticket sales can be added until the end time
     // has expired, after which a winner of the round can be drawn
