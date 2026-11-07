@@ -63,10 +63,28 @@ commands is given in Fig.~\ref{fig:bo_derivations_commands_full}.
     a previously computed side-effect analysis $\intsideeffect$ to check for path survival.}
   \label{fig:bo_derivations_commands_full}
 \end{figure}
-  
-\mbox{}\\
-\noindent
-\textbf{Proof of Prop.~\ref{prop:termination} at page~\pageref{prop:termination}.}
+
+\begin{definition}[Widening Operator]\label{def:widening}
+  The \emph{widening operator on $\bo$} is set intersection:
+  $\nabla(\|bo|_1,\|bo|_2)=\|bo|_1\cap\|bo|_2$.
+\end{definition}
+%
+By using a widening, when reaching a program point $p$ with an approximation $\|bo|$,
+the analysis $\beta$ is updated as
+\[
+\beta(p):=\begin{cases}
+\beta(p)\sqcup\|bo| & \text{for the first $\kappa$ iterations}\\
+(\beta(p)\sqcup\|bo|)\nabla\beta(p) & \text{from the $(\kappa+1)$th iteration.}\\
+\end{cases}
+\]
+%
+\begin{proposition}[Termination]\label{prop:termination}
+  The operator $\nabla$ is a widening operator on $\bo$.
+  Therefore, the computation
+  of a boundedness state at each program point must terminate in
+  a finite number of iterations.
+\end{proposition}
+\begin{proof}
   By~\cite{CousotC77}, one must prove that $\nabla$ is an upper bound operator and that
   its application to any ascending chain stabilizes. The upper bound property holds since
   for every $(\size{\pi}\le n)\in\nabla(\|bo|_1,\|bo|_2)$ it is
@@ -89,4 +107,4 @@ commands is given in Fig.~\ref{fig:bo_derivations_commands_full}.
 %  and~\ref{fig:bo_derivations_commands2}
 %  lead to finite states if started from $\varnothing$, as one can be easily prove by induction.
   \qed
-
+\end{proof}

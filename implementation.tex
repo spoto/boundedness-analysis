@@ -1,40 +1,42 @@
 \section{Implementation}\label{sec:implementation}
 %
 Our Java implementation of the boundedness analysis is
-freely available, with instructions online\footnote{\url{https://github.com/spoto/boundedness-analysis/blob/main/README.md}} on how to run and verify
+freely available, with instructions online\footnote{\url{https://github.com/spoto/boundedness-analysis/blob/main/README.md}}
+to run and verify
 the experiments in this paper. It issues a warning in \<Ponzi1> and \<Lottery1>
-and no warning in \<Ponzi2> and \<Lottery2>, as expected.
+and none in \<Ponzi2> and \<Lottery2>, as expected.
 
-We do not know of any other boundedness analysis that we can compare to ours.
+We do not know of any other boundedness analysis to compare to ours.
 There are, however, tools that compute the gas consumption of the methods
 of a smart contract, as a formula on the size of some variables.
-The problem is different but there is an intersection:
-if a method has a constant complexity, then all iterations inside it
+The problems are different but have an intersection:
+if a method has constant complexity, all iterations inside it
 must be bounded. In particular, we have run the GASTAP tool
-on our examples. Originally, it was the gas cost inference engine of
+on our examples. It was the gas cost inference engine of
 GASOL~\cite{AlbertCGRR20}, but it is now available as a stand-alone
-tool accessible through a web interface\footnote{\url{https://costa.fdi.ucm.es/gastap/}}. GASTAP requires smart contracts written in Solidity $0.4.24$,
+tool accessible through a web interface\footnote{\url{https://costa.fdi.ucm.es/gastap/}}.
+GASTAP requires smart contracts for Solidity $0.4.24$,
 hence we have translated our examples\footnote{\url{https://github.com/spoto/boundedness-analysis/tree/main/contracts}}.
-The only difficulty here is
+The only difficulty was
 that Solidity has no \<removeFirst()> method, hence the translation
-of \<Ponzi2> uses an extra variable \<start> that refers to the valid portion of the
+of \<Ponzi2> uses an extra variable \<start> to refer to the valid portion of the
 list \<investors>.
-GASTAP reports a gas consumption for method \<invest()> of \<Ponzi1> of
+GASTAP reports a gas consumption for\<invest()> of \<Ponzi1> of
 $55160+6558*\|nat|(\<investors>)$\ie linear in the number of investors,
 which correctly cannot exclude an unboundedness issue in \<Ponzi1>.
-The gas consumption of method \<invest()> of \<Ponzi2> is reported to be
+It reports a gas consumption for \<invest()> of \<Ponzi2> of
 $717323+28488*\|nat|(\<investors>-\<start>-100)$, which correctly corresponds
 to the cost of that method but which is not constant,
 hence nothing can be concluded from that about the boundedness of the loop
 at line~\ref{ponzi2:iteration} of \<Ponzi2> (Fig.~\ref{fig:ponzi2}).
-The gas comsumption for method \<drawWinner()> of \<Lottery1> and \<Lottery2>
-is the same: $11558+94*c(\|maximize\_failed|)+50*\|nat|(-\|unknown|+32)+6*(\|nat|(\|unknown|)/32)+\|failed|(\|no\_rf|)$.
+It reports that same gas consumption for method \<drawWinner()> in both
+\<Lottery1> and \<Lottery2>:
+$11558+94*c(\|maximize\_failed|)+50*\|nat|(-\|unknown|+32)+6*(\|nat|(\|unknown|)/32)+\|failed|(\|no\_rf|)$.
 Beyond the interpretation of that expression,
-what is relevant is that it is not a constant, hence
+what is relevant is that it is not constant, hence
 nothing can be concluded about the boundedness of the loop
 at line~\ref{lottery1:iteration} in \<Lottery1> (Fig.~\ref{fig:lottery1})
 and in \<Lottery2>, while
 we know that that loop is bounded in \<Lottery2> and unbounded in \<Lottery1>.
 Again, this just shows that inference of gas costs and boundedness analysis
-have an intersection, but they are different problems that expect different
-solutions.
+have an intersection, but they are different problems that expect different solutions.

@@ -1,10 +1,16 @@
 \section{Boundedness Analysis}\label{sec:boundedness}
 
-This section presents the actual boundedness analysis, that uses
-the results of a preliminary side-effect analysis (Sec.~\ref{sec:side_effect}).
+This section presents the actual boundedness analysis. It uses
+a preliminary side-effect analysis $\intsideeffect$\ie a map
+from each command to an overapproximation of the types of the elements
+of the lists that the execution of the command might enlarge.
+$\intsideeffect$ can be computed by recursive descent on the commands.
+Here, we just assume that it has already been computed.
 
 \emph{Paths} are leftvalues
-(Def.~\ref{def:exp_com}) that start from a variable and dereference \<final> fields only,
+(Def.~\ref{def:exp_com}) that start from a variable and dereference \<final> fields
+only\footnote{Or fields that the compiler con infer as effectively \<final>, for being
+assigned only and always once in the constructor.},
 so that their value cannot be affected by side-effect.
 %
 \begin{definition}[Paths]\label{def:path}
@@ -52,8 +58,8 @@ $\pi$ \emph{survives} the side-effect.
 \end{example}
 
 \begin{definition}[Boundedness States]\label{def:bo}
-  A \emph{boundedness state} \|bo| is either $\bot$ or a finite
-  collection of constraints
+  The set of boundedness states $\bo$ consists in
+  $\bot$ and in all finite collections $\|bo|$ of constraints
   \[
   \left\{\left.\begin{array}{c}
   \size{\pi_1}\le n_1\\[-0.7ex]
@@ -61,7 +67,6 @@ $\pi$ \emph{survives} the side-effect.
   \size{\pi_k}\le n_k
   \end{array}\right|\pi_i\in\paths\text{ and }n_i\in\nat\text{ for every $i=1,\ldots,k$}\right\}.
   \]
-  The set of all possible boundedness states is $\bo$.
 \end{definition}
 %
 The intuition is that $\bot$ represents the empty set of concrete states and
@@ -216,7 +221,7 @@ of the former remains valid, while that of the latter is conservatively
 weakened by one (one element might be added to those lists).
 The rule for \<removeFirst> cannot improve the constraints, instead,
 since it is not enough to know that a list might be affected to conclude
-that it will be affected and that the approximation of its size can be
+that it will and that the approximation of its size can be
 safely decreased by one. Therefore, that rule leaves the constraints unchanged,
 conservatively.
 The rule for \<require> tries to improve
@@ -245,17 +250,17 @@ and computes all possible derivations from there.
 Whenever a configuration $\pair{p}{\|bo|}$ is reached, the analysis updates
 $\beta$ as $\beta(p):=\beta(b)\sqcup\|bo|$.
 If $\beta(p)$ changed, the derivation continues
-from $\beta(p)$ itself. Otherwise, it stops. At the end,
+from $\beta(p)$. Otherwise, it stops. At the end,
 $\beta$ is the boundedness analysis.
 Formally, this means that the derivation rules in Fig.~\ref{fig:bo_derivations_commands}
 work on configurations $\langle p,\|bo|,\beta\rangle$ rather than $\langle p,\|bo|\rangle$,
-all update $\beta(p)$ and all check that this update actually modifies $\beta(p)$, or otherwise
+all update $\beta(p)$ and check that $\beta(p)$ changed, or otherwise
 the rules are stuck. We do not formalize this here, for simplicity.
 
 The computation of the boundedness analysis $\beta$ can consider the methods in any order,
 being intraprocedural. However, we require to proceed by following, backwards, the strongly-connected
-components of the methods \wrt the calling relation (who calls whom). This allows to improve
-the approximation of the calls to constructors with
+components of the methods \wrt the calling relation (who calls whom). This allows us to improve
+the approximation of the call to constructors with
 a limited form of interprocedural analysis, by
 propagating the approximation at the end of the constructors into the caller, upon renaming. Namely, the
 $\|assign|$ function from Def.~\ref{def:improvement} considers a further case now:
@@ -283,28 +288,19 @@ line~\ref{lottery1:call_to_round} in Fig.~\ref{fig:lottery1}.
   \begin{figure}[t]
     \begin{lstlisting}[language=pseudo,numbers=none]
   public Ponzi1() {
-    |\invariant{$\varnothing$}|
-    investors = new List();
-    |\invariant{$\{\size{\mathtt{this.investors}}\le 0\}$}|
-    investors.push(caller);
-    |\invariant{$\{\size{\mathtt{this.investors}}\le 1\}$}|
-    minimumInvestment = 1000;
+    |\invariant{$\varnothing$}| investors = new List();
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 0\}$}| investors.push(caller);
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 1\}$}| minimumInvestment = 1000;
     |\invariant{$\{\size{\mathtt{this.investors}}\le 1\}$}|
   }
 
   public payable void invest() {
-    |\invariant{$\varnothing$}|
-    require(amount >= minimumInvestment, "you invested too little");
-    |\invariant{$\varnothing$}|
-    int eachInvestorGets = amount / investors.size();
-    |\invariant{$\varnothing$}|
-    for investor in investors
-      |\invariant{$\varnothing$}|
-      investor.receive(eachInvestorGets);
-    |\invariant{$\varnothing$}|
-    investors.push(caller);
-    |\invariant{$\varnothing$}|
-    minimumInvestment = amount * 11 / 10;
+    |\invariant{$\varnothing$}| require(amount >= minimumInvestment, "you invested too little");
+    |\invariant{$\varnothing$}| int eachInvestorGets = amount / investors.size();
+    |\invariant{$\varnothing$}| for investor in investors
+      |\invariant{$\varnothing$}| investor.receive(eachInvestorGets);
+    |\invariant{$\varnothing$}| investors.push(caller);
+    |\invariant{$\varnothing$}| minimumInvestment = amount * 11 / 10;
     |\invariant{$\varnothing$}|
   }
     \end{lstlisting}
@@ -315,22 +311,14 @@ line~\ref{lottery1:call_to_round} in Fig.~\ref{fig:lottery1}.
   \begin{figure}[t]
     \begin{lstlisting}[language=pseudo]
   public payable void invest() {
-    |\invariant{$\varnothing$}|
-    require(amount >= minimumInvestment, "you invested too little");
-    |\invariant{$\varnothing$}|
-    while (investors.size() > 100)
-      |\invariant{$\varnothing$}|
-      investors.removeFirst();
-    |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
-    int eachInvestorGets = amount / investors.size();
-    |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
-    for investor in investors
-      |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
-      investor.receive(eachInvestorGets);
-    |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}|
-    investors.push(caller);|\label{line:boundedness_ponzi2_push2}|
-    |\invariant{$\{\size{\mathtt{this.investors}}\le 101\}$}|
-    minimumInvestment = amount * 11 / 10;
+    |\invariant{$\varnothing$}| require(amount >= minimumInvestment, "you invested too little");
+    |\invariant{$\varnothing$}| while (investors.size() > 100)
+      |\invariant{$\varnothing$}| investors.removeFirst();
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}| int eachInvestorGets = amount / investors.size();
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}| for investor in investors
+      |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}| investor.receive(eachInvestorGets);
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 100\}$}| investors.push(caller);|\label{line:boundedness_ponzi2_push2}|
+    |\invariant{$\{\size{\mathtt{this.investors}}\le 101\}$}| minimumInvestment = amount * 11 / 10;
     |\invariant{$\{\size{\mathtt{this.investors}}\le 101\}$}|
   }
     \end{lstlisting}
@@ -342,31 +330,23 @@ line~\ref{lottery1:call_to_round} in Fig.~\ref{fig:lottery1}.
   \begin{figure}[t]
     \begin{lstlisting}[language=pseudo,numbers=none]
   private Round(long endTime) {
-    |\invariant{$\varnothing$}|
-    this.endTime = endTime;
-    |\invariant{$\varnothing$}|
-    sales = new List();
+    ...
+    |\invariant{$\varnothing$}| sales = new List();
     |\invariant{$\{\size{\mathtt{this.sales}}\le 0\}$}|
   }
 
   public Lottery1(long duration) {
-    |\invariant{$\varnothing$}|
-    this.duration = duration;
-    |\invariant{$\varnothing$}|
-    rounds = new List();
-    |\invariant{$\{\size{\mathtt{this.rounds}}\le 0\}$}|
-    rounds.push(new Round(now + duration));
+    ...
+    |\invariant{$\varnothing$}| rounds = new List();
+    |\invariant{$\{\size{\mathtt{this.rounds}}\le 0\}$}| rounds.push(new Round(now + duration));
     |\invariant{$\{\size{\mathtt{this.rounds}}\le 1\}$}|
   }
 
   public payable void buy() {
     ...
-    |\invariant{$\varnothing$}|
-    if (now > last.endTime) {
-      |\invariant{$\varnothing$}|
-      last = new Round(now + duration);
-      |\invariant{$\{\size{\mathtt{last.sales}}\le 0\}$}|
-      rounds.push(last);
+    |\invariant{$\varnothing$}| if (now > last.endTime) {
+      |\invariant{$\varnothing$}| last = new Round(now + duration);
+      |\invariant{$\{\size{\mathtt{last.sales}}\le 0\}$}| rounds.push(last);
       |\invariant{$\{\size{\mathtt{last.sales}}\le 0\}$}|
     }
     ...
@@ -380,24 +360,16 @@ line~\ref{lottery1:call_to_round} in Fig.~\ref{fig:lottery1}.
   \begin{figure}
     \begin{lstlisting}[language=pseudo,numbers=none]
   public payable void buy() {
-    |\invariant{$\varnothing$}|
-    require(amount > 0 && amount % TICKET_PRICE == 0);
-    |\invariant{$\varnothing$}|
-    Round last = rounds.last();
-    |\invariant{$\varnothing$}|
-    if (now > last.endTime or last.sales.size() >= MAX_SALES) {
-      |\invariant{$\varnothing$}|
-      last = new Round(now + duration);
-      |\invariant{$\{\size{\mathtt{last.sales}}\le 0\}$}|
-      rounds.push(last);
+    |\invariant{$\varnothing$}| require(amount > 0 && amount % TICKET_PRICE == 0);
+    |\invariant{$\varnothing$}| Round last = rounds.last();
+    |\invariant{$\varnothing$}| if (now > last.endTime or last.sales.size() >= MAX_SALES) {
+      |\invariant{$\varnothing$}| last = new Round(now + duration);
+      |\invariant{$\{\size{\mathtt{last.sales}}\le 0\}$}| rounds.push(last);
       |\invariant{$\{\size{\mathtt{last.sales}}\le 0\}$}|
     }
-    |\invariant{$\{\size{\mathtt{last.sales}}\le 4999\}$}|
-    int quantity = amount / TICKET_PRICE;
-    |\invariant{$\{\size{\mathtt{last.sales}}\le 4999\}$}|
-    last.sales.push(new TicketBatchSale(caller, quantity));
-    |\invariant{$\{\size{\mathtt{last.sales}}\le 5000\}$}|
-    last.totalTickets += quantity;
+    |\invariant{$\{\size{\mathtt{last.sales}}\le 4999\}$}| int quantity = amount / TICKET_PRICE;
+    |\invariant{$\{\size{\mathtt{last.sales}}\le 4999\}$}| last.sales.push(new TicketBatchSale(caller, quantity));
+    |\invariant{$\{\size{\mathtt{last.sales}}\le 5000\}$}| last.totalTickets += quantity;
     |\invariant{$\{\size{\mathtt{last.sales}}\le 5000\}$}|
   }
     \end{lstlisting}
@@ -412,29 +384,8 @@ line~\ref{lottery1:call_to_round} in Fig.~\ref{fig:lottery1}.
 In Ex.~\ref{ex:boundedness_computation}, the computation of the boundedness analysis
 converges. This is expected for simple code such as smart contracts. However,
 $\bo$ has infinite ascending chains hence that computation
-might diverge, in general, and a widening operator is needed, to force
+might diverge, in general, and we have defined a widening operator to force
 termination after a given number $\kappa$ of iterations~\cite{CousotC77}.
-%
-\begin{definition}[Widening Operator]\label{def:widening}
-  The \emph{widening operator on $\bo$} is set intersection:
-  $\nabla(\|bo|_1,\|bo|_2)=\|bo|_1\cap\|bo|_2$.
-\end{definition}
-%
-By using a widening, when reaching a program point $p$ with an approximation $\|bo|$,
-the analysis $\beta$ is updated as
-\[
-\beta(p):=\begin{cases}
-\beta(p)\sqcup\|bo| & \text{for the first $\kappa$ iterations}\\
-(\beta(p)\sqcup\|bo|)\nabla\beta(p) & \text{from the $(\kappa+1)$th iteration.}\\
-\end{cases}
-\]
-%
-\begin{proposition}[Termination]\label{prop:termination}
-  The operator $\nabla$ is a widening operator on $\bo$.
-  Therefore, the computation
-  of a boundedness state at each program point must terminate in
-  a finite number of iterations.
-\end{proposition}
 
 In the following, we assume that a boundedness analysis has been computed.
 This information is used to warn about boundedness bugs.
@@ -502,8 +453,8 @@ This information is used to warn about boundedness bugs.
 \end{example}
 %
 Ex.~\ref{ex:warnings} shows that our analysis is correct and precise on the
-examples from Sec.~\ref{sec:examples}. In general, however, boundedness is an undecidable
-property, hence our analysis will be correct but imprecise. For instance, by replacing
+examples from Sec.~\ref{sec:examples}. But boundedness is undecidable,
+hence, in general, our analysis will be correct but imprecise. For instance, by replacing
 the \<while> at line~\ref{ponzi2:require_limit} with an \<if>, the contract
 \<Ponzi2> has still no boundedess issue, since the length of list \<investors> can
 be $101$ at most at that line, hence a single \<removeFirst> is enough to bound its size
