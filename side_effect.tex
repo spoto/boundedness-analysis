@@ -1,3 +1,6 @@
+The following sections are candidate for an extended version of the paper
+and are reported here only for completeness.
+
 \section{Side-Effect Analysis}\label{sec:side_effect}
 
 Given a command, it is useful to know
@@ -15,28 +18,55 @@ in semantics~\cite{Winskel93} and abstract interpretation~\cite{CousotC77}.
 An example of computation is reported later.
 %
 \begin{definition}[Side-Effects Analysis]\label{def:side_effect}
-  \begin{figure}[t]
-    \begin{align*}
-      \sideeffect{c}=\sideeffect{v}&=\sideeffect{\nop}=\sideeffect{\return}=\varnothing\\
-      \sideeffect{\new{C}{\exp_1,\ldots,\exp_n}}&=I(C.C)\cup\bigcup_{i=1}^n\sideeffect{\exp_i}\\
-      \sideeffect{\push{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup
-      \{t\mid\exp_1\text{ has type }\<List<>t\<\text{>}>\}\\
-      \sideeffect{\call{\exp_0}{m}{\exp_1,\ldots,\exp_n}}&=\bigcup_{j=1}^k I(C_j.m)\cup\bigcup_{i=0}^n\sideeffect{\exp_i}\\
-      \noalign{\centering\text{where $C_1.m\cdots C_k.m$ are the methods possibly called here}}
-      \sideeffect{\ifetwo{\exp_1}{\exp_2}{\com_1}{\com_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup\sideeffect{\com_1}\cup\sideeffect{\com_2}.
-    \end{align*}
-    \caption{The side-effect rules. They use an interpretation $I$ for the methods. The cases of expressions and commands
-    not shown here are just a recursive descent on their syntax, as shown for the conditional command.}
-    \label{fig:side_effect}
-  \end{figure}
+%  \begin{figure}[t]
+%    \begin{align*}
+%      \sideeffect{c}=\sideeffect{v}&=\sideeffect{\nop}=\sideeffect{\return}=\varnothing\\
+%      \sideeffect{\new{C}{\exp_1,\ldots,\exp_n}}&=I(C.C)\cup\bigcup_{i=1}^n\sideeffect{\exp_i}\\
+%      \sideeffect{\push{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup
+%      \{t\mid\exp_1\text{ has type }\<List<>t\<\text{>}>\}\\
+%      \sideeffect{\call{\exp_0}{m}{\exp_1,\ldots,\exp_n}}&=\bigcup_{j=1}^k I(C_j.m)\cup\bigcup_{i=0}^n\sideeffect{\exp_i}\\
+%      \noalign{\centering\text{where $C_1.m\cdots C_k.m$ are the methods possibly called here}}
+%      \sideeffect{\ifetwo{\exp_1}{\exp_2}{\com_1}{\com_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup\sideeffect{\com_1}\cup\sideeffect{\com_2}.
+%    \end{align*}
+%    \caption{The side-effect rules. They use an interpretation $I$ for the methods. The cases of expressions and commands
+%    not shown here are just a recursive descent on their syntax, as shown for the conditional command.}
+%    \label{fig:side_effect}
+%  \end{figure}
   %
   The set of element types of the already existing lists possibly enlarged during the
   execution of a command $\com$ is overapproximated by $\sideeffect{\com}$,
-  defined in Fig.~\ref{fig:side_effect} by using an \emph{interpretation} $I$ that
+  defined in Fig.~\ref{fig:side_effect_full} by using an \emph{interpretation} $I$ that
   provides the possible side-effects of the methods.
 \end{definition}
 %
-Only \<push> commands can enlarge a list (Fig.~\ref{fig:side_effect}).
+\begin{figure}[th]
+  \begin{align*}
+    \sideeffect{c}&=\sideeffect{v}=\varnothing\\
+    \sideeffect{\field{\exp}{f}}&=\sideeffect{\exp}\\
+    \sideeffect{\aop{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
+    \sideeffect{\new{C}{\exp_1,\ldots,\exp_n}}&=I(C.C)\cup\bigcup_{i=1}^n\sideeffect{\exp_i}\\
+    \sideeffect{\size{\exp}}=\sideeffect{\last{\exp}}&=\sideeffect{\random{\exp}}=\sideeffect{\exp}
+  \end{align*}
+  \begin{align*}
+    \sideeffect{\assign{v}{\exp}}&=\sideeffect{\exp}\\
+    \sideeffect{\assign{\field{\exp_1}{f}}{\exp_2}}&=\sideeffect{\exp_2}\cup\sideeffect{\exp_2}\\
+    \sideeffect{\require{\exp_1}{\exp_2}}&=\sideeffect{\receive{\exp_1}{\exp_2}}=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
+    \sideeffect{\push{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup
+    \{t\mid\exp_1\text{ has type }\<List<>t\<\text{>}>\}\\
+    \sideeffect{\removeFirst{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
+    \sideeffect{\call{\exp_0}{m}{\exp_1,\ldots,\exp_n}}&=\bigcup_{j=1}^k I(C_j.m)\cup\bigcup_{i=0}^n\sideeffect{\exp_i}\\
+    \noalign{\centering\text{where $C_1.m\cdots C_k.m$ are the methods possibly called here}}
+    \sideeffect{\nop}&=\varnothing\\
+    \sideeffect{\ifetwo{\exp_1}{\exp_2}{\com_1}{\com_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup\sideeffect{\com_1}\cup\sideeffect{\com_2}\\
+    \sideeffect{\for{v}{\exp}{\com}}&=\sideeffect{\exp}\cup\sideeffect{\com}\\
+    \sideeffect{\while{\exp_1}{\exp_2}{\com}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup\sideeffect{\com}\\
+    \sideeffect{\sequence{\com_1}{\com_2}}&=\sideeffect{\com_1}\cup\sideeffect{\com_2}.
+  \end{align*}
+  \caption{The side-effect rules. They use an interpretation $I$ for the methods.}
+  \label{fig:side_effect_full}
+\end{figure}
+%
+Only \<push> commands can enlarge a list (Fig.~\ref{fig:side_effect_full}).
 Namely, they might enlarge any list whose element type $t$ is that of their receiver.
 Methods (and hence constructors) use the interpetation $I$ as an oracle
 about the side-effects of their callee(s).
@@ -50,10 +80,10 @@ but they are probably overkill for smart contracts, that very rarely redefine me
 The computation of the analysis
 starts from an interpretation $I_0$ that yields $\varnothing$ as
 side-effects of every method. The methods' bodies are then analyzed with the rules
-in Fig.~\ref{fig:side_effect}, using $I=I_0$, to get an improved interpretation $I_1$.
+in Fig.~\ref{fig:side_effect_full}, using $I=I_0$, to get an improved interpretation $I_1$.
 This process is repeated to yield $I_2$ and so on, until a fixpoint $\intsideeffect$.
 This will be reached after a finite number of iterations
-since the rules in Fig.~\ref{fig:side_effect} are monotonic and the set of element types
+since the rules in Fig.~\ref{fig:side_effect_full} are monotonic and the set of element types
 of lists used in a program is finite.
 
 \begin{example}\label{ex:side_effect}
@@ -65,13 +95,13 @@ of lists used in a program is finite.
   Then $I_1(\<TicketBatchSale.TicketBatchSale>)=\sideeffect{\com}=\varnothing$,
   where $\com$ is that constructor's body
   (line~\ref{lottery1:constructor_tbs} in Fig.~\ref{fig:lottery1}) and
-  by the rules in Fig.~\ref{fig:side_effect} (recursive descent, there is no \<push> inside
+  by the rules in Fig.~\ref{fig:side_effect_full} (recursive descent, there is no \<push> inside
   $\com$). Similarly, $I_1(\<Round.Round>)=\varnothing$ as above and
   since $\sideeffect{\<new List()>}=I_0(\<List.List>)=\varnothing$ (rule for
-  constructors in Fig.~\ref{fig:side_effect}).
+  constructors in Fig.~\ref{fig:side_effect_full}).
   $I_1(\<Lottery1.Lottery1>)=\{\<Round>\}$ as above
   and since $\sideeffect{\<rounds.push(...)>}=\{\<Round>\}$ by the rule for \<push>
-  in Fig.~\ref{fig:side_effect}. Similarly,
+  in Fig.~\ref{fig:side_effect_full}. Similarly,
   $I_1(\<Lottery.buy>)=\{\<Round>,\<TicketBatchSale>\}$ and
   $I_1(\<Lottery.drawWinner>)=\varnothing$. The computation of $I_2$ leads to
   $I_2=I_1$, hence $I_1$ is the fixpoint shown in Fig.~\ref{fig:side_effect_examples}.

@@ -16,9 +16,10 @@ smart contracts can actually be rather involved and exploit
 misunderstood features of the programming language.
 In general, Turing-complete programming languages
 for smart contracts are useful but increase the risk
-of bugs and losing money. The use of
-new programming languages, sometimes with vague or misleading semantics,
-complicates programming further.
+of bugs and money loss.
+%The use of
+%new programming languages, sometimes with vague or misleading semantics,
+%complicates programming further.
 
 A source of bugs in smart contracts is the completely different
 style of interaction \wrt traditional software for desktop computers. Namely,
@@ -28,9 +29,10 @@ In this sense, smart contracts look more like old-fashioned
 servlets and general-purpose libraries than like software
 for desktop computers. Their development requires careful analysis of their
 API and extensive use of defensive programming, to foresee all
-possible illegal uses. Not surprisingly, many developers,
-often unexperienced juniors,
-got overwhelmed by this complexity. Bugs thrived. Money got lost.
+possible illegal uses.
+%Not surprisingly, many developers,
+%often unexperienced juniors,
+%got overwhelmed by this complexity. Bugs thrived. Money got lost.
 
 This paper focuses on a specific, frequent bug in smart contracts.
 Namely, smart contracts often store data in containers, such as lists,
@@ -58,48 +60,50 @@ then the code has no boundedness bug.
 The contributions of this paper are:
 %
 \begin{enumerate}
-\item a formal definition of the boundedness property for iterated containers;
+\item an introduction of the boundedness property for iterated containers;
 \item a sound boundedness analysis, based on abstract interpretation;
 \item a prototype implementation for a minimalistic smart contract language.
 \end{enumerate}
 
-\begin{figure}[b]
-  \begin{center}
-  \begin{tikzpicture}
-    \draw [thick] (0,0) rectangle +(3,1.2);
-    \draw (1.5,0.95) node{interprocedural};
-    \draw (1.5,0.6) node{possible side-effects};
-    \draw (1.5,0.25) node{analysis (Sec.~\ref{sec:side_effect})};
+%\begin{figure}[b]
+%  \begin{center}
+%  \begin{tikzpicture}
+%    \draw [thick] (0,0) rectangle +(3,1.2);
+%    \draw (1.5,0.95) node{interprocedural};
+%    \draw (1.5,0.6) node{possible side-effects};
+%    \draw (1.5,0.25) node{analysis (Sec.~\ref{sec:side_effect})};
 
-    \draw[->,thick] (3,0.7) -- +(1,0);
+%    \draw[->,thick] (3,0.7) -- +(1,0);
 
-    \draw [thick] (4,0) rectangle +(3.2,1.2);
-    \draw (5.6,0.95) node{intraprocedural};
-    \draw (5.6,0.6) node{definite boundedness};
-    \draw (5.6,0.25) node{analysis (Sec.~\ref{sec:boundedness})};
+%    \draw [thick] (4,0) rectangle +(3.2,1.2);
+%    \draw (5.6,0.95) node{intraprocedural};
+%    \draw (5.6,0.6) node{definite boundedness};
+%    \draw (5.6,0.25) node{analysis (Sec.~\ref{sec:boundedness})};
 
-    \draw[->,thick] (7.2,0.7) -- +(1,0);
+%    \draw[->,thick] (7.2,0.7) -- +(1,0);
 
-    \draw [thick] (8.2,0) rectangle +(1.8,1.2);
-    \draw (9.1,0.95) node{warning};
-    \draw (9.1,0.6) node{generation};
-    \draw (9.1,0.25) node{(Sec.~\ref{sec:boundedness})};
-  \end{tikzpicture}
-  \end{center}
-  \caption{The components of our boundedness analysis and their dependencies.}
-  \label{fig:plan}
-\end{figure}
+%    \draw [thick] (8.2,0) rectangle +(1.8,1.2);
+%    \draw (9.1,0.95) node{warning};
+%    \draw (9.1,0.6) node{generation};
+%    \draw (9.1,0.25) node{(Sec.~\ref{sec:boundedness})};
+%  \end{tikzpicture}
+%  \end{center}
+%  \caption{The components of our boundedness analysis and their dependencies.}
+%  \label{fig:plan}
+%\end{figure}
 
-Fig.~\ref{fig:plan} shows the various components of our
-boundedness analysis. A preliminary side-effect analysis identifies which containers
-might be modified by the execution of the commands. This information is used in
-the subsequent actual boundedness analysis, whose results are used for generating warnings.
+%Fig.~\ref{fig:plan} shows the various components of our boundedness analysis.
+Our boundedness analysis uses a preliminary side-effect analysis that
+identifies which containers
+might be enlarged by the execution of a command.
+The results of the boundedness analysis are
+used for generating warnings.
 The paper is consequently organized as follows.
 Sec.~\ref{sec:examples} describes boundedness on
 concrete examples of smart contracts, and the potential attacks allowed by unboundedness.
 Sec.~\ref{sec:syntax} presents the syntax of a minimalistic language for smart contracts.
-Sec.~\ref{sec:side_effect} defines the supporting side-effect analysis onthat language.
+%Sec.~\ref{sec:side_effect} defines the supporting side-effect analysis on that language.
 Sec.~\ref{sec:boundedness} defines the actual boundedness analysis.
-Sec.~\ref{sec:implementation} reports preliminary results
+Sec.~\ref{sec:implementation} reports the results
 with our prototype implementation.
 Sec.~\ref{sec:discussion} discusses related work and concludes.

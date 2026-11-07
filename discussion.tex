@@ -13,9 +13,11 @@ if a loop has constant complexity, then it must be bounded.
 However, we have seen that this seems to fail in practice
 (Sec.~\ref{sec:implementation}) and that the two problems are distinct.
 
-We strived to make this paper self-contained. Therefore, our boundedness
+%We strived to make this paper self-contained. Therefore,
+Our boundedness
 analysis builds solely on a simple but relatively weak side-effect analysis
-(Sec.~\ref{sec:side_effect}) that identifies lists by the
+%(Sec.~\ref{sec:side_effect})
+that identifies lists by the
 type of their elements. This is also a limitation: the
 analysis cannot distinguish two lists with elements of the same type and
 would mark both as unbounded when either is unbounded.

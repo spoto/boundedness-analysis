@@ -1,37 +1,10 @@
 \newpage
 
 \appendix
-\section{Extended Definitions and Proofs}
 
-\noindent
-\textbf{Full definition of the rules of Def.~\ref{def:side_effect} at page~\pageref{def:side_effect}.}
-The complete definition of the rules for the side-effect of expressions and
-commands is given in Fig.~\ref{fig:side_effect_full}.
+\input{side_effect}
 %
-\begin{figure}[b]
-  \begin{align*}
-    \sideeffect{c}&=\sideeffect{v}=\varnothing\\
-    \sideeffect{\field{\exp}{f}}&=\sideeffect{\exp}\\
-    \sideeffect{\aop{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
-    \sideeffect{\new{C}{\exp_1,\ldots,\exp_n}}&=I(C.C)\cup\bigcup_{i=1}^n\sideeffect{\exp_i}\\
-    \sideeffect{\size{\exp}}=\sideeffect{\last{\exp}}&=\sideeffect{\random{\exp}}=\sideeffect{\exp}
-  \end{align*}
-  \begin{align*}
-    \sideeffect{\assign{v}{\exp}}&=\sideeffect{\exp}\\
-    \sideeffect{\assign{\field{\exp_1}{f}}{\exp_2}}&=\sideeffect{\exp_2}\cup\sideeffect{\exp_2}\\
-    \sideeffect{\require{\exp_1}{\exp_2}}&=\sideeffect{\receive{\exp_1}{\exp_2}}=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\\
-    \sideeffect{\push{\exp_1}{\exp_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup
-    \{t\mid\exp_1\text{ has type }\<List<>t\<\text{>}>\}\\
-    \sideeffect{\call{\exp_0}{m}{\exp_1,\ldots,\exp_n}}&=\bigcup_{j=1}^k I(C_j.m)\cup\bigcup_{i=0}^n\sideeffect{\exp_i}\\
-    \noalign{\centering\text{where $C_1.m\cdots C_k.m$ are the methods possibly called here}}
-    \sideeffect{\nop}&=\varnothing\\
-    \sideeffect{\ifetwo{\exp_1}{\exp_2}{\com_1}{\com_2}}&=\sideeffect{\exp_1}\cup\sideeffect{\exp_2}\cup\sideeffect{\com_1}\cup\sideeffect{\com_2}\\
-    \sideeffect{\for{v}{\exp}{\com}}&=\sideeffect{\exp}\cup\sideeffect{\com}\\
-    \sideeffect{\sequence{\com_1}{\com_2}}&=\sideeffect{\com_1}\cup\sideeffect{\com_2}.
-  \end{align*}
-  \caption{The side-effect rules. They use an interpretation $I$ for the methods.}
-  \label{fig:side_effect_full}
-\end{figure}
+\section{Extended Definitions and Proofs}
 
 \noindent
 \textbf{Full definition of the derivation rules of Def.~\ref{def:boundedness_rules} at page~\pageref{def:boundedness_rules}.}
