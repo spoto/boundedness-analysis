@@ -151,7 +151,7 @@ public class Lottery1 extends Contract {
 
     Round last = rounds.last();|\label{lottery1:last_start}|
     if (now > last.endTime) {
-      last = new Round(now + duration);
+      last = new Round(now + duration);|\label{lottery1:call_to_round}|
       rounds.push(last);|\label{lottery1:expand}|
     }|\label{lottery1:last_end}|
 
