@@ -2,16 +2,16 @@
 %
 Iteration on unbounded containers is an example of an
 \emph{out-of-gas vulnerability} in smart contracts~\cite{AlbertGRS19}.
-This paper provides a sound static boundedness analysis
+We provided a sound static boundedness analysis
 based on abstract interpretation.
-Boundedness analysis can also be solved with
+Boundedness analysis might also be tackled via
 cost analysis~\cite{AlbertAGP11} of the contracts~\cite{PerezKLMH20},
 with tools based on their translation
 into Datalog (MadMax~\cite{GrechKJBSS18}, in general unsound)
-or Horn clauses and polyedra (GASOL~\cite{AlbertCGRR20}, a sound tool).
-Cost analysis is more general, potentially more precise but also
-more expensive and complex than the very lightweight boundedness analysis
-presented here.
+or Horn clauses and polyedra (GASTAP/GASOL~\cite{AlbertCGRR20}, a sound tool):
+if a loop has constant complexity, then it must be bounded.
+However, we have seen that this seems to fail in practice
+(Sec.~\ref{sec:implementation}) and that the two problems are distinct.
 
 We strived to make this paper self-contained. Therefore, our boundedness
 analysis builds solely on a simple but relatively weak side-effect analysis
