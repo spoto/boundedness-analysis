@@ -8,20 +8,24 @@ Boundedness analysis might also be tackled via
 cost analysis~\cite{AlbertAGP11} of the contracts~\cite{PerezKLMH20},
 after translation
 into Datalog (MadMax~\cite{GrechKJBSS18}, in general unsound)
-or Horn clauses and polyedra (GASTAP/GASOL~\cite{AlbertCGRR20}, sound):
+or Horn clauses and polyhedra (GASTAP/GASOL~\cite{AlbertCGRR20}, sound):
 if a loop has constant complexity, then it must be bounded.
 We have seen that this seems to fail in practice
-(Sec.~\ref{sec:implementation}) and that the two problems are distinct.
+(Sec.~\ref{sec:implementation}) since the two problems are distinct.
 
 %We strived to make this paper self-contained. Therefore,
 Our boundedness
-analysis builds solely on a simple but relatively weak side-effect analysis
+analysis builds solely on a simple, relatively weak side-effect analysis
 %(Sec.~\ref{sec:side_effect})
-that identifies lists by the
-type of their elements. This is also a limitation: the
+that distinguishes lists by their elements' type.
+This can be limiting: the
 analysis cannot distinguish two lists with elements of the same type and
 would mark both as unbounded when either is unbounded.
-This can lead to imprecise results, that can be overcome by identifying
-lists in a more precise way, for instance, through a creation point analysis,
+This can lead to imprecision, that can be overcome by identifying
+lists in a more precise way, for instance, by a creation point analysis,
 a concretization of class analysis~\cite{TipP00}.
 
+We expect our analysis to be sound, as typical with abstract
+interpretation, but we still miss a concrete semantics and a proof of
+correctness for the abstract operations (Fig.~\ref{fig:bo_derivations_commands}),
+that remain as future work.

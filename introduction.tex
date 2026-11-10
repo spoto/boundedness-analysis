@@ -11,7 +11,7 @@ get enforced and cannot be patched.
 Therefore, it is highly relevant to deploy correct smart contracts.
 There is large literature on bugs that led to
 protocol breaches and stolen money~\cite{AntonopoulosW25,AtzeiBC17}.
-The well-known reentrancy issue shows that attacks to
+The well-known re-entrancy issue shows that attacks to
 smart contracts can actually be rather involved and exploit
 misunderstood features of the programming language.
 In general, Turing-complete programming languages
@@ -26,7 +26,7 @@ style of interaction \wrt traditional software for desktop computers. Namely,
 smart contracts run in the wild: after deployment, users (and attackers)
 can call their API in any order and with any parameter.
 In this sense, smart contracts look more like old-fashioned
-servlets and general-purpose libraries than like software
+servlets than like software
 for desktop computers. Their development requires careful analysis of their
 API and extensive use of defensive programming, to foresee all
 possible illegal uses.
@@ -35,31 +35,30 @@ possible illegal uses.
 %got overwhelmed by this complexity. Bugs thrived. Money got lost.
 
 This paper focuses on a specific, frequent bug in smart contracts.
-Namely, smart contracts often store data in containers, such as lists,
+Namely, these often store data in containers, such as lists,
 that can become arbitrarily large. This is fine as long as they do not get
 iterated. Otherwise, the gas cost of the iteration might be arbitrarily large,
 even larger than the maximum allowed for a single smart contract transaction.
 If that happens, the iteration fails for gas exhaustion, which might block
 some contract functionality and, in some case,
 even lock money in the contract. This paper defines
-a sound static analysis that infers, automatically,
+a static analysis that infers, automatically,
 a maximal size for iterated containers,
 valid for all possible ways of calling the smart contract API.
 We call such containers \emph{bounded} and the proposed verification technique
 is consequently a \emph{boundedness analysis}.
-Note that boundedness analysis does not compute the exact gas cost of each API function:
+Note that boundedness analysis does not need to compute the exact gas cost of each API function:
 it just infers a bound for iterated containers.
-
 Our boundedness analysis is an abstract interpretation of the
 smart contract code into boundedness constraints that
 allow one to infer if specific containers are definitely bounded and,
 consequently, if their iteration is bounded. Otherwise, a warning is issued.
-Abstract interpretation comes with a soundness guarantee: if no warning is generated,
-then the code has no boundedness bug.
+%Abstract interpretation comes with a soundness guarantee: if no warning is generated,
+%then the code has no boundedness bug.
 
 The contributions of this paper are
 (i) an introduction of the boundedness property for iterated containers;
-(ii) a sound boundedness analysis, based on abstract interpretation;
+(ii) a new static boundedness analysis, based on abstract interpretation;
 (iii) a prototype implementation for a minimalistic smart contract language.
 
 %\begin{figure}[b]

@@ -5,7 +5,8 @@ a preliminary side-effect analysis $\intsideeffect$\ie a map
 from each command to an overapproximation of the types of the elements
 of the lists that the execution of the command might enlarge.
 $\intsideeffect$ can be computed by recursive descent on the commands.
-Here, we just assume that it has already been computed.
+Here, we just assume that it has already been computed (reviewers can find it
+in App.~\ref{sec:side_effect}).
 
 \emph{Paths} are leftvalues
 (Def.~\ref{def:exp_com}) that start at a variable and dereference \<final> fields
@@ -24,14 +25,14 @@ so that their value cannot be affected by side-effect.
 \end{definition}
 %
 \begin{example}
-  At line~\ref{ponzi1:require} in Fig.~\ref{fig:ponzi1},
+  Inside method \<invest()> in Fig.~\ref{fig:ponzi1},
   \<this> is a path rooted at \<this> of type \<Ponzi1>,
   \<amount> is a path rooted at \<amount> of type \<int> and
   \<this.investors> is a path rooted at \<this> of type \<List<Contract\texttt{>}>.
 \end{example}
 %
 The list bound to a path $\pi$ cannot be replaced by side-effect,
-but it can be enlarged by side-effect. When that does not happens,
+but it can be enlarged by side-effect. When that does not happen,
 $\pi$ \emph{survives} the side-effect.
 %
 \begin{definition}[Path Survival]\label{def:survival}
@@ -54,7 +55,7 @@ $\pi$ \emph{survives} the side-effect.
   $\{\<TicketBatchSale>\}$, since \<Contract> and \<TicketBatchSale> have no
   shared subtype. But \<List<Round\texttt{>}> does not survive $\{\<Object>\}$ nor
   $\{\<TicketBatchSale>,\<Object>\}$: just take $t'=\<Round>$ and $t''=\<Object>$
-  and observe that \<Contract> is subtype of \<Object>.
+  and observe that \<Round> is subtype of \<Object>.
 \end{example}
 
 \begin{definition}[Boundedness States]\label{def:bo}
@@ -78,7 +79,7 @@ where $\pi_i$ holds a list whose length is at most $n_i$, for every $i=1,\ldots,
   if and only if for every $(\size{\pi}\le n_2)\in\|bo|_2$ there exists
   $(\size{\pi}\le n_1)\in\|bo|_1$ with $n_1\le n_2$.
   Therefore, $\varnothing$ is the top (least precise) element of $\bo$.
-  The least upper bound operator yields the other operand if any operand is
+  The least upper bound operator yields the other operand if either operand is
   $\bot$, otherwise it is
   \[
   \|bo|_1\sqcup\|bo|_2=\left\{\size{\pi}\le\max(n_1,n_2)\left|\begin{array}{l}
@@ -207,8 +208,15 @@ rule is intraprocedural, since it does not enter the body of the constructor
 but simply embeds its side-effects in the result.
 In Fig.~\ref{fig:bo_derivations_commands}, the rule for method call
 works similarly, but considers the
-union of the side-effects of all targets of the call. The rule for assignment
-updates the boundness aproximation with the effects of the assignment
+union of the side-effects of all targets of the call.
+Namely, in object-oriented languages, a method call may actually call a subset
+$\{C_1.m\cdots C_k.m\}$ of the redefinitions of its static target method.
+A sound overapproximation of $\{C_1.m\cdots C_k.m\}$
+can always be easily inferred statically as the set of \emph{all} possible
+redefinitions. More precise analyses exist~\cite{TipP00},
+but they are probably overkill for smart contracts, that very rarely redefine methods.
+The rule for assignment
+updates the boundedness approximation with the effects of the assignment
 (Def.~\ref{def:improvement}). The rule for \<push> is the most interesting one.
 It evaluates receiver and parameter of \<push> and then splits the
 resulting bounds into those about lists whose static type guarantees that
@@ -248,7 +256,7 @@ and computes all possible derivations from there.
 Whenever a configuration $\pair{p}{\|bo|}$ is reached, the analysis updates
 $\beta$ as $\beta(p):=\beta(b)\sqcup\|bo|$.
 If $\beta(p)$ changed, the derivation continues
-from $\beta(p)$. Otherwise, it stops. At the end,
+with $\beta(p)$. Otherwise, it stops. At the end,
 $\beta$ is the boundedness analysis.
 Formally, this means that the derivation rules in Fig.~\ref{fig:bo_derivations_commands}
 work on configurations $\langle p,\|bo|,\beta\rangle$ rather than $\langle p,\|bo|\rangle$,
@@ -307,7 +315,7 @@ line~\ref{lottery1:call_to_round} in Fig.~\ref{fig:lottery1}.
   \end{figure}
 
   \begin{figure}[t]
-    \begin{lstlisting}[language=pseudo]
+    \begin{lstlisting}[language=pseudo,numbers=none]
   public payable void invest() {
     |\invariant{$\varnothing$}| require(amount >= minimumInvestment, "you invested too little");
     |\invariant{$\varnothing$}| while (investors.size() > 100)
@@ -409,14 +417,15 @@ This information is used to warn about boundedness bugs.
   Instead, in \<Ponzi2> (Fig.~\ref{fig:ponzi2}), all lists of type $\<Contract>$
   are bounded since the boundedness state computed at the \<push>
   at line~\ref{ponzi2:creator} is $\{\size{\mathtt{this.investors}}\le 0\}$
-  (Fig.~\ref{fig:boundedness_ponzi2})
+  (Fig.~\ref{fig:boundedness_ponzi1})
   and that computed at the \<push> at line~\ref{ponzi2:expand} is
   $\{\size{\mathtt{this.investors}}\le 100\}$ (Fig.~\ref{fig:boundedness_ponzi2}).
   Similarly, in \<Lottery1> (Fig.~\ref{fig:lottery1}),
   not all lists of \<Round> and not all lists of \<TicketBatchSale> are bounded,
   since the boundedness state computed at the
   \<push> commands inside \<buy()> (Fig.~\ref{fig:lottery1}),
-  that operate on such lists, is $\varnothing$ (Fig.~\ref{fig:boundedness_lottery1}).
+  that operate on such lists, is $\varnothing$ or $\{\size{\mathtt{last.sales}}\le 0\}$
+  (Fig.~\ref{fig:boundedness_lottery1}), that does not constrain the size of \<rounds>.
   For the same reason, in \<Lottery2> (Fig.~\ref{fig:lottery2}),
   not all lists of \<Round> are bounded but all lists of \<TicketBatchSale>
   are bounded, since the only \<push> that operates on the latter
@@ -433,30 +442,29 @@ This information is used to warn about boundedness bugs.
 \end{definition}
 %
 \begin{example}\label{ex:warnings}
-  Our analyzer warns ar line~\ref{ponzi1:iteration} of
-  \<Ponzi1> (Fig.~\ref{fig:ponzi1}), where a \<for> operates on
+  Our analyzer warns at line~\ref{ponzi1:iteration} of
+  \<Ponzi1> (Fig.~\ref{fig:ponzi1}), where a \<for> iterates
   \<this.investors> of type \<List<Contract\texttt{>}> but not all lists of
   \<Contract> are bounded in \<Ponzi1> (Ex.~\ref{ex:bounded_lists}).
-  But it does not warn
+  It does not warn
   in \<Ponzi2> (Fig.~\ref{fig:ponzi2}), since all lists of \<Contract> are bounded there
   (Ex.~\ref{ex:bounded_lists}). It warns instead
   at line~\ref{lottery1:iteration} of \<Lottery1> (Fig.~\ref{fig:lottery1}),
-  since the \<for> command there operates on \<this.round.sales> of type
+  since the \<for> command there iterates \<this.round.sales> of type
   \<List<TicketBatchSale\texttt{>}> but not all lists of
   \<TicketBatchSale> are bounded in \<Lottery1> (Ex.~\ref{ex:bounded_lists}).
-  It does not warn at that same \<for> command in \<Lottery2>
+  It does not warn at that same \<for> in \<Lottery2>
   (Fig.~\ref{fig:lottery2}), since all lists of \<TicketBatchSale> are bounded there
-  (Ex.~\ref{ex:bounded_lists}). These results are exactly
-  those foreseen in Sec.~\ref{sec:examples}.
+  (Ex.~\ref{ex:bounded_lists}). This is exactly
+  as foreseen in Sec.~\ref{sec:examples}.
 \end{example}
 %
-Ex.~\ref{ex:warnings} shows that our analysis is correct and precise on the
-examples from Sec.~\ref{sec:examples}. But boundedness is undecidable,
-hence, in general, our analysis will be correct but imprecise. For instance, by replacing
+Nevertheless, since boundedness is undecidable,
+our analysis must be imprecise sometime. For instance, by replacing, in Fig.~\ref{fig:ponzi2},
 the \<while> at line~\ref{ponzi2:require_limit} with an \<if>, the contract
-\<Ponzi2> has still no boundedess issue, since the length of list \<investors> can
+still has no boundedness issue, since the length of \<investors> can
 be $101$ at most at that line, hence a single \<removeFirst> is enough to bound its size
-to $100$ at the subsequent \<push> at line~\ref{ponzi2:expand}. But our analysis fails
-to identify that and issues a false alarm at the iteration at line~\ref{ponzi2:iteration}.
-In this case, some form of class invariant is needed, which is beyond the scope
+to $100$ at the subsequent \<push> at line~\ref{ponzi2:expand}. But our analysis
+issues a false alarm at the iteration at line~\ref{ponzi2:iteration}.
+Some form of class invariant is needed here, which is beyond the power
 of our analysis.

@@ -28,5 +28,6 @@ contract Ponzi2 {
             investors[i].call.value(eachInvestorGets)("");
 
         investors.push(msg.sender);
+	minimumInvestment = msg.value * 11 / 10;
     }
 }

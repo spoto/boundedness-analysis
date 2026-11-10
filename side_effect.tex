@@ -67,12 +67,12 @@ Only \<push> commands can enlarge a list (Fig.~\ref{fig:side_effect_full}).
 Namely, they might enlarge any list whose element type $t$ is that of their receiver.
 Methods (and hence constructors) use the interpetation $I$ as an oracle
 about the side-effects of their callee(s).
-A method call, in object-oriented languages, may actually call a subset
-$\{C_1.m\cdots C_k.m\}$ of the redefinitions of its static target method.
-A sound overapproximation of $\{C_1.m\cdots C_k.m\}$
-can always be easily inferred statically as the set of \emph{all} possible
-redefinitions. More precise analyses exist~\cite{TipP00},
-but they are probably overkill for smart contracts, that very rarely redefine methods.
+%A method call, in object-oriented languages, may actually call a subset
+%$\{C_1.m\cdots C_k.m\}$ of the redefinitions of its static target method.
+%A sound overapproximation of $\{C_1.m\cdots C_k.m\}$
+%can always be easily inferred statically as the set of \emph{all} possible
+%redefinitions. More precise analyses exist~\cite{TipP00},
+%but they are probably overkill for smart contracts, that very rarely redefine methods.
 
 The computation of the analysis
 starts from an interpretation $I_0$ that yields $\varnothing$ as

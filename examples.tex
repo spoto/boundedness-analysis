@@ -27,7 +27,7 @@ public class Ponzi1 extends Contract {
       investor.receive(eachInvestorGets);|\label{ponzi1:receive}|
 
     investors.push(caller);|\label{ponzi1:expand}|
-    minimumInvestment = amount * 11 / 10; // 10% more then before
+    minimumInvestment = amount * 11 / 10; // 10% more than before
   }
 }
   \end{lstlisting}
@@ -58,7 +58,7 @@ effectively blocked: \<invest()> can only fail for gas exhaustion, reverting
 all transaction updates, and some investors will never be able to redeem their investment.
 We will say that the list \<investors> and the loop at line~\ref{ponzi1:iteration}
 are \emph{unbounded} and we expect a sound boundedness analyzer to warn about an
-unbouded loop at line~\ref{ponzi1:iteration}\footnote{The \<receive()> at
+unbounded loop at line~\ref{ponzi1:iteration}\footnote{The \<receive()> at
 line~\ref{ponzi1:receive} in Fig.~\ref{fig:ponzi1} is the payment
 method that sends cryptocurrency to a \<Contract>. If it can be redefined
 (as in Solidity but differently from Takamaka, where it is \<final>), it becomes
@@ -89,7 +89,7 @@ public class Ponzi2 extends Contract {
       investor.receive(eachInvestorGets);|\label{ponzi2:receive}|
 
     investors.push(caller);|\label{ponzi2:expand}|
-    minimumInvestment = amount * 11 / 10; // 10% more then before
+    minimumInvestment = amount * 11 / 10; // 10% more than before
   }
 }
   \end{lstlisting}
@@ -263,8 +263,8 @@ public class Lottery2 extends Contract {
   \label{fig:lottery2}
 \end{figure}
 %
-This unboundedness bug is fixed by starting
-a new round as soon as a maximal number of sales in reached in the current round, as shown in
+The unboundedness bug is fixed by starting
+a new round as soon as a maximal number of sales is reached in the current round, as shown in
 Fig.~\ref{fig:lottery2} (see line~\ref{lottery2:changed}). Note that the list \<rounds> remains unbounded, but that
 is irrelevant. We expect a precise boundedness analyzer to issue no
 warning in Fig.~\ref{fig:lottery2}.

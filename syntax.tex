@@ -10,10 +10,10 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
 \begin{definition}[Leftvalues, Expressions and Commands]\label{def:exp_com}
   The sets of \emph{leftvalues} $\LValue$, \emph{expressions} $\Exp$ and
   \emph{commands} $\Com$ are defined by the grammar in Fig.~\ref{fig:syntax},
-  where $c$ is an integer literal constant of the language,
+  where $c$ is an integer literal constant,
   $v$ is a variable in $\Var$, $\mathit{aop}$ is an arithmetic
   operator ($+$, $-$, $*$\ldots) and $\mathit{cop}$ is a comparison operator
-  ($<,\le,=,\not=$\ldots).
+  ($<,\le,==,!\!=$\ldots).
   \begin{figure}
   \begin{align*}
     \lvalue::=&\ \mathit{v}\mid\field{\exp}{f}\mid\listread{\exp}{\exp}\\
@@ -29,7 +29,7 @@ contracts. In Solidity, they \emph{cannot} be iterated, by language design.
 \end{definition}
 %
 The syntax is kept minimal. For instance, the \texttt{or} in Fig.~\ref{fig:lottery2}
-must be written with a conditoinal with an inner conditional.
+must be written with a conditional with an inner conditional.
 %
 \begin{definition}[Program]\label{def:program}
   A \emph{program} is a collection of \emph{classes}.
@@ -77,7 +77,7 @@ must be written with a conditoinal with an inner conditional.
 We do not formalize the definition of $p_{\|next|}$, $p_{\|inner|}$ and so on, which
 should be obvious. For instance, the $p_{\|next|}$ of the last commands of the \emph{then} or
 \emph{else} branch of a conditional is the program point of the
-command after the conditional; for the last command of a \<for> loop,
+command after the conditional; for the last command of the body of a \<for> loop,
 $p_{\|next|}$ is the \<for> command where the loop starts.
 %
 \begin{example}
