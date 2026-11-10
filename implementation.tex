@@ -1,7 +1,7 @@
 \section{Implementation}\label{sec:implementation}
 %
 Our Java implementation of the boundedness analysis is
-freely available, with instructions online\footnote{\url{https://github.com/spoto/boundedness-analysis/blob/main/README.md}}
+freely available, with instructions online\footnote{\url{https://github.com/spoto/boundedness-analysis/blob/wtsc27/README.md}}
 to run and verify
 the experiments in this paper. It issues a warning in \<Ponzi1> and \<Lottery1>
 and none in \<Ponzi2> and \<Lottery2>, as expected.
@@ -17,7 +17,7 @@ GASOL~\cite{AlbertCGRR20}, but is now available as a stand-alone
 tool accessible through a web interface\footnote{\url{https://costa.fdi.ucm.es/gastap/}}.
 GASTAP requires smart contracts for Solidity $0.4.24$,
 hence we have translated our
-examples\footnote{\url{https://github.com/spoto/boundedness-analysis/tree/main/contracts}}.
+examples\footnote{\url{https://github.com/spoto/boundedness-analysis/tree/wtsc27/contracts}}.
 The only difficulty was
 that Solidity has no \<removeFirst()> method, hence the translation
 of \<Ponzi2> (Fig.~\ref{fig:ponzi2})
