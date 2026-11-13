@@ -7,21 +7,16 @@ the experiments in this paper. It issues a warning in \<Ponzi1> and \<Lottery1>
 and none in \<Ponzi2> and \<Lottery2>, as expected.
 
 We do not know of any other boundedness analysis to compare to ours.
-There are, however, tools that compute the gas cost of the methods,
-as a formula on the size of some variables.
-The problems are different but an intersection exists:
-if a method has constant gas cost, all iterations inside it
-must be bounded. In particular, we have run GASTAP
-on our examples. It was the gas cost inference engine of
-GASOL~\cite{AlbertCGRR20}, but is now available as a stand-alone
+Instead, we ran GASTAP, the gas cost inference engine of
+GASOL~\cite{AlbertCGRR20}, now available as a stand-alone
 tool accessible through a web interface\footnote{\url{https://costa.fdi.ucm.es/gastap/}}.
-GASTAP requires smart contracts for Solidity $0.4.24$,
-hence we have translated our
+Boundedness and gas cost analysis are different but have an intersection:
+if a method has constant gas cost, all iterations inside it must be bounded.
+GASTAP analyzes Solidity, hence we translated our
 examples\footnote{\url{https://github.com/spoto/boundedness-analysis/tree/wtsc27/contracts}}.
-The only difficulty was
-that Solidity has no \<removeFirst()> method, hence the translation
+Since Solidity has no \<removeFirst()> method, the translation
 of \<Ponzi2> (Fig.~\ref{fig:ponzi2})
-uses an extra variable \<start> to refer to the valid portion of the list \<investors>.
+uses an extra variable \<start> to refer to the valid portion of \<investors>.
 GASTAP reports a gas consumption, for \<invest()> of \<Ponzi1>, of
 $55160+6558*\|nat|(\<investors>)$\ie linear in the number of investors,
 which correctly cannot exclude an unboundedness issue in \<Ponzi1>.
@@ -38,6 +33,9 @@ what is relevant is that it is not constant, hence
 nothing can be concluded about the boundedness of the loop
 at line~\ref{lottery1:iteration} in \<Lottery1> (Fig.~\ref{fig:lottery1})
 and in \<Lottery2>, while
-we know that that loop is bounded in \<Lottery2> and unbounded in \<Lottery1>.
+we know that it is bounded in \<Lottery2> and unbounded in \<Lottery1>.
+The authors of GASTAP have kindly updated their tool to the latest version for us,
+but the results became worse (similar for \<Ponzi1>, while \emph{No upper bound could be inferred (uberror)}
+for the other three contracts).
 Again, this just shows that inference of gas costs and boundedness analysis
 have an intersection, but they are different problems that expect different solutions.

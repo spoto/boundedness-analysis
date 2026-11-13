@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
-// This program has no boundedness bug inside drawWinner()
-pragma solidity ^0.4.24;
+// This program has a boundedness bug inside drawWinner()
+pragma solidity ^0.8.4;
 
 contract Lottery2 {
 
@@ -27,10 +27,9 @@ contract Lottery2 {
     uint public duration;
 
     // duration is a time specification
-    constructor (uint _duration) public {
+    constructor (uint _duration) {
         duration = _duration;
-        rounds.length++;
-        Round storage round = rounds[rounds.length - 1];
+        Round storage round = rounds.push();
         round.endTime = block.timestamp + _duration;
     }
 
@@ -39,8 +38,7 @@ contract Lottery2 {
 
         Round storage last = rounds[rounds.length - 1];
         if (block.timestamp > last.endTime || last.sales.length >= 5000) {
-            rounds.length++;
-            last = rounds[rounds.length - 1];
+            last = rounds.push();
             last.endTime = block.timestamp + duration;
         }
  
@@ -65,7 +63,8 @@ contract Lottery2 {
             TicketSale memory sale = round.sales[i];
             if (sale.tickets > numWinningTicket) {
                 round.winner = sale.buyer;
-                bool success = round.winner.call.value(TICKET_PRICE * round.totalTickets)("");
+                round.winner.call{value: TICKET_PRICE * round.totalTickets}("");
+                break;
             }
             else
                 numWinningTicket -= sale.tickets;

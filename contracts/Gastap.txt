@@ -1,0 +1,4 @@
+Ponzi1: (nat(call) + 41724)*nat(g0) + 69611
+Ponzi2: No upper bound could be inferred for invest() (uberror)
+Lottery1: for drawWinner(uint256) (uberror)
+Lottery2: No upper bound could be inferred for drawWinner(uint256) (uberror)
